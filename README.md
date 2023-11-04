@@ -10,7 +10,7 @@
 
 To install, please refer to the [extensions documentation](https://github.com/rife2/bld/wiki/Extensions).
 
-To compile the Kotlin source code from the current project:
+To compile the Kotlin source code from the current project located in `src/main/kotlin` and `src/test/kotlin`:
 
 ```java
 @BuildCommand(summary = "Compile the Kotlin project")
@@ -25,7 +25,6 @@ public void compile() throws IOException {
 ```text
 ./bld compile
 ```
+- [View Examples Project](https://github.com/rife2/bld-kotlin/tree/main/examples/)
 
 Please check the [Compile Operation documentation](https://rife2.github.io/bld-kotlin/rife/bld/extension/CompileKotlinOperation.html#method-summary) for all available configuration options.
-
-You may also want to look at the [example project](https://github.com/rife2/bld-kotlin/tree/main/examples/).
