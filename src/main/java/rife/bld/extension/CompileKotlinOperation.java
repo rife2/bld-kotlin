@@ -115,8 +115,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
     /**
      * Provides a list of entries for the main compilation classpath.
-     * <p>
-     * A copy will be created to allow this list to be independently modifiable.
      *
      * @param classpath a list of classpath entries
      * @return this operation instance
@@ -128,8 +126,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
     /**
      * Retrieves the list of entries for the main compilation classpath.
-     * <p>
-     * This is a modifiable list that can be retrieved and changed.
      *
      * @return the main compilation classpath list
      */
@@ -334,8 +330,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
     /**
      * Provides a list of main source directories that should be compiled.
-     * <p>
-     * A copy will be created to allow this list to be independently modifiable.
      *
      * @param directories a list of main source directories
      * @return this operation instance
@@ -347,8 +341,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
     /**
      * Retrieves the list of main source directories that should be compiled.
-     * <p>
-     * This is a modifiable list that can be retrieved and changed.
      *
      * @return the list of main source directories to compile
      */
@@ -369,8 +361,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
     /**
      * Provides a list of main files that should be compiled.
-     * <p>
-     * A copy will be created to allow this list to be independently modifiable.
      *
      * @param files a list of main files
      * @return this operation instance
@@ -382,8 +372,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
     /**
      * Retrieves the list of main files that should be compiled.
-     * <p>
-     * This is a modifiable list that can be retrieved and changed.
      *
      * @return the list of main files to compile
      */
@@ -404,8 +392,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
     /**
      * Provides a list of test source directories that should be compiled.
-     * <p>
-     * A copy will be created to allow this list to be independently modifiable.
      *
      * @param directories a list of test source directories
      * @return this operation instance
@@ -417,8 +403,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
     /**
      * Retrieves the list of test source directories that should be compiled.
-     * <p>
-     * This is a modifiable list that can be retrieved and changed.
      *
      * @return the list of test source directories to compile
      */
@@ -439,8 +423,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
     /**
      * Provides a list of test files that should be compiled.
-     * <p>
-     * A copy will be created to allow this list to be independently modifiable.
      *
      * @param files a list of test files
      * @return this operation instance
@@ -452,8 +434,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
     /**
      * Retrieves the list of test files that should be compiled.
-     * <p>
-     * This is a modifiable list that can be retrieved and changed.
      *
      * @return the list of test files to compile
      */
