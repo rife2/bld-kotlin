@@ -42,7 +42,7 @@ public class CompileKotlinOperationBuild extends Project {
 
         scope(compile)
                 .include(dependency("org.jetbrains.kotlin", "kotlin-compiler", version(1, 9, 20)))
-                .include(dependency("com.uwyn.rife2", "bld", version(1, 7, 6, "SNAPSHOT")));
+                .include(dependency("com.uwyn.rife2", "bld", version(1, 7, 5)));
         scope(test)
                 .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 10, 0)))
                 .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 10, 0)))
