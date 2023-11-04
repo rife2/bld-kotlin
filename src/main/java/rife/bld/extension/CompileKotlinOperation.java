@@ -37,8 +37,8 @@ import java.util.regex.Pattern;
 public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOperation> {
     public static final Pattern KOTLIN_FILE_PATTERN = Pattern.compile("^.*\\.kt$");
     private static final Logger LOGGER = Logger.getLogger(CompileKotlinOperation.class.getName());
-    public final Collection<String> compileOptions_ = new ArrayList<>();
     private final Collection<String> compileMainClasspath_ = new ArrayList<>();
+    private final Collection<String> compileOptions_ = new ArrayList<>();
     private final Collection<String> compileTestClasspath_ = new ArrayList<>();
     private final Collection<File> mainSourceDirectories_ = new ArrayList<>();
     private final Collection<File> mainSourceFiles_ = new ArrayList<>();
@@ -49,6 +49,11 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
     public static Collection<File> getKotlinFileList(File directory) {
         if (directory == null) {
+            return Collections.emptyList();
+        } else if (!directory.exists()) {
+            if (LOGGER.isLoggable(Level.WARNING)) {
+                LOGGER.warning("Directory not found: " + directory.getAbsolutePath());
+            }
             return Collections.emptyList();
         } else {
             var dir_abs = directory.getAbsoluteFile();
@@ -114,7 +119,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param classpath a list of classpath entries
      * @return this operation instance
      */
-    public CompileKotlinOperation compileMainClasspath(List<String> classpath) {
+    public CompileKotlinOperation compileMainClasspath(Collection<String> classpath) {
         compileMainClasspath_.addAll(classpath);
         return this;
     }

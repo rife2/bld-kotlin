@@ -70,8 +70,6 @@ public class CompileKotlinOperationBuild extends Project {
                         .url("https://github.com/rife2/bld-kotlin"))
                 .signKey(property("sign.key"))
                 .signPassphrase(property("sign.passphrase"));
-
-        testOperation().mainClass("rife.bld.extension.CompileKotlinOperationTest");
     }
 
     public static void main(String[] args) {

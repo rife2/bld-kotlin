@@ -16,17 +16,78 @@
 
 package rife.bld.extension;
 
-@SuppressWarnings({"PMD.TestClassWithoutTestCases", "PMD.SystemPrintln"})
-public class CompileKotlinOperationTest {
-    void verifyHello() {
-        if (!"Hello World!".equals(new CompileKotlinOperation().getMessage())) {
-            throw new AssertionError();
-        } else {
-            System.out.println("Succeeded");
-        }
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import rife.tools.FileUtils;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Objects;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class CompileKotlinOperationTest {
+
+    @BeforeAll
+    static void beforeAll() {
+        var level = Level.ALL;
+        var logger = Logger.getLogger("rife.bld.extension");
+        var consoleHandler = new ConsoleHandler();
+        consoleHandler.setLevel(level);
+        logger.addHandler(consoleHandler);
+        logger.setLevel(level);
+        logger.setUseParentHandlers(false);
     }
 
-    public static void main(String[] args) {
-        new CompileKotlinOperationTest().verifyHello();
+    @Test
+    void testExecute() throws IOException {
+        var tmpDir = Files.createTempDirectory("bld-kotlin").toFile();
+
+        try {
+            var buildDir = new File(tmpDir, "build");
+            var mainDir = new File(buildDir, "main");
+            var testDir = new File(buildDir, "test");
+
+            assertThat(mainDir.mkdirs()).isTrue();
+            assertThat(testDir.mkdirs()).isTrue();
+
+            var compileJars = new ArrayList<String>();
+            for (var f : Objects.requireNonNull(new File("examples/lib/compile").listFiles())) {
+                compileJars.add(f.getAbsolutePath());
+            }
+
+            var testJars = new ArrayList<String>();
+            for (var f : Objects.requireNonNull(new File("examples/lib/test").listFiles())) {
+                testJars.add(f.getAbsolutePath());
+            }
+
+            var op = new CompileKotlinOperation()
+                    .compileOptions("-verbose")
+                    .buildMainDirectory(mainDir)
+                    .buildTestDirectory(testDir)
+                    .compileMainClasspath(compileJars)
+                    .compileTestClasspath(testJars)
+                    .compileTestClasspath(compileJars)
+                    .compileTestClasspath(mainDir.getAbsolutePath())
+                    .mainSourceFiles(CompileKotlinOperation.getKotlinFileList(new File("examples/src/main/kotlin")))
+                    .testSourceFiles(CompileKotlinOperation.getKotlinFileList(new File("examples/src/test/kotlin")));
+
+            op.execute();
+
+            assertThat(tmpDir).isNotEmptyDirectory();
+            assertThat(mainDir).isNotEmptyDirectory();
+            assertThat(testDir).isNotEmptyDirectory();
+
+            var exampleClass = Path.of(mainDir.getAbsolutePath(), "com", "example", "Example.class").toFile();
+            assertThat(exampleClass).exists();
+        } finally {
+            FileUtils.deleteDirectory(tmpDir);
+        }
     }
 }
