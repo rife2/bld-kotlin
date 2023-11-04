@@ -16,6 +16,7 @@
 
 package rife.bld.extension;
 
+@SuppressWarnings({"PMD.TestClassWithoutTestCases", "PMD.SystemPrintln"})
 public class CompileKotlinOperationTest {
     void verifyHello() {
         if (!"Hello World!".equals(new CompileKotlinOperation().getMessage())) {

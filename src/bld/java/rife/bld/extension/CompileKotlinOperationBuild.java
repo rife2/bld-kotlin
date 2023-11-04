@@ -16,13 +16,12 @@
 
 package rife.bld.extension;
 
+import rife.bld.BuildCommand;
 import rife.bld.Project;
-import rife.bld.operations.RunOperation;
 import rife.bld.publish.PublishDeveloper;
 import rife.bld.publish.PublishLicense;
 import rife.bld.publish.PublishScm;
 
-import java.io.File;
 import java.util.List;
 
 import static rife.bld.dependencies.Repository.*;
@@ -77,5 +76,14 @@ public class CompileKotlinOperationBuild extends Project {
 
     public static void main(String[] args) {
         new CompileKotlinOperationBuild().start(args);
+    }
+
+    @BuildCommand(summary = "Runs PMD analysis")
+    public void pmd() {
+        new PmdOperation()
+                .fromProject(this)
+                .failOnViolation(true)
+                .ruleSets("config/pmd.xml")
+                .execute();
     }
 }

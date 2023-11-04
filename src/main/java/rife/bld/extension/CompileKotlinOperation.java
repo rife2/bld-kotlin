@@ -203,6 +203,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     /**
      * Performs the compile operation.
      */
+    @Override
+    @SuppressWarnings("PMD.SystemPrintln")
     public void execute()
             throws IOException {
         executeCreateBuildDirectories();
@@ -259,9 +261,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         args.addAll(compileOptions());
 
         // source
-        sources.forEach(f -> {
-            args.add(f.getAbsolutePath());
-        });
+        sources.forEach(f -> args.add(f.getAbsolutePath()));
 
         if (LOGGER.isLoggable(Level.FINE) && !silent()) {
             LOGGER.fine("kotlinc " + String.join(" ", args));
@@ -292,15 +292,11 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * Part of the {@link #execute} operation, creates the build directories.
      */
     protected void executeCreateBuildDirectories() throws IOException {
-        if (buildMainDirectory() != null && !buildMainDirectory().exists()) {
-            if (!buildMainDirectory().mkdirs()) {
-                throw new IOException("Could not created build main directory: " + buildMainDirectory().getAbsolutePath());
-            }
+        if (buildMainDirectory() != null && !buildMainDirectory().exists() && !buildMainDirectory().mkdirs()) {
+            throw new IOException("Could not created build main directory: " + buildMainDirectory().getAbsolutePath());
         }
-        if (buildTestDirectory() != null && !buildTestDirectory().exists()) {
-            if (!buildTestDirectory().mkdirs()) {
-                throw new IOException("Could not created build test directory: " + buildTestDirectory().getAbsolutePath());
-            }
+        if (buildTestDirectory() != null && !buildTestDirectory().exists() && !buildTestDirectory().mkdirs()) {
+            throw new IOException("Could not created build test directory: " + buildTestDirectory().getAbsolutePath());
         }
     }
 
