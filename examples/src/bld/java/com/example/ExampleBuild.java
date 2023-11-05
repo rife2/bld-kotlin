@@ -4,6 +4,7 @@ import rife.bld.BaseProject;
 import rife.bld.BuildCommand;
 import rife.bld.extension.CompileKotlinOperation;
 import rife.bld.extension.dokka.DokkaOperation;
+import rife.bld.extension.dokka.LoggingLevel;
 import rife.bld.operations.exceptions.ExitStatusException;
 
 import java.io.IOException;
@@ -57,6 +58,7 @@ public class ExampleBuild extends BaseProject {
     public void javadoc() throws ExitStatusException, IOException, InterruptedException {
         new DokkaOperation()
                 .fromProject(this)
+                .loggingLevel(LoggingLevel.INFO)
                 .execute();
     }
 }

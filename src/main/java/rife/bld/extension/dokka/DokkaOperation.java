@@ -18,6 +18,7 @@ package rife.bld.extension.dokka;
 
 import rife.bld.BaseProject;
 import rife.bld.operations.AbstractProcessOperation;
+import rife.tools.StringUtils;
 
 import java.io.File;
 import java.util.*;
@@ -36,20 +37,20 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     private final Map<String, String> globalLinks_ = new ConcurrentHashMap<>();
     private final Collection<String> globalPackageOptions_ = new ArrayList<>();
     private final Collection<String> globalSrcLinks_ = new ArrayList<>();
-    private final Collection<File> includes_ = new ArrayList<>();
+    private final Collection<String> includes_ = new ArrayList<>();
     private final Map<String, String> pluginConfiguration_ = new ConcurrentHashMap<>();
     private final Collection<String> pluginsClasspath_ = new ArrayList<>();
-    private Boolean delayTemplateSubstitution_;
-    private Boolean failOnWarning_;
+    private boolean delayTemplateSubstitution_;
+    private boolean failOnWarning_;
     private LoggingLevel loggingLevel_;
     private String moduleName_;
     private String moduleVersion_;
-    private Boolean noSuppressObviousFunctions_;
-    private Boolean offlineMode_;
+    private boolean noSuppressObviousFunctions_;
+    private boolean offlineMode_;
     private File outputDir_;
     private BaseProject project_;
     private SourceSet sourceSet_;
-    private Boolean suppressInheritedMembers_;
+    private boolean suppressInheritedMembers_;
 
     /**
      * Sets the delay substitution of some elements. Used in incremental builds of multimodule projects.
@@ -104,12 +105,101 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
             args.add(String.join(" ", sourceSet_.args()));
         }
 
-        // -outputdir
-        if (outputDir_ == null) {
-            outputDir_ = new File("./dokka");
+        // -outputDir
+        if (outputDir_ != null) {
+            if (!outputDir_.exists()) {
+                if (!outputDir_.mkdirs()) {
+                    throw new RuntimeException("Could not create: " + outputDir_.getAbsolutePath());
+                }
+            }
+
+            args.add("-outputDir");
+            args.add(outputDir_.getAbsolutePath());
         }
-        args.add("-outputDir");
-        args.add(outputDir_.getAbsolutePath());
+
+        // -delayTemplateSubstitution
+        if (delayTemplateSubstitution_) {
+            args.add("-delayTemplateSubstitution");
+            args.add(String.valueOf(delayTemplateSubstitution_));
+        }
+
+        // -failOnWarning
+        if (failOnWarning_) {
+            args.add("-failOnWarning");
+            args.add(String.valueOf(failOnWarning_));
+        }
+
+        // -globalLinks_
+        if (!globalLinks_.isEmpty()) {
+            args.add("-globalLinks");
+            var links = new ArrayList<String>();
+            globalLinks_.forEach((k, v) ->
+                    links.add(String.format("{%s}^{%s}", k, v)));
+            args.add(String.join("^^", links));
+        }
+
+        // -globalPackageOptions
+        if (!globalPackageOptions_.isEmpty()) {
+            args.add("-globalPackageOptions");
+            args.add(String.join(";", globalPackageOptions_));
+        }
+
+        // -globalSrcLinks
+        if (!globalSrcLinks_.isEmpty()) {
+            args.add("-globalSrcLinks_");
+            args.add(String.join(";", globalSrcLinks_));
+        }
+
+        // -includes
+        if (!includes_.isEmpty()) {
+            args.add("-includes");
+            args.add(String.join(";", includes_));
+        }
+
+        // -loggingLevel
+        if (loggingLevel_ != null) {
+            args.add("-loggingLevel");
+            args.add(loggingLevel_.name().toLowerCase());
+        }
+
+        // -moduleName
+        if (moduleName_ != null) {
+            args.add("-moduleName");
+            args.add(moduleName_);
+        }
+
+        // -moduleVersion
+        if (moduleVersion_ != null) {
+            args.add("-moduleVersion");
+            args.add(moduleVersion_);
+        }
+
+        // -noSuppressObviousFunctions
+        if (noSuppressObviousFunctions_) {
+            args.add("-noSuppressObviousFunctions");
+            args.add(String.valueOf(noSuppressObviousFunctions_));
+        }
+
+        // -offlineMode
+        if (offlineMode_) {
+            args.add("-offlineMode");
+            args.add(String.valueOf(offlineMode_));
+        }
+
+        // -pluginConfiguration
+        if (!pluginConfiguration_.isEmpty()) {
+            args.add("-pluginConfiguration");
+            var confs = new ArrayList<String>();
+            pluginConfiguration_.forEach((k, v) ->
+                    confs.add(String.format("{%s}={%s}", StringUtils.encodeJson(k), StringUtils.encodeJson(v))));
+            args.add(String.join("^^", confs));
+        }
+
+        // -suppressInheritedMembers
+        if (suppressInheritedMembers_) {
+            args.add("-suppressInheritedMembers");
+            args.add(String.valueOf(suppressInheritedMembers_));
+        }
 
         if (LOGGER.isLoggable(Level.FINE)) {
             LOGGER.fine(String.join(" ", args));
@@ -130,8 +220,9 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
                 project.libBldDirectory(),
                 "^.*(dokka-base|analysis-kotlin-descriptors|javadoc-plugin|kotlin-as-java-plugin|korte-jvm).*\\.jar$");
         pluginsClasspath_.addAll(plugins);
-        sourceSet_ = new SourceSet().src(new File(project.srcMainDirectory(), "kotlin"));
+        sourceSet_ = new SourceSet().src(new File(project.srcMainDirectory(), "kotlin").getAbsolutePath());
         outputDir_ = new File(project.buildDirectory(), "javadoc");
+        moduleName_ = project.name();
         return this;
     }
 
@@ -255,7 +346,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
      * @param files one or more files
      * @return this operation instance
      */
-    public DokkaOperation includes(File... files) {
+    public DokkaOperation includes(String... files) {
         includes_.addAll(Arrays.asList(files));
         return this;
     }
@@ -266,7 +357,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
      * @param files the list of files
      * @return this operation instance
      */
-    public DokkaOperation includss(Collection<File> files) {
+    public DokkaOperation includes(Collection<String> files) {
         includes_.addAll(files);
         return this;
     }

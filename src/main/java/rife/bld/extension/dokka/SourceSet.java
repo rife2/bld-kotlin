@@ -16,7 +16,6 @@
 
 package rife.bld.extension.dokka;
 
-import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -27,25 +26,26 @@ import java.util.concurrent.ConcurrentHashMap;
  * @since 1.0
  */
 public class SourceSet {
-    private final Collection<File> classpath_ = new ArrayList<>();
+    private static final String SEMICOLON = ";";
+    private final Collection<String> classpath_ = new ArrayList<>();
     private final Map<String, String> dependentSourceSets_ = new ConcurrentHashMap<>();
     private final Collection<DocumentedVisibility> documentedVisibilities_ = new ArrayList<>();
     private final Map<String, String> externalDocumentationLinks_ = new ConcurrentHashMap<>();
-    private final Collection<File> includes_ = new ArrayList<>();
+    private final Collection<String> includes_ = new ArrayList<>();
     private final Collection<String> perPackageOptions_ = new ArrayList<>();
-    private final Collection<File> samples_ = new ArrayList<>();
+    private final Collection<String> samples_ = new ArrayList<>();
     private final Map<String, String> srcLinks_ = new ConcurrentHashMap<>();
-    private final Collection<File> src_ = new ArrayList<>();
-    private final Collection<File> suppressedFiles_ = new ArrayList<>();
+    private final Collection<String> src_ = new ArrayList<>();
+    private final Collection<String> suppressedFiles_ = new ArrayList<>();
     private AnalysisPlatform analysisPlatform_;
     private String apiVersion_;
     private String displayName_;
     private int jdkVersion_;
     private String languageVersion_;
-    private Boolean noJdkLink_;
+    private boolean noJdkLink_;
     private boolean noSkipEmptyPackages_;
-    private Boolean noStdlibLink_;
-    private Boolean reportUndocumented_;
+    private boolean noStdlibLink_;
+    private boolean reportUndocumented_;
     private boolean skipDeprecated_;
     private String sourceSetName_;
 
@@ -79,10 +79,138 @@ public class SourceSet {
     public List<String> args() {
         var args = new ArrayList<String>();
 
+        // -analysisPlatform
+        if (analysisPlatform_ != null) {
+            args.add("-analysisPlatform");
+            args.add(analysisPlatform_.name().toLowerCase());
+        }
+
+        // -apiVersion
+        if (apiVersion_ != null) {
+            args.add("-apiVersion");
+            args.add(apiVersion_);
+        }
+
+        // -classpath
+        if (!classpath_.isEmpty()) {
+            args.add("-classpath");
+            args.add(String.join(SEMICOLON, classpath_));
+        }
+
+        // -dependentSourceSets
+        if (!dependentSourceSets_.isEmpty()) {
+            args.add("-dependentSourceSets");
+            var deps = new ArrayList<String>();
+            dependentSourceSets_.forEach((k, v) -> deps.add(String.format("%s/%s", k, v)));
+            args.add(String.join(SEMICOLON, deps));
+        }
+
+        // -displayName
+        if (displayName_ != null) {
+            args.add("-displayName");
+            args.add(displayName_);
+        }
+
+        // -documentedVisibilities
+        if (!documentedVisibilities_.isEmpty()) {
+            args.add("-documentedVisibilities");
+            var vis = new ArrayList<String>();
+            documentedVisibilities_.forEach(d -> vis.add(d.name().toLowerCase()));
+            args.add(String.join(SEMICOLON, vis));
+        }
+
+        // -externalDocumentationLinks
+        if (!externalDocumentationLinks_.isEmpty()) {
+            args.add("-externalDocumentationLinks");
+            var links = new ArrayList<String>();
+            externalDocumentationLinks_.forEach((k, v) -> links.add(String.format("{%s}^{%s}", k, v)));
+            args.add(String.join("^^", links));
+        }
+
+        // -jdkVersion
+        if (jdkVersion_ > 0) {
+            args.add("-jdkVersion");
+            args.add(String.valueOf(jdkVersion_));
+        }
+
+        // -includes
+        if (!includes_.isEmpty()) {
+            args.add("-includes");
+            args.add(String.join(SEMICOLON, includes_));
+        }
+
+        // -languageVersion
+        if (languageVersion_ != null) {
+            args.add("-languageVersion");
+            args.add(languageVersion_);
+        }
+
+        // -noJdkLink
+        if (noJdkLink_) {
+            args.add("-noJdkLink");
+            args.add(String.valueOf(noJdkLink_));
+        }
+
+        // -noSkipEmptyPackages
+        if (noSkipEmptyPackages_) {
+            args.add("-noSkipEmptyPackages");
+            args.add(String.valueOf(noSkipEmptyPackages_));
+        }
+
+        // -noStdlibLink
+        if (noStdlibLink_) {
+            args.add("-noStdlibLink");
+            args.add(String.valueOf(noStdlibLink_));
+        }
+
+        // -reportUndocumented
+        if (reportUndocumented_) {
+            args.add("-reportUndocumented");
+            args.add(String.valueOf(reportUndocumented_));
+        }
+
+        // -perPackageOptions
+        if (!perPackageOptions_.isEmpty()) {
+            args.add("-perPackageOptions");
+            args.add(String.join(SEMICOLON, perPackageOptions_));
+        }
+
+        // -samples
+        if (!samples_.isEmpty()) {
+            args.add("-samples");
+            args.add(String.join(SEMICOLON, samples_));
+        }
+
+        // -skipDeprecated
+        if (skipDeprecated_) {
+            args.add("-skipDeprecated");
+            args.add(String.valueOf(skipDeprecated_));
+        }
+
         // -src
         if (!src_.isEmpty()) {
             args.add("-src");
-            src_.forEach(s -> args.add(s.getAbsolutePath() + ';'));
+            args.add(String.join(SEMICOLON, src_));
+        }
+
+        // -srcLinks
+        if (!srcLinks_.isEmpty()) {
+            args.add("-srcLinks");
+            var links = new ArrayList<String>();
+            srcLinks_.forEach((k, v) -> links.add(String.format("{%s}={%s}", k, v)));
+            args.add(String.join(SEMICOLON, links));
+        }
+
+        // -sourceSetName
+        if (sourceSetName_ != null) {
+            args.add("sourceSetName");
+            args.add(sourceSetName_);
+        }
+
+        // -suppressedFiles
+        if (!suppressedFiles_.isEmpty()) {
+            args.add("-suppressedFiles");
+            args.add(String.join(SEMICOLON, suppressedFiles_));
         }
 
         return args;
@@ -94,7 +222,7 @@ public class SourceSet {
      * @param classpath one or more classpath
      * @return this operation instance
      */
-    public SourceSet classpath(File... classpath) {
+    public SourceSet classpath(String... classpath) {
         classpath_.addAll(Arrays.asList(classpath));
         return this;
     }
@@ -105,7 +233,7 @@ public class SourceSet {
      * @param classpath the list of classpath
      * @return this operation instance
      */
-    public SourceSet classpath(Collection<File> classpath) {
+    public SourceSet classpath(Collection<String> classpath) {
         classpath_.addAll(classpath);
         return this;
     }
@@ -186,7 +314,7 @@ public class SourceSet {
      * @param files one or more files
      * @return this operation instance
      */
-    public SourceSet includes(File... files) {
+    public SourceSet includes(String... files) {
         includes_.addAll(Arrays.asList(files));
         return this;
     }
@@ -197,7 +325,7 @@ public class SourceSet {
      * @param files the list of files
      * @return this operation instance
      */
-    public SourceSet includss(Collection<File> files) {
+    public SourceSet includss(Collection<String> files) {
         includes_.addAll(files);
         return this;
     }
@@ -312,7 +440,7 @@ public class SourceSet {
      * @param samples the list of samples
      * @return this operation instance
      */
-    public SourceSet samples(Collection<File> samples) {
+    public SourceSet samples(Collection<String> samples) {
         samples_.addAll(samples);
         return this;
     }
@@ -323,7 +451,7 @@ public class SourceSet {
      * @param samples nne or more samples
      * @return this operation instance
      */
-    public SourceSet samples(File... samples) {
+    public SourceSet samples(String... samples) {
         samples_.addAll(List.of(samples));
         return this;
     }
@@ -356,7 +484,7 @@ public class SourceSet {
      * @param src the list of source code roots
      * @return this operation instance
      */
-    public SourceSet src(Collection<File> src) {
+    public SourceSet src(Collection<String> src) {
         src_.addAll(src);
         return this;
     }
@@ -367,7 +495,7 @@ public class SourceSet {
      * @param src pne ore moe source code roots
      * @return this operation instance
      */
-    public SourceSet src(File... src) {
+    public SourceSet src(String... src) {
         src_.addAll(List.of(src));
         return this;
     }
@@ -391,7 +519,7 @@ public class SourceSet {
      * @param suppressedFiles the list of suppressed files
      * @return this operation instance
      */
-    public SourceSet suppressedFiles(Collection<File> suppressedFiles) {
+    public SourceSet suppressedFiles(Collection<String> suppressedFiles) {
         suppressedFiles_.addAll(suppressedFiles);
         return this;
     }
@@ -402,7 +530,7 @@ public class SourceSet {
      * @param suppressedFiles one or moe suppressed files
      * @return this operation instance
      */
-    public SourceSet suppressedFiles(File... suppressedFiles) {
+    public SourceSet suppressedFiles(String... suppressedFiles) {
         suppressedFiles_.addAll(Arrays.asList(suppressedFiles));
         return this;
     }

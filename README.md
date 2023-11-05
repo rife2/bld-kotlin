@@ -10,7 +10,8 @@
 
 To install, please refer to the [extensions documentation](https://github.com/rife2/bld/wiki/Extensions).
 
-To compile the Kotlin source code from the current project located in `src/main/kotlin` and `src/test/kotlin`:
+## Compile Kotlin Source Code
+To compile the source code located in `src/main/kotlin` and `src/test/kotlin` from the current project:
 
 ```java
 @BuildCommand(summary = "Compile the Kotlin project")
@@ -27,4 +28,25 @@ public void compile() throws IOException {
 ```
 - [View Examples Project](https://github.com/rife2/bld-kotlin/tree/main/examples/)
 
-Please check the [Compile Operation documentation](https://rife2.github.io/bld-kotlin/rife/bld/extension/CompileKotlinOperation.html#method-summary) for all available configuration options.
+Please check the [Compile Operation documentation](https://rife2.github.io/bld-kotlin/rife/bld/extension/CompileKotlinOperation.html#method-summary)
+for all available configuration options.
+
+## Generate Javadoc
+
+To generate the Javadoc using [Dokka](https://github.com/Kotlin/dokka):
+
+```java
+@BuildCommand(summary = "Generates Javadoc for the project")
+public void javadoc() throws ExitStatusException, IOException, InterruptedException {
+    new DokkaOperation()
+            .fromProject(this)
+            .execute();
+}
+```
+```
+./bld javadoc
+```
+- [View Examples Project](https://github.com/rife2/bld-kotlin/tree/main/examples/)
+
+Please check the [Dokka Operation documentation](https://rife2.github.io/bld-kotlin/rife/bld/extension/dokka/DokkaOperation.html)
+for all available configuration options.
