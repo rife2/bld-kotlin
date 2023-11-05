@@ -481,7 +481,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
      * @param sourceSet the source set configurations
      * @return this operation instance
      */
-    private DokkaOperation sourceSet(SourceSet sourceSet) {
+    public DokkaOperation sourceSet(SourceSet sourceSet) {
         sourceSet_ = sourceSet;
         return this;
     }
