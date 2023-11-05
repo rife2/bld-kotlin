@@ -61,8 +61,8 @@ class DokkaOperationTest {
                 "-jar", path + "/lib/bld/dokka-cli-1.9.10.jar",
                 "-pluginsClasspath", path + "/lib/bld/dokka-base-1.9.10.jar;" +
                         path + "/lib/bld/analysis-kotlin-descriptors-1.9.10.jar;" +
-                        path + "/lib/bld/korte-jvm-2.7.0.jar;" +
                         path + "/lib/bld/javadoc-plugin-1.9.10.jar;" +
+                        path + "/lib/bld/korte-jvm-2.7.0.jar;" +
                         path + "/lib/bld/kotlin-as-java-plugin-1.9.10.jar;path1;path2;path3;path4",
                 "-sourceSet", "-src " + path + "/src/main/kotlin",
                 "-outputDir", path + "/build",
@@ -83,8 +83,8 @@ class DokkaOperationTest {
         assertThat(args).hasSize(matches.size());
 
         IntStream.range(0, args.size()).forEach(i -> {
-            if (args.get(1).contains(".jar;")) {
-               var jars =  args.get(1).split(";");
+            if (args.get(i).contains(".jar;")) {
+               var jars =  args.get(i).split(";");
                 Arrays.stream(jars).forEach(jar -> assertThat(matches.get(i)).contains(jar));
             } else{
                 assertThat(args.get(i)).isEqualTo(matches.get(i));
