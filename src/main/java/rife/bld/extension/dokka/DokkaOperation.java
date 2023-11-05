@@ -32,6 +32,7 @@ import java.util.logging.Logger;
  * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
  * @since 1.0
  */
+@SuppressWarnings("PMD.AvoidThrowingRawExceptionTypes")
 public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     private final Logger LOGGER = Logger.getLogger(DokkaOperation.class.getName());
     private final Map<String, String> globalLinks_ = new ConcurrentHashMap<>();
@@ -107,10 +108,8 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
 
         // -outputDir
         if (outputDir_ != null) {
-            if (!outputDir_.exists()) {
-                if (!outputDir_.mkdirs()) {
-                    throw new RuntimeException("Could not create: " + outputDir_.getAbsolutePath());
-                }
+            if (!outputDir_.exists() && !outputDir_.mkdirs()) {
+                throw new RuntimeException("Could not create: " + outputDir_.getAbsolutePath());
             }
 
             args.add("-outputDir");
@@ -244,10 +243,8 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
             var files = directory.listFiles();
             if (files != null) {
                 for (var f : files) {
-                    if (!f.getName().contains("-sources")) {
-                        if (f.getName().matches(regex)) {
-                            jars.add(f.getAbsolutePath());
-                        }
+                    if (!f.getName().contains("-sources") && f.getName().matches(regex)) {
+                        jars.add(f.getAbsolutePath());
                     }
                 }
             }

@@ -203,7 +203,7 @@ public class SourceSet {
 
         // -sourceSetName
         if (sourceSetName_ != null) {
-            args.add("sourceSetName");
+            args.add("-sourceSetName");
             args.add(sourceSetName_);
         }
 
@@ -325,7 +325,7 @@ public class SourceSet {
      * @param files the list of files
      * @return this operation instance
      */
-    public SourceSet includss(Collection<String> files) {
+    public SourceSet includes(Collection<String> files) {
         includes_.addAll(files);
         return this;
     }
