@@ -3,6 +3,8 @@ package com.example;
 import rife.bld.BaseProject;
 import rife.bld.BuildCommand;
 import rife.bld.extension.CompileKotlinOperation;
+import rife.bld.extension.dokka.DokkaOperation;
+import rife.bld.operations.exceptions.ExitStatusException;
 
 import java.io.IOException;
 import java.util.List;
@@ -48,6 +50,13 @@ public class ExampleBuild extends BaseProject {
         new CompileKotlinOperation()
                 .fromProject(this)
                 .compileOptions("-verbose")
+                .execute();
+    }
+
+    @BuildCommand(summary = "Generates Javadoc for the project")
+    public void javadoc() throws ExitStatusException, IOException, InterruptedException {
+        new DokkaOperation()
+                .fromProject(this)
                 .execute();
     }
 }

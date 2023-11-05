@@ -105,7 +105,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     /**
      * Provides entries for the main compilation classpath.
      *
-     * @param classpath classpath entries
+     * @param classpath one or more classpath entries
      * @return this operation instance
      */
     public CompileKotlinOperation compileMainClasspath(String... classpath) {
@@ -147,11 +147,11 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     /**
      * Provides the compilation options to pass to the {@code kotlinc} compiler.
      *
-     * @param option the compiler option
+     * @param options one or more compiler options
      * @return this operation instance
      */
-    public CompileKotlinOperation compileOptions(String... option) {
-        compileOptions_.addAll(Arrays.asList(option));
+    public CompileKotlinOperation compileOptions(String... options) {
+        compileOptions_.addAll(Arrays.asList(options));
         return this;
     }
 
@@ -167,7 +167,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     /**
      * Provides entries for the test compilation classpath.
      *
-     * @param classpath classpath entries
+     * @param classpath one or more classpath entries
      * @return this operation instance
      */
     public CompileKotlinOperation compileTestClasspath(String... classpath) {
@@ -308,7 +308,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     /**
      * Provides main source directories that should be compiled.
      *
-     * @param directories main source directories
+     * @param directories one or more main source directories
      * @return this operation instance
      */
     public CompileKotlinOperation mainSourceDirectories(File... directories) {
@@ -339,7 +339,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     /**
      * Provides main files that should be compiled.
      *
-     * @param files main files
+     * @param files one or more main files
      * @return this operation instance
      */
     public CompileKotlinOperation mainSourceFiles(File... files) {
@@ -380,7 +380,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     /**
      * Provides test source directories that should be compiled.
      *
-     * @param directories test source directories
+     * @param directories one or more test source directories
      * @return this operation instance
      */
     public CompileKotlinOperation testSourceDirectories(File... directories) {
@@ -411,7 +411,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     /**
      * Provides test files that should be compiled.
      *
-     * @param files test files
+     * @param files one or more test files
      * @return this operation instance
      */
     public CompileKotlinOperation testSourceFiles(File... files) {

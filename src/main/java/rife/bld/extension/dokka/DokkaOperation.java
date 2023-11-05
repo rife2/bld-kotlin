@@ -1,0 +1,408 @@
+/*
+ * Copyright 2023 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package rife.bld.extension.dokka;
+
+import rife.bld.BaseProject;
+import rife.bld.operations.AbstractProcessOperation;
+
+import java.io.File;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+/**
+ * Builds Javadocs using Dokka.
+ *
+ * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
+ * @since 1.0
+ */
+public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
+    private final Logger LOGGER = Logger.getLogger(DokkaOperation.class.getName());
+    private final Map<String, String> globalLinks_ = new ConcurrentHashMap<>();
+    private final Collection<String> globalPackageOptions_ = new ArrayList<>();
+    private final Collection<String> globalSrcLinks_ = new ArrayList<>();
+    private final Collection<File> includes_ = new ArrayList<>();
+    private final Map<String, String> pluginConfiguration_ = new ConcurrentHashMap<>();
+    private final Collection<String> pluginsClasspath_ = new ArrayList<>();
+    private Boolean delayTemplateSubstitution_;
+    private Boolean failOnWarning_;
+    private LoggingLevel loggingLevel_;
+    private String moduleName_;
+    private String moduleVersion_;
+    private Boolean noSuppressObviousFunctions_;
+    private Boolean offlineMode_;
+    private File outputDir_;
+    private BaseProject project_;
+    private SourceSet sourceSet_;
+    private Boolean suppressInheritedMembers_;
+
+    /**
+     * Sets the delay substitution of some elements. Used in incremental builds of multimodule projects.
+     *
+     * @param delayTemplateSubstitution the delay
+     * @return this operation instance
+     */
+    public DokkaOperation delayTemplateSubstitution(Boolean delayTemplateSubstitution) {
+        delayTemplateSubstitution_ = delayTemplateSubstitution;
+        return this;
+    }
+
+    /**
+     * Part of the {@link #execute} operation, constructs the command list
+     * to use for building the process.
+     *
+     * @since 1.5
+     */
+    @Override
+    protected List<String> executeConstructProcessCommandList() {
+        if (project_ == null) {
+            throw new IllegalArgumentException("A project must be specified.");
+        }
+
+        final List<String> args = new ArrayList<>();
+
+        // java
+        args.add(javaTool());
+
+        var cli = getJarList(project_.libBldDirectory(), "^.*dokka-cli.*\\.jar$");
+
+        if (cli.size() != 1) {
+            throw new RuntimeException("The dokka-cli JAR could not be found.");
+        }
+
+        // -jar dokka-cli
+        args.add("-jar");
+        args.add(cli.get(0));
+
+        // -pluginClasspath
+        if (!pluginsClasspath_.isEmpty()) {
+            args.add("-pluginsClasspath");
+            args.add(String.join(";", pluginsClasspath_));
+        }
+
+        // -sourceSet
+        var sourceSetArgs = sourceSet_.args();
+        if (sourceSetArgs.isEmpty()) {
+            throw new IllegalArgumentException("At least one sourceSet is required.");
+        } else {
+            args.add("-sourceSet");
+            args.add(String.join(" ", sourceSet_.args()));
+        }
+
+        // -outputdir
+        if (outputDir_ == null) {
+            outputDir_ = new File("./dokka");
+        }
+        args.add("-outputDir");
+        args.add(outputDir_.getAbsolutePath());
+
+        if (LOGGER.isLoggable(Level.FINE)) {
+            LOGGER.fine(String.join(" ", args));
+        }
+
+        return args;
+    }
+
+    /**
+     * Configures the operation from a {@link BaseProject}.
+     *
+     * @param project the project to configure the operation from
+     */
+    @Override
+    public DokkaOperation fromProject(BaseProject project) {
+        project_ = project;
+        var plugins = getJarList(
+                project.libBldDirectory(),
+                "^.*(dokka-base|analysis-kotlin-descriptors|javadoc-plugin|kotlin-as-java-plugin|korte-jvm).*\\.jar$");
+        pluginsClasspath_.addAll(plugins);
+        sourceSet_ = new SourceSet().src(new File(project.srcMainDirectory(), "kotlin"));
+        outputDir_ = new File(project.buildDirectory(), "javadoc");
+        return this;
+    }
+
+    /**
+     * Sets whether to fail documentation generation if Dokka has emitted a warning or an error.
+     *
+     * @param failOnWarning the fail on warning ;toggle
+     * @return this operation instance
+     */
+    public DokkaOperation failOnWarning(Boolean failOnWarning) {
+        failOnWarning_ = failOnWarning;
+        return this;
+    }
+
+    private List<String> getJarList(File directory, String regex) {
+        var jars = new ArrayList<String>();
+
+        if (directory.isDirectory()) {
+            var files = directory.listFiles();
+            if (files != null) {
+                for (var f : files) {
+                    if (!f.getName().contains("-sources")) {
+                        if (f.getName().matches(regex)) {
+                            jars.add(f.getAbsolutePath());
+                        }
+                    }
+                }
+            }
+        }
+
+        return jars;
+    }
+
+    /**
+     * Set the global external documentation links
+     *
+     * @param url            the external documentation URL
+     * @param packageListUrl the external documentation package list URL
+     * @return this operation instance
+     */
+    public DokkaOperation globalLinks(String url, String packageListUrl) {
+        globalLinks_.put(url, packageListUrl);
+        return this;
+    }
+
+    /**
+     * Set the global external documentation links
+     *
+     * @param globalLinks the map of global links
+     * @return this operation instance
+     * @see #globalSrcLink(String...)
+     */
+    public DokkaOperation globalLinks(Map<String, String> globalLinks) {
+        globalLinks_.putAll(globalLinks);
+        return this;
+    }
+
+    /**
+     * Sets the global list of package configurations in format:
+     * <ul>
+     * <li>matchingRegexp</li>
+     * <li>-deprecated</li>
+     * <li>-privateApi</li>
+     * <li>+warnUndocumented</li>
+     * <li>+suppress</li>
+     * <li>...</li>
+     * </ul>
+     *
+     * @param options ome pr more package configurations
+     * @return this operation instance
+     */
+    public DokkaOperation globalPackageOptions(String... options) {
+        globalPackageOptions_.addAll(Arrays.asList(options));
+        return this;
+    }
+
+    /**
+     * Sets the global list of package configurations in format:
+     * <ul>
+     * <li>matchingRegexp</li>
+     * <li>-deprecated</li>
+     * <li>-privateApi</li>
+     * <li>+warnUndocumented</li>
+     * <li>+suppress</li>
+     * <li>...</li>
+     * </ul>
+     *
+     * @param options the list of package configurations
+     * @return this operation instance
+     */
+    public DokkaOperation globalPackageOptions(Collection<String> options) {
+        globalPackageOptions_.addAll(options);
+        return this;
+    }
+
+    /**
+     * Sets the global mapping between a source directory and a Web service for browsing the code.
+     *
+     * @param links one or more links mapping
+     * @return this operation instance
+     */
+    public DokkaOperation globalSrcLink(String... links) {
+        globalSrcLinks_.addAll(Arrays.asList(links));
+        return this;
+    }
+
+    /**
+     * Sets the global mapping between a source directory and a Web service for browsing the code.
+     *
+     * @param links the links mapping
+     * @return this operation instance
+     */
+    public DokkaOperation globalSrcLink(Collection<String> links) {
+        globalSrcLinks_.addAll(links);
+        return this;
+    }
+
+    /**
+     * Sets the Markdown files that contain module and package documentation.
+     *
+     * @param files one or more files
+     * @return this operation instance
+     */
+    public DokkaOperation includes(File... files) {
+        includes_.addAll(Arrays.asList(files));
+        return this;
+    }
+
+    /**
+     * Sets the Markdown files that contain module and package documentation.
+     *
+     * @param files the list of files
+     * @return this operation instance
+     */
+    public DokkaOperation includss(Collection<File> files) {
+        includes_.addAll(files);
+        return this;
+    }
+
+    /**
+     * Sets the logging level.
+     *
+     * @param loggingLevel the logging level
+     * @return this operation instance
+     */
+    public DokkaOperation loggingLevel(LoggingLevel loggingLevel) {
+        loggingLevel_ = loggingLevel;
+        return this;
+    }
+
+    /**
+     * Sets the name of the project/module. Default is {@code root}.
+     *
+     * @param moduleName the project/module name
+     * @return this operation instance
+     */
+    public DokkaOperation moduleName(String moduleName) {
+        moduleName_ = moduleName;
+        return this;
+    }
+
+    /**
+     * Set the documented version.
+     *
+     * @param version the version
+     * @return this operation instance
+     */
+    public DokkaOperation moduleVersion(String version) {
+        moduleVersion_ = version;
+        return this;
+    }
+
+    /**
+     * Sets whether to suppress obvious functions such as inherited from {@code kotlin.Any} and
+     * {@link java.lang.Object java.lang.Object}.
+     *
+     * @param noSuppressObviousFunctions the suppress toggle
+     * @return this operation instance
+     */
+    public DokkaOperation noSuppressObviousFunctions(Boolean noSuppressObviousFunctions) {
+        noSuppressObviousFunctions_ = noSuppressObviousFunctions;
+        return this;
+    }
+
+    /**
+     * Sets whether to resolve remote files/links over network.
+     *
+     * @param offlineMode the offline mode
+     * @return this operation instance
+     */
+    public DokkaOperation offlineMode(Boolean offlineMode) {
+        offlineMode_ = offlineMode;
+        return this;
+    }
+
+    /**
+     * Sets the output directory path, {@code ./dokka} by default
+     *
+     * @param outputDir the output directory
+     * @return this operation instance
+     */
+    public DokkaOperation outputDir(File outputDir) {
+        outputDir_ = outputDir;
+        return this;
+    }
+
+    /**
+     * Sets the list of jars with Dokka plugins and their dependencies.
+     *
+     * @param jars one or more jars
+     * @return this operation instance
+     */
+    public DokkaOperation pluginClassPath(String... jars) {
+        pluginsClasspath_.addAll(Arrays.asList(jars));
+        return this;
+    }
+
+    /**
+     * Sets the list of jars with Dokka plugins and their dependencies.
+     *
+     * @param jars the list of jars
+     * @return this operation instance
+     */
+    public DokkaOperation pluginClassPath(Collection<String> jars) {
+        pluginsClasspath_.addAll(jars);
+        return this;
+    }
+
+    /**
+     * Sets the configuration for Dokka plugins.
+     *
+     * @param name              The fully-qualified plugin name
+     * @param jsonConfiguration The plugin JSON configuration
+     * @return this operation instance
+     */
+    public DokkaOperation pluginConfiguration(String name, String jsonConfiguration) {
+        pluginConfiguration_.put(name, jsonConfiguration);
+        return this;
+    }
+
+    /**
+     * Sets the configuration for Dokka plugins.
+     *
+     * @param pluginConfiguration the map of configurations
+     * @return this operation instance
+     * @see #pluginConfiguration(String, String)
+     */
+    public DokkaOperation pluginConfiguration(Map<String, String> pluginConfiguration) {
+        pluginConfiguration_.putAll(pluginConfiguration);
+        return this;
+    }
+
+    /**
+     * Sets the configurations for a source set.
+     *
+     * @param sourceSet the source set configurations
+     * @return this operation instance
+     */
+    private DokkaOperation sourceSet(SourceSet sourceSet) {
+        sourceSet_ = sourceSet;
+        return this;
+    }
+
+    /**
+     * Sets whether to suppress inherited members that aren't explicitly overridden in a given class.
+     *
+     * @param suppressInheritedMembers the suppress toggle
+     * @return this operation instance
+     */
+    public DokkaOperation suppressInheritedMembers(Boolean suppressInheritedMembers) {
+        suppressInheritedMembers_ = suppressInheritedMembers;
+        return this;
+    }
+}

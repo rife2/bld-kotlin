@@ -40,8 +40,13 @@ public class CompileKotlinOperationBuild extends Project {
         autoDownloadPurge = true;
         repositories = List.of(MAVEN_LOCAL, MAVEN_CENTRAL, RIFE2_RELEASES);
 
+        var dokka = version(1, 9, 10);
         scope(compile)
                 .include(dependency("org.jetbrains.kotlin", "kotlin-compiler", version(1, 9, 20)))
+                .include(dependency("org.jetbrains.dokka", "dokka-cli", dokka))
+                .include(dependency("org.jetbrains.dokka", "dokka-base", dokka))
+                .include(dependency("org.jetbrains.dokka", "analysis-kotlin-descriptors", dokka))
+                .include(dependency("org.jetbrains.dokka", "javadoc-plugin", dokka))
                 .include(dependency("com.uwyn.rife2", "bld", version(1, 7, 5)));
         scope(test)
                 .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 10, 0)))
