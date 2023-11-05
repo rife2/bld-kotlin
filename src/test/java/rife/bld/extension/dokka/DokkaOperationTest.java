@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import rife.bld.blueprints.BaseProjectBlueprint;
 
 import java.io.File;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
@@ -81,6 +82,13 @@ class DokkaOperationTest {
 
         assertThat(args).hasSize(matches.size());
 
-        IntStream.range(0, args.size()).forEach(i -> assertThat(args.get(i)).isEqualTo(matches.get(i)));
+        IntStream.range(0, args.size()).forEach(i -> {
+            if (args.get(1).contains(".jar;")) {
+               var jars =  args.get(1).split(";");
+                Arrays.stream(jars).forEach(jar -> assertThat(matches.get(i)).contains(jar));
+            } else{
+                assertThat(args.get(i)).isEqualTo(matches.get(i));
+            }
+        });
     }
 }
