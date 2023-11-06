@@ -11,6 +11,7 @@
 To install, please refer to the [extensions documentation](https://github.com/rife2/bld/wiki/Extensions).
 
 ## Compile Kotlin Source Code
+
 To compile the source code located in `src/main/kotlin` and `src/test/kotlin` from the current project:
 
 ```java
@@ -26,6 +27,7 @@ public void compile() throws IOException {
 ```text
 ./bld compile
 ```
+
 - [View Examples Project](https://github.com/rife2/bld-kotlin/tree/main/examples/)
 
 Please check the [Compile Operation documentation](https://rife2.github.io/bld-kotlin/rife/bld/extension/CompileKotlinOperation.html#method-summary)
@@ -43,10 +45,12 @@ public void javadoc() throws ExitStatusException, IOException, InterruptedExcept
             .execute();
 }
 ```
-```
+
+```text
 ./bld javadoc
 ```
+
 - [View Examples Project](https://github.com/rife2/bld-kotlin/tree/main/examples/)
 
-Please check the [Dokka Operation documentation](https://rife2.github.io/bld-kotlin/rife/bld/extension/dokka/DokkaOperation.html)
+Please check the [Dokka Operation documentation](https://rife2.github.io/bld-kotlin/rife/bld/extension/dokka/DokkaOperation.html#method-summary)
 for all available configuration options.

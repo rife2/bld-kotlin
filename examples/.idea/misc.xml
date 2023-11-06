@@ -3,6 +3,8 @@
   <component name="EntryPointsManager">
     <pattern value="com.example.ExampleBuild" />
     <pattern value="com.example.ExampleBuild" method="javadoc" />
+    <pattern value="com.example.ExampleBuild" method="dokkaHtml" />
+    <pattern value="com.example.ExampleBuild" method="dokkaGfm" />
   </component>
   <component name="PDMPlugin">
     <option name="customRuleSets">

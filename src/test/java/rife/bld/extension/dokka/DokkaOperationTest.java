@@ -43,8 +43,8 @@ class DokkaOperationTest {
                 .includes("file1", "file2")
                 .pluginConfiguration("name", "\"json\"")
                 .pluginConfiguration(Map.of("\"name2\"", "json2"))
-                .pluginClassPath("path1", "path2")
-                .pluginClassPath(List.of("path3", "path4"))
+                .pluginsClasspath("path1", "path2")
+                .pluginsClasspath(List.of("path3", "path4"))
                 .delayTemplateSubstitution(true)
                 .failOnWarning(true)
                 .loggingLevel(LoggingLevel.DEBUG)
@@ -84,9 +84,9 @@ class DokkaOperationTest {
 
         IntStream.range(0, args.size()).forEach(i -> {
             if (args.get(i).contains(".jar;")) {
-               var jars =  args.get(i).split(";");
+                var jars = args.get(i).split(";");
                 Arrays.stream(jars).forEach(jar -> assertThat(matches.get(i)).contains(jar));
-            } else{
+            } else {
                 assertThat(args.get(i)).isEqualTo(matches.get(i));
             }
         });

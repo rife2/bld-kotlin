@@ -8,6 +8,7 @@ import rife.bld.extension.dokka.LoggingLevel;
 import rife.bld.operations.exceptions.ExitStatusException;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
@@ -51,6 +52,34 @@ public class ExampleBuild extends BaseProject {
         new CompileKotlinOperation()
                 .fromProject(this)
                 .compileOptions("-verbose")
+                .execute();
+    }
+
+    @BuildCommand(value = "dokka-gfm", summary = "Generates documentation in GitHub flavored markdown format")
+    public void dokkaGfm() throws ExitStatusException, IOException, InterruptedException {
+        new DokkaOperation()
+                .fromProject(this)
+                .loggingLevel(LoggingLevel.INFO)
+                .pluginsClasspath(true)
+                .pluginsClasspath("lib/bld/dokka-base-1.9.10.jar",
+                        "lib/bld/analysis-kotlin-descriptors-1.9.10.jar",
+                        "lib/bld/gfm-plugin-1.9.10.jar",
+                        "lib/bld/freemarker-2.3.31.jar")
+                .outputDir(Path.of(buildDirectory().getAbsolutePath(), "dokka", "gfm").toFile())
+                .execute();
+    }
+
+    @BuildCommand(value = "dokka-html", summary = "Generates documentation in HTML format")
+    public void dokkaHtml() throws ExitStatusException, IOException, InterruptedException {
+        new DokkaOperation()
+                .fromProject(this)
+                .loggingLevel(LoggingLevel.INFO)
+                .pluginsClasspath(true)
+                .pluginsClasspath("lib/bld/dokka-base-1.9.10.jar",
+                        "lib/bld/analysis-kotlin-descriptors-1.9.10.jar",
+                        "lib/bld/kotlinx-html-jvm-0.7.5.jar",
+                        "lib/bld/freemarker-2.3.31.jar")
+                .outputDir(Path.of(buildDirectory().getAbsolutePath(), "dokka", "html").toFile())
                 .execute();
     }
 

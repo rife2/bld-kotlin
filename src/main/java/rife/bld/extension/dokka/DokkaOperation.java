@@ -427,28 +427,6 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     }
 
     /**
-     * Sets the list of jars with Dokka plugins and their dependencies.
-     *
-     * @param jars one or more jars
-     * @return this operation instance
-     */
-    public DokkaOperation pluginClassPath(String... jars) {
-        pluginsClasspath_.addAll(Arrays.asList(jars));
-        return this;
-    }
-
-    /**
-     * Sets the list of jars with Dokka plugins and their dependencies.
-     *
-     * @param jars the list of jars
-     * @return this operation instance
-     */
-    public DokkaOperation pluginClassPath(Collection<String> jars) {
-        pluginsClasspath_.addAll(jars);
-        return this;
-    }
-
-    /**
      * Sets the configuration for Dokka plugins.
      *
      * @param name              The fully-qualified plugin name
@@ -469,6 +447,41 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
      */
     public DokkaOperation pluginConfiguration(Map<String, String> pluginConfiguration) {
         pluginConfiguration_.putAll(pluginConfiguration);
+        return this;
+    }
+
+    /**
+     * Sets the list of jars with Dokka plugins and their dependencies.
+     *
+     * @param jars one or more jars
+     * @return this operation instance
+     */
+    public DokkaOperation pluginsClasspath(String... jars) {
+        pluginsClasspath_.addAll(Arrays.asList(jars));
+        return this;
+    }
+
+    /**
+     * Sets the list of jars with Dokka plugins and their dependencies.
+     *
+     * @param jars the list of jars
+     * @return this operation instance
+     */
+    public DokkaOperation pluginsClasspath(Collection<String> jars) {
+        pluginsClasspath_.addAll(jars);
+        return this;
+    }
+
+    /**
+     * Clears the list of Dokka plugins.
+     *
+     * @param clear set to clear the list
+     * @return this operation instance
+     */
+    public DokkaOperation pluginsClasspath(boolean clear) {
+        if (clear) {
+            pluginsClasspath_.clear();
+        }
         return this;
     }
 

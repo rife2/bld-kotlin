@@ -47,6 +47,7 @@ public class CompileKotlinOperationBuild extends Project {
                 .include(dependency("org.jetbrains.dokka", "dokka-base", dokka))
                 .include(dependency("org.jetbrains.dokka", "analysis-kotlin-descriptors", dokka))
                 .include(dependency("org.jetbrains.dokka", "javadoc-plugin", dokka))
+                .include(dependency("org.jetbrains.dokka", "gfm-plugin", dokka))
                 .include(dependency("com.uwyn.rife2", "bld", version(1, 7, 5)));
         scope(test)
                 .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 10, 0)))
