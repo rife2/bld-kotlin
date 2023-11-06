@@ -34,6 +34,12 @@ import java.util.logging.Logger;
  */
 @SuppressWarnings("PMD.AvoidThrowingRawExceptionTypes")
 public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
+    private final static String GFM_PLUGIN_REGEXP =
+            "^.*(dokka-base|analysis-kotlin-descriptors|gfm-plugin|freemarker).*\\.jar$";
+    private final static String HTML_PLUGIN_REGEXP =
+            "^.*(dokka-base|analysis-kotlin-descriptors|kotlinx-html-jvm|freemarker).*\\.jar$";
+    private final static String JAVADOC_PLUGIN_REGEXP =
+            "^.*(dokka-base|analysis-kotlin-descriptors|javadoc-plugin|kotlin-as-java-plugin|korte-jvm).*\\.jar$";
     private final Logger LOGGER = Logger.getLogger(DokkaOperation.class.getName());
     private final Map<String, String> globalLinks_ = new ConcurrentHashMap<>();
     private final Collection<String> globalPackageOptions_ = new ArrayList<>();
@@ -215,12 +221,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     @Override
     public DokkaOperation fromProject(BaseProject project) {
         project_ = project;
-        var plugins = getJarList(
-                project.libBldDirectory(),
-                "^.*(dokka-base|analysis-kotlin-descriptors|javadoc-plugin|kotlin-as-java-plugin|korte-jvm).*\\.jar$");
-        pluginsClasspath_.addAll(plugins);
         sourceSet_ = new SourceSet().src(new File(project.srcMainDirectory(), "kotlin").getAbsolutePath());
-        outputDir_ = new File(project.buildDirectory(), "javadoc");
         moduleName_ = project.name();
         return this;
     }
@@ -423,6 +424,35 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
      */
     public DokkaOperation outputDir(File outputDir) {
         outputDir_ = outputDir;
+        return this;
+    }
+
+    /**
+     * Sets the output directory path, {@code ./dokka} by default
+     *
+     * @param outputDir the output directory
+     * @return this operation instance
+     */
+    public DokkaOperation outputDir(String outputDir) {
+        outputDir_ = new File(outputDir);
+        return this;
+    }
+
+    /**
+     * Sets the Dokka {@link OutputFormat output format}.
+     *
+     * @param format The {@link OutputFormat output format}
+     * @return this operation instance
+     */
+    public DokkaOperation outputFormat(OutputFormat format) {
+        pluginsClasspath_.clear();
+        if (format.equals(OutputFormat.JAVADOC)) {
+            pluginsClasspath_.addAll(getJarList(project_.libBldDirectory(), JAVADOC_PLUGIN_REGEXP));
+        } else if (format.equals(OutputFormat.HTML)) {
+            pluginsClasspath_.addAll(getJarList(project_.libBldDirectory(), HTML_PLUGIN_REGEXP));
+        } else if (format.equals(OutputFormat.MARKDOWN)) {
+            pluginsClasspath_.addAll(getJarList(project_.libBldDirectory(), GFM_PLUGIN_REGEXP));
+        }
         return this;
     }
 

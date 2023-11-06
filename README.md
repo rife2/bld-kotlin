@@ -42,6 +42,8 @@ To generate the Javadoc using [Dokka](https://github.com/Kotlin/dokka):
 public void javadoc() throws ExitStatusException, IOException, InterruptedException {
     new DokkaOperation()
             .fromProject(this)
+            .outputDir(new File(buildDirectory(), "javadoc"))
+            .outputFormat(OutputFormat.JAVADOC)
             .execute();
 }
 ```

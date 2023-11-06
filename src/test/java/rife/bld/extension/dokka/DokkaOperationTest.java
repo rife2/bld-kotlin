@@ -53,6 +53,7 @@ class DokkaOperationTest {
                 .noSuppressObviousFunctions(true)
                 .offlineMode(true)
                 .outputDir(new File(examples, "build"))
+                .outputFormat(OutputFormat.JAVADOC)
                 .suppressInheritedMembers(true)
                 .executeConstructProcessCommandList();
 

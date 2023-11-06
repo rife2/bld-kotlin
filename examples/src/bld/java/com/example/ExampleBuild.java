@@ -5,8 +5,10 @@ import rife.bld.BuildCommand;
 import rife.bld.extension.CompileKotlinOperation;
 import rife.bld.extension.dokka.DokkaOperation;
 import rife.bld.extension.dokka.LoggingLevel;
+import rife.bld.extension.dokka.OutputFormat;
 import rife.bld.operations.exceptions.ExitStatusException;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
@@ -60,12 +62,8 @@ public class ExampleBuild extends BaseProject {
         new DokkaOperation()
                 .fromProject(this)
                 .loggingLevel(LoggingLevel.INFO)
-                .pluginsClasspath(true)
-                .pluginsClasspath("lib/bld/dokka-base-1.9.10.jar",
-                        "lib/bld/analysis-kotlin-descriptors-1.9.10.jar",
-                        "lib/bld/gfm-plugin-1.9.10.jar",
-                        "lib/bld/freemarker-2.3.31.jar")
                 .outputDir(Path.of(buildDirectory().getAbsolutePath(), "dokka", "gfm").toFile())
+                .outputFormat(OutputFormat.MARKDOWN)
                 .execute();
     }
 
@@ -74,12 +72,8 @@ public class ExampleBuild extends BaseProject {
         new DokkaOperation()
                 .fromProject(this)
                 .loggingLevel(LoggingLevel.INFO)
-                .pluginsClasspath(true)
-                .pluginsClasspath("lib/bld/dokka-base-1.9.10.jar",
-                        "lib/bld/analysis-kotlin-descriptors-1.9.10.jar",
-                        "lib/bld/kotlinx-html-jvm-0.7.5.jar",
-                        "lib/bld/freemarker-2.3.31.jar")
                 .outputDir(Path.of(buildDirectory().getAbsolutePath(), "dokka", "html").toFile())
+                .outputFormat(OutputFormat.HTML)
                 .execute();
     }
 
@@ -88,6 +82,8 @@ public class ExampleBuild extends BaseProject {
         new DokkaOperation()
                 .fromProject(this)
                 .loggingLevel(LoggingLevel.INFO)
+                .outputDir(new File(buildDirectory(), "javadoc"))
+                .outputFormat(OutputFormat.JAVADOC)
                 .execute();
     }
 }
