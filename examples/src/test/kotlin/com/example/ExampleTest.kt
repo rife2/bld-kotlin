@@ -1,18 +1,11 @@
 package com.example
 
-class ExampleTest {
-    fun verifyHello() {
-        if ("Hello World!" != Example().message) {
-            throw AssertionError()
-        } else {
-            println("Succeeded")
-        }
-    }
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            ExampleTest().verifyHello()
-        }
+class ExampleTest {
+    @Test
+    fun verifyHello() {
+        assertEquals("Hello World!", Example().message)
     }
 }

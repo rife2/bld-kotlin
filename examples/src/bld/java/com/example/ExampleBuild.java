@@ -1,7 +1,7 @@
 package com.example;
 
-import rife.bld.BaseProject;
 import rife.bld.BuildCommand;
+import rife.bld.Project;
 import rife.bld.extension.CompileKotlinOperation;
 import rife.bld.extension.CompileKotlinOptions;
 import rife.bld.extension.dokka.DokkaOperation;
@@ -19,8 +19,9 @@ import java.util.logging.Logger;
 
 import static rife.bld.dependencies.Repository.*;
 import static rife.bld.dependencies.Scope.compile;
+import static rife.bld.dependencies.Scope.test;
 
-public class ExampleBuild extends BaseProject {
+public class ExampleBuild extends Project {
     public ExampleBuild() {
         pkg = "com.example";
         name = "Example";
@@ -34,8 +35,10 @@ public class ExampleBuild extends BaseProject {
 
         scope(compile)
                 .include(dependency("org.jetbrains.kotlin", "kotlin-stdlib", version(1, 9, 20)));
-
-        testOperation().mainClass("com.example.ExampleTest");
+        scope(test)
+                .include(dependency("org.jetbrains.kotlin:kotlin-test-junit5:1.9.20"))
+                .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 10, 1)))
+                .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 10, 1)));
     }
 
     public static void main(String[] args) {
