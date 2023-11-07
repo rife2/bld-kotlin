@@ -40,6 +40,7 @@ public class ExampleBuild extends Project {
                 .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 10, 1)))
                 .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 10, 1)));
 
+        // Include the Kotlin source directory when creating or publishing sources Java Archives
         jarSourcesOperation().sourceDirectories(new File(srcMainDirectory(), "kotlin"));
     }
 
@@ -47,6 +48,8 @@ public class ExampleBuild extends Project {
         var level = Level.ALL;
         var logger = Logger.getLogger("rife.bld.extension");
         var consoleHandler = new ConsoleHandler();
+
+        // Enable detailed logging for the Kotlin extension
         consoleHandler.setLevel(level);
         logger.addHandler(consoleHandler);
         logger.setLevel(level);
@@ -56,7 +59,9 @@ public class ExampleBuild extends Project {
     }
 
     @BuildCommand(summary = "Compile the Kotlin project")
+    @Override
     public void compile() throws IOException {
+        // The source code located in src/main/kotlin and src/test/kotlin will be compiled
         new CompileKotlinOperation()
                 .fromProject(this)
                 .compileOptions(
@@ -72,6 +77,7 @@ public class ExampleBuild extends Project {
         new DokkaOperation()
                 .fromProject(this)
                 .loggingLevel(LoggingLevel.INFO)
+                // Create build/dokka/gfm
                 .outputDir(Path.of(buildDirectory().getAbsolutePath(), "dokka", "gfm").toFile())
                 .outputFormat(OutputFormat.MARKDOWN)
                 .execute();
@@ -82,16 +88,19 @@ public class ExampleBuild extends Project {
         new DokkaOperation()
                 .fromProject(this)
                 .loggingLevel(LoggingLevel.INFO)
+                // Create build/dokka/html
                 .outputDir(Path.of(buildDirectory().getAbsolutePath(), "dokka", "html").toFile())
                 .outputFormat(OutputFormat.HTML)
                 .execute();
     }
 
     @BuildCommand(summary = "Generates Javadoc for the project")
+    @Override
     public void javadoc() throws ExitStatusException, IOException, InterruptedException {
         new DokkaOperation()
                 .fromProject(this)
                 .loggingLevel(LoggingLevel.INFO)
+                // Create build/javadoc
                 .outputDir(new File(buildDirectory(), "javadoc"))
                 .outputFormat(OutputFormat.JAVADOC)
                 .execute();
