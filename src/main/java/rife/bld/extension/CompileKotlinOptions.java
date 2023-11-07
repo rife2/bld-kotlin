@@ -309,6 +309,18 @@ public class CompileKotlinOptions {
 
     /**
      * Specify the target version of the generated JVM bytecode.
+     *
+     * @param version the target version
+     * @return this class insance
+     * @see #jdkRelease(String)
+     */
+    public CompileKotlinOptions jdkRelease(int version) {
+        jdkRelease_ = String.valueOf(version);
+        return this;
+    }
+
+    /**
+     * Specify the target version of the generated JVM bytecode.
      * Possible values are 1.8, 9, 10, ..., 21. The default value is 1.8.
      *
      * @param target the target version
@@ -316,6 +328,18 @@ public class CompileKotlinOptions {
      */
     public CompileKotlinOptions jvmTarget(String target) {
         jvmTarget_ = target;
+        return this;
+    }
+
+    /**
+     * Specify the target version of the generated JVM bytecode.
+     *
+     * @param target the target version
+     * @return this class instance
+     * @see #jvmTarget(String)
+     */
+    public CompileKotlinOptions jvmTarget(int target) {
+        jvmTarget_ = String.valueOf(target);
         return this;
     }
 
