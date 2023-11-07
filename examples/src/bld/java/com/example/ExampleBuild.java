@@ -57,7 +57,11 @@ public class ExampleBuild extends Project {
     public void compile() throws IOException {
         new CompileKotlinOperation()
                 .fromProject(this)
-                .compileOptions(new CompileKotlinOptions().verbose(true))
+                .compileOptions(
+                        new CompileKotlinOptions()
+                                .jdkRelease(javaRelease)
+                                .verbose(true)
+                )
                 .execute();
     }
 
