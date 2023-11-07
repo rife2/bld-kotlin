@@ -19,7 +19,7 @@ To compile the source code located in `src/main/kotlin` and `src/test/kotlin` fr
 public void compile() throws IOException {
     new CompileKotlinOperation()
             .fromProject(this)
-            .compileOptions("-verbose")
+            .compileOptions(new CompileKotlinOptions().verbose(true))
             .execute();
 }
 ```

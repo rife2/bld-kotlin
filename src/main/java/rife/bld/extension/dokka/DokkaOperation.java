@@ -229,7 +229,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     /**
      * Sets whether to fail documentation generation if Dokka has emitted a warning or an error.
      *
-     * @param failOnWarning the fail on warning ;toggle
+     * @param failOnWarning {@code true} or {@code false}
      * @return this operation instance
      */
     public DokkaOperation failOnWarning(Boolean failOnWarning) {
@@ -397,7 +397,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
      * Sets whether to suppress obvious functions such as inherited from {@code kotlin.Any} and
      * {@link java.lang.Object java.lang.Object}.
      *
-     * @param noSuppressObviousFunctions the suppress toggle
+     * @param noSuppressObviousFunctions {@code true} or {@code false}
      * @return this operation instance
      */
     public DokkaOperation noSuppressObviousFunctions(Boolean noSuppressObviousFunctions) {
@@ -529,7 +529,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     /**
      * Sets whether to suppress inherited members that aren't explicitly overridden in a given class.
      *
-     * @param suppressInheritedMembers the suppress toggle
+     * @param suppressInheritedMembers {@code true} or {@code false}
      * @return this operation instance
      */
     public DokkaOperation suppressInheritedMembers(Boolean suppressInheritedMembers) {

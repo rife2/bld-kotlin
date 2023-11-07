@@ -3,6 +3,7 @@ package com.example;
 import rife.bld.BaseProject;
 import rife.bld.BuildCommand;
 import rife.bld.extension.CompileKotlinOperation;
+import rife.bld.extension.CompileKotlinOptions;
 import rife.bld.extension.dokka.DokkaOperation;
 import rife.bld.extension.dokka.LoggingLevel;
 import rife.bld.extension.dokka.OutputFormat;
@@ -53,7 +54,7 @@ public class ExampleBuild extends BaseProject {
     public void compile() throws IOException {
         new CompileKotlinOperation()
                 .fromProject(this)
-                .compileOptions("-verbose")
+                .compileOptions(new CompileKotlinOptions().verbose(true))
                 .execute();
     }
 

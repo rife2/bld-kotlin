@@ -68,7 +68,7 @@ class CompileKotlinOperationTest {
             }
 
             var op = new CompileKotlinOperation()
-                    .compileOptions("-verbose")
+                    .compileOptions(new CompileKotlinOptions().verbose(true))
                     .buildMainDirectory(mainDir)
                     .buildTestDirectory(testDir)
                     .compileMainClasspath(compileJars)

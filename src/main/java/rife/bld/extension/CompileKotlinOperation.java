@@ -38,7 +38,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     public static final Pattern KOTLIN_FILE_PATTERN = Pattern.compile("^.*\\.kt$");
     private static final Logger LOGGER = Logger.getLogger(CompileKotlinOperation.class.getName());
     private final Collection<String> compileMainClasspath_ = new ArrayList<>();
-    private final Collection<String> compileOptions_ = new ArrayList<>();
     private final Collection<String> compileTestClasspath_ = new ArrayList<>();
     private final Collection<File> mainSourceDirectories_ = new ArrayList<>();
     private final Collection<File> mainSourceFiles_ = new ArrayList<>();
@@ -46,6 +45,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     private final Collection<File> testSourceFiles_ = new ArrayList<>();
     private File buildMainDirectory_;
     private File buildTestDirectory_;
+    private CompileKotlinOptions compileOptions_;
 
     public static Collection<File> getKotlinFileList(File directory) {
         if (directory == null) {
@@ -136,32 +136,12 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     /**
      * Provides a list of compilation options to pass to the {@code kotlinc} compiler.
      *
-     * @param options the list of compiler options
+     * @param options the compiler options
      * @return this operation instance
      */
-    public CompileKotlinOperation compileOptions(Collection<String> options) {
-        compileOptions_.addAll(options);
+    public CompileKotlinOperation compileOptions(CompileKotlinOptions options) {
+        compileOptions_ = options;
         return this;
-    }
-
-    /**
-     * Provides the compilation options to pass to the {@code kotlinc} compiler.
-     *
-     * @param options one or more compiler options
-     * @return this operation instance
-     */
-    public CompileKotlinOperation compileOptions(String... options) {
-        compileOptions_.addAll(Arrays.asList(options));
-        return this;
-    }
-
-    /**
-     * Retrieves the list of compilation options for the {@code kotlinc} compiler.
-     *
-     * @return the list of compiler options
-     */
-    public Collection<String> compileOptions() {
-        return compileOptions_;
     }
 
     /**
@@ -249,7 +229,9 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         args.add("-no-stdlib");
 
         // options
-        args.addAll(compileOptions());
+        if (compileOptions_ != null) {
+            args.addAll(compileOptions_.args());
+        }
 
         // source
         sources.forEach(f -> args.add(f.getAbsolutePath()));
@@ -299,10 +281,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                 .compileTestClasspath(project.compileTestClasspath())
                 .mainSourceFiles(getKotlinFileList(new File(project.srcMainDirectory(), "kotlin")))
                 .testSourceFiles(getKotlinFileList(new File(project.srcTestDirectory(), "kotlin")));
-    }
-
-    public String getMessage() {
-        return "Hello World!";
     }
 
     /**

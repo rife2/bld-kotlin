@@ -355,7 +355,7 @@ public class SourceSet {
     /**
      * Sets whether to generate links to JDK Javadocs.
      *
-     * @param noJdkLink the no JDK link toggle
+     * @param noJdkLink {@code true} or {@code false}
      * @return this operation instance
      */
     public SourceSet noJdkLink(Boolean noJdkLink) {
@@ -366,7 +366,7 @@ public class SourceSet {
     /**
      * Sets whether to create pages for empty packages.
      *
-     * @param noSkipEmptyPackages the no skip empty packages toggle
+     * @param noSkipEmptyPackages {@code true} or {@code false}
      * @return this operation instance
      */
     public SourceSet noSkipEmptyPackages(boolean noSkipEmptyPackages) {
@@ -377,7 +377,7 @@ public class SourceSet {
     /**
      * Sets whether to generate links to Standard library.
      *
-     * @param noStdlibLink the no std lib link toggle
+     * @param noStdlibLink {@code true} or {@code false}
      * @return this operation instance
      */
     public SourceSet noStdlibLink(Boolean noStdlibLink) {
@@ -426,7 +426,7 @@ public class SourceSet {
     /**
      * Sets Wwether to report undocumented declarations.
      *
-     * @param reportUndocumented the report undocumented toggle
+     * @param reportUndocumented {@code true} or {@code false}
      * @return this operation instance
      */
     public SourceSet reportUndocumented(Boolean reportUndocumented) {
@@ -459,7 +459,7 @@ public class SourceSet {
     /**
      * Sets whether to skip deprecated declarations.
      *
-     * @param skipDeprecated the skip deprecated toggle
+     * @param skipDeprecated {@code true} or {@code false}
      * @return this operation instance
      */
     public SourceSet skipDeprecated(boolean skipDeprecated) {
