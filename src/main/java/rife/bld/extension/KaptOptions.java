@@ -99,6 +99,17 @@ public class KaptOptions {
     }
 
     /**
+     * A path to the annotation processor JAR. Pass as many classpath as the number of JARs that you have.
+     *
+     * @param apClasspath one or more classpath
+     * @return this class instance
+     */
+    public KaptOptions apClasspath(String... apClasspath) {
+        apClasspath_.addAll(List.of(apClasspath));
+        return this;
+    }
+
+    /**
      * A list of the annotation processor options.
      *
      * @param apOptions the list of options
@@ -181,7 +192,7 @@ public class KaptOptions {
 
         // processors
         if (!processors_.isEmpty()) {
-            processors_.forEach(p -> args.add(PLUGIN_ID + "processors=" + p));
+            args.add(PLUGIN_ID + "processors=" + String.join(",", processors_));
         }
 
         // verbose
@@ -286,6 +297,18 @@ public class KaptOptions {
      */
     public KaptOptions processors(Collection<String> processors) {
         processors_.addAll(processors);
+        return this;
+    }
+
+    /**
+     * A list of annotation processor qualified class names. If specified, {@code kapt} does not try to find annotation
+     * processors in {@link #apClasspath}.
+     *
+     * @param processors one or moe qualified class names
+     * @return this class instance
+     */
+    public KaptOptions processors(String... processors) {
+        processors_.addAll(List.of(processors));
         return this;
     }
 

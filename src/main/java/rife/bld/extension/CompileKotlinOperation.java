@@ -47,7 +47,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     private File buildTestDirectory_;
     private CompileKotlinOptions compileOptions_;
     private KaptOptions kaptOptions_;
-    private File kotlinLibsDirectory_;
+    private BaseProject project_;
 
     /**
      * Returns the list JARs contained in a given directory.
@@ -208,6 +208,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     @SuppressWarnings("PMD.SystemPrintln")
     public void execute()
             throws IOException {
+        if (project_ == null) {
+            throw new IllegalArgumentException("A project must be specified.");
+        }
+
         executeCreateBuildDirectories();
         executeBuildMainSources();
         executeBuildTestSources();
@@ -236,7 +240,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param destination the destination directory
      * @param friendPaths the output directory for friendly modules
      */
-    protected void executeBuildSources(Collection<String> classpath, Collection<File> sources, File destination, File friendPaths)
+    protected void executeBuildSources(Collection<String> classpath, Collection<File> sources, File destination,
+                                       File friendPaths)
             throws IOException {
         if (sources.isEmpty() || destination == null) {
             return;
@@ -265,8 +270,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         }
 
         // kapt plugin & options
-        if (kotlinLibsDirectory_ != null && kaptOptions_ != null) {
-            var kaptJar = getJarList(kotlinLibsDirectory_, "^.*kotlin-annotation-processing.*\\.jar$");
+        if (kaptOptions_ != null) {
+            var kaptJar = getJarList(project_.libBldDirectory(), "^.*kotlin-annotation-processing.*\\.jar$");
             if (kaptJar.size() == 1) {
                 args.add("-Xplugin=" + kaptJar.get(0));
                 kaptOptions_.args().forEach(a -> {
@@ -274,7 +279,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                     args.add(a);
                 });
             } else if (LOGGER.isLoggable(Level.WARNING)) {
-                LOGGER.warning("Could not locate the Kotlin annotation processing JAR in:" + kotlinLibsDirectory_);
+                LOGGER.warning("Could not locate the Kotlin annotation processing JAR in:" +
+                        project_.libBldDirectory().getAbsolutePath());
             }
         }
 
@@ -316,15 +322,25 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
     /**
      * Configures a compile operation from a {@link BaseProject}.
+     * <p>
+     * Sets the following from the project:
+     * <ul>
+     *     <li>{@link #buildMainDirectory() buildMainDirectory}</li>
+     *     <li>{@link #buildTestDirectory() buildTestDirectory}</li>
+     *     <li>{@link #compileMainClasspath() compileMainClassPath}</li>
+     *     <li>{@link #compileTestClasspath() compilesTestClassPath}</li>
+     *     <li>{@link #mainSourceFiles() mainSourceFiles}</li>
+     *     <li>{@link #testSourceFiles() testSourceFile}</li>
+     * </ul>
      *
      * @param project the project to configure the compile operation from
      */
     public CompileKotlinOperation fromProject(BaseProject project) {
+        project_ = project;
         return buildMainDirectory(project.buildMainDirectory())
                 .buildTestDirectory(project.buildTestDirectory())
                 .compileMainClasspath(project.compileMainClasspath())
                 .compileTestClasspath(project.compileTestClasspath())
-                .kotlinLibsDirectory(project.libBldDirectory())
                 .mainSourceFiles(getKotlinFileList(new File(project.srcMainDirectory(), "kotlin")))
                 .testSourceFiles(getKotlinFileList(new File(project.srcTestDirectory(), "kotlin")));
     }
@@ -337,28 +353,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     public CompileKotlinOperation kaptOptions(KaptOptions options) {
         kaptOptions_ = options;
-        return this;
-    }
-
-    /**
-     * Provides the directory containing the Kotlin libraries (compiler, plugins, dokka, etc.) JARs.
-     *
-     * @param directory the directory location
-     * @return this class instance
-     */
-    public CompileKotlinOperation kotlinLibsDirectory(File directory) {
-        kotlinLibsDirectory_ = directory;
-        return this;
-    }
-
-    /**
-     * Provides the directory containing the Kotlin libraries (compiler, plugins, dokka, etc.) JARs.
-     *
-     * @param directory the directory location
-     * @return this class instance
-     */
-    public CompileKotlinOperation kotlinLibsDirectory(String directory) {
-        kotlinLibsDirectory_ = new File(directory);
         return this;
     }
 

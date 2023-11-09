@@ -18,6 +18,7 @@ package rife.bld.extension;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import rife.bld.blueprints.BaseProjectBlueprint;
 import rife.tools.FileUtils;
 
 import java.io.File;
@@ -68,6 +69,8 @@ class CompileKotlinOperationTest {
             }
 
             var op = new CompileKotlinOperation()
+                    .fromProject(new BaseProjectBlueprint(new File("examples"), "com.example",
+                            "Example"))
                     .compileOptions(new CompileKotlinOptions().verbose(true))
                     .buildMainDirectory(mainDir)
                     .buildTestDirectory(testDir)
