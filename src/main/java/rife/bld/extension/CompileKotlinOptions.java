@@ -45,6 +45,7 @@ public class CompileKotlinOptions {
     private String moduleName_;
     private boolean noJdk_;
     private boolean noReflect_;
+    private boolean noStdLib_ = true;
     private boolean noWarn_;
     private String path_;
     private boolean progressive_;
@@ -175,6 +176,11 @@ public class CompileKotlinOptions {
         // no-reflect
         if (noReflect_) {
             args.add("-no-reflect");
+        }
+
+        // no-std-lib
+        if (noStdLib_) {
+            args.add("-no-stdlib");
         }
 
         // no-warn
@@ -395,6 +401,18 @@ public class CompileKotlinOptions {
      */
     public CompileKotlinOptions noReflect(boolean noReflect) {
         noReflect_ = noReflect;
+        return this;
+    }
+
+    /**
+     * Don't automatically include the Kotlin/JVM stdlib ({@code kotlin-stdlib.jar}) and Kotlin reflection
+     * ({@code kotlin-reflect.jar}) into the classpath.
+     *
+     * @param noStdLib {@code true} or {@code false}
+     * @return this class instance
+     */
+    public CompileKotlinOptions noStdLib(boolean noStdLib) {
+        noStdLib_ = noStdLib;
         return this;
     }
 

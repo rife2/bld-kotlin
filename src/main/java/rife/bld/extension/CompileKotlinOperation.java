@@ -198,7 +198,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         executeBuildSources(
                 compileMainClasspath(),
                 sources(mainSourceFiles(), mainSourceDirectories()),
-                buildMainDirectory());
+                buildMainDirectory(),
+                null);
     }
 
     /**
@@ -207,8 +208,9 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param classpath   the classpath list used for the compilation
      * @param sources     the source files to compile
      * @param destination the destination directory
+     * @param friendPaths the output directory for friendly modules
      */
-    protected void executeBuildSources(Collection<String> classpath, Collection<File> sources, File destination)
+    protected void executeBuildSources(Collection<String> classpath, Collection<File> sources, File destination, File friendPaths)
             throws IOException {
         if (sources.isEmpty() || destination == null) {
             return;
@@ -225,8 +227,11 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         args.add("-d");
         args.add(destination.getAbsolutePath());
 
-        args.add("-no-reflect");
-        args.add("-no-stdlib");
+        // friend-path
+        if (friendPaths != null) {
+            args.add("-Xfriend-paths");
+            args.add(friendPaths.getAbsolutePath());
+        }
 
         // options
         if (compileOptions_ != null) {
@@ -254,7 +259,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         executeBuildSources(
                 compileTestClasspath(),
                 sources(testSourceFiles(), testSourceDirectories()),
-                buildTestDirectory());
+                buildTestDirectory(), buildMainDirectory());
     }
 
     /**

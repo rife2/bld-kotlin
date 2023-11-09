@@ -31,6 +31,7 @@ class CompileKotlinOptionsTest {
         var args = new CompileKotlinOptions()
                 .argFile(List.of("arg1.txt", "arg2.txt"))
                 .classpath(List.of("path1", "path2"))
+                .noStdLib(false)
                 .optIn(List.of("opt1", "opt2"))
                 .options(List.of("-foo", "-bar"))
                 .scriptTemplates(List.of("temp1", "temp2"))
@@ -92,6 +93,7 @@ class CompileKotlinOptionsTest {
                 "-module-name", "module",
                 "-no-jdk",
                 "-no-reflect",
+                "-no-stdlib",
                 "-no-warn",
                 "-opt-in", "opt1",
                 "-opt-in", "opt2",
