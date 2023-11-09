@@ -46,6 +46,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     private File buildMainDirectory_;
     private File buildTestDirectory_;
     private CompileKotlinOptions compileOptions_;
+    private KaptOptions kaptOptions_;
 
     public static Collection<File> getKotlinFileList(File directory) {
         if (directory == null) {
@@ -238,6 +239,14 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             args.addAll(compileOptions_.args());
         }
 
+        // kapt options
+        if (kaptOptions_ != null) {
+            kaptOptions_.args().forEach(a -> {
+                args.add("-P");
+                args.add(a);
+            } );
+        }
+
         // source
         sources.forEach(f -> args.add(f.getAbsolutePath()));
 
@@ -286,6 +295,17 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                 .compileTestClasspath(project.compileTestClasspath())
                 .mainSourceFiles(getKotlinFileList(new File(project.srcMainDirectory(), "kotlin")))
                 .testSourceFiles(getKotlinFileList(new File(project.srcTestDirectory(), "kotlin")));
+    }
+
+    /**
+     * Provides the annotation processor ({@code kapt} options.
+     *
+     * @param options the {@code kapt} options
+     * @return this class instance
+     */
+    public CompileKotlinOperation kaptOptions(KaptOptions options) {
+        kaptOptions_ = options;
+        return this;
     }
 
     /**
