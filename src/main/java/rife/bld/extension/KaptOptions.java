@@ -31,8 +31,8 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 public class KaptOptions {
-    private final Logger LOGGER = Logger.getLogger(KaptOptions.class.getName());
     private final static String PLUGIN_ID = "plugin:org.jetbrains.kotlin.kapt3:";
+    private final Logger LOGGER = Logger.getLogger(KaptOptions.class.getName());
     private final List<String> apClasspath_ = new ArrayList<>();
     private final Collection<Map<String, String>> apOptions_ = new ArrayList<>();
     private final AptMode aptMode_;
@@ -88,7 +88,7 @@ public class KaptOptions {
     }
 
     /**
-     * A path to the annotation processor JAR. Pass as many apclasspath as the number of JARs that you have.
+     * A path to the annotation processor JAR. Pass as many classpath as the number of JARs that you have.
      *
      * @param apClasspath the list of classpath
      * @return this class instance
@@ -229,7 +229,7 @@ public class KaptOptions {
         return this;
     }
 
-    // Base-64 encodes the option list
+    // Base-64 encodes the options list
     private String encodeList(Map<String, String> options) throws IOException {
         var os = new ByteArrayOutputStream();
         var oos = new ObjectOutputStream(os);
@@ -269,7 +269,7 @@ public class KaptOptions {
     /**
      * A list of the options passed to {@code javac}.
      *
-     * @param javacArguments the arguments
+     * @param javacArguments the {@code javac} arguments
      * @return this class instance
      */
     public KaptOptions javacArguments(Map<String, String> javacArguments) {
@@ -278,8 +278,8 @@ public class KaptOptions {
     }
 
     /**
-     * A list of annotation processor qualified class names. If specified, kapt does not try to find annotation
-     * processors in apclasspath
+     * A list of annotation processor qualified class names. If specified, {@code kapt} does not try to find annotation
+     * processors in {@link #apClasspath}.
      *
      * @param processors the list of qualified class names
      * @return this class instance

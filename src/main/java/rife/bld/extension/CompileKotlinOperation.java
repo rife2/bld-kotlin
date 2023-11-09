@@ -47,6 +47,31 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     private File buildTestDirectory_;
     private CompileKotlinOptions compileOptions_;
     private KaptOptions kaptOptions_;
+    private File kotlinLibsDirectory_;
+
+    /**
+     * Returns the list JARs contained in a given directory.
+     *
+     * @param directory the directory
+     * @param regex     the regular expression to match
+     * @return the list of JARs
+     */
+    public static List<String> getJarList(File directory, String regex) {
+        var jars = new ArrayList<String>();
+
+        if (directory.isDirectory()) {
+            var files = directory.listFiles();
+            if (files != null) {
+                for (var f : files) {
+                    if (!f.getName().contains("-sources") && f.getName().matches(regex)) {
+                        jars.add(f.getAbsolutePath());
+                    }
+                }
+            }
+        }
+
+        return jars;
+    }
 
     public static Collection<File> getKotlinFileList(File directory) {
         if (directory == null) {
@@ -239,15 +264,21 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             args.addAll(compileOptions_.args());
         }
 
-        // kapt options
-        if (kaptOptions_ != null) {
-            kaptOptions_.args().forEach(a -> {
-                args.add("-P");
-                args.add(a);
-            } );
+        // kapt plugin & options
+        if (kotlinLibsDirectory_ != null && kaptOptions_ != null) {
+            var kaptJar = getJarList(kotlinLibsDirectory_, "^.*kotlin-annotation-processing.*\\.jar$");
+            if (kaptJar.size() == 1) {
+                args.add("-Xplugin=" + kaptJar.get(0));
+                kaptOptions_.args().forEach(a -> {
+                    args.add("-P");
+                    args.add(a);
+                });
+            } else if (LOGGER.isLoggable(Level.WARNING)) {
+                LOGGER.warning("Could not locate the Kotlin annotation processing JAR in:" + kotlinLibsDirectory_);
+            }
         }
 
-        // source
+        // sources
         sources.forEach(f -> args.add(f.getAbsolutePath()));
 
         if (LOGGER.isLoggable(Level.FINE) && !silent()) {
@@ -293,6 +324,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                 .buildTestDirectory(project.buildTestDirectory())
                 .compileMainClasspath(project.compileMainClasspath())
                 .compileTestClasspath(project.compileTestClasspath())
+                .kotlinLibsDirectory(project.libBldDirectory())
                 .mainSourceFiles(getKotlinFileList(new File(project.srcMainDirectory(), "kotlin")))
                 .testSourceFiles(getKotlinFileList(new File(project.srcTestDirectory(), "kotlin")));
     }
@@ -305,6 +337,28 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     public CompileKotlinOperation kaptOptions(KaptOptions options) {
         kaptOptions_ = options;
+        return this;
+    }
+
+    /**
+     * Provides the directory containing the Kotlin libraries (compiler, plugins, etc.) JARs.
+     *
+     * @param directory the directory location
+     * @return this class instance
+     */
+    public CompileKotlinOperation kotlinLibsDirectory(File directory) {
+        kotlinLibsDirectory_ = directory;
+        return this;
+    }
+
+    /**
+     * Provides the directory containing the Kotlin libraries (compiler, plugins, etc.) JARs.
+     *
+     * @param directory the directory location
+     * @return this class instance
+     */
+    public CompileKotlinOperation kotlinLibsDirectory(String directory) {
+        kotlinLibsDirectory_ = new File(directory);
         return this;
     }
 

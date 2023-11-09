@@ -17,6 +17,7 @@
 package rife.bld.extension.dokka;
 
 import rife.bld.BaseProject;
+import rife.bld.extension.CompileKotlinOperation;
 import rife.bld.operations.AbstractProcessOperation;
 import rife.tools.StringUtils;
 
@@ -89,7 +90,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
         // java
         args.add(javaTool());
 
-        var cli = getJarList(project_.libBldDirectory(), "^.*dokka-cli.*\\.jar$");
+        var cli = CompileKotlinOperation.getJarList(project_.libBldDirectory(), "^.*dokka-cli.*\\.jar$");
 
         if (cli.size() != 1) {
             throw new RuntimeException("The dokka-cli JAR could not be found.");
@@ -237,23 +238,6 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     public DokkaOperation failOnWarning(Boolean failOnWarning) {
         failOnWarning_ = failOnWarning;
         return this;
-    }
-
-    private List<String> getJarList(File directory, String regex) {
-        var jars = new ArrayList<String>();
-
-        if (directory.isDirectory()) {
-            var files = directory.listFiles();
-            if (files != null) {
-                for (var f : files) {
-                    if (!f.getName().contains("-sources") && f.getName().matches(regex)) {
-                        jars.add(f.getAbsolutePath());
-                    }
-                }
-            }
-        }
-
-        return jars;
     }
 
     /**
@@ -449,13 +433,17 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     public DokkaOperation outputFormat(OutputFormat format) {
         pluginsClasspath_.clear();
         if (format.equals(OutputFormat.JAVADOC)) {
-            pluginsClasspath_.addAll(getJarList(project_.libBldDirectory(), JAVADOC_PLUGIN_REGEXP));
+            pluginsClasspath_.addAll(CompileKotlinOperation.getJarList(project_.libBldDirectory(),
+                    JAVADOC_PLUGIN_REGEXP));
         } else if (format.equals(OutputFormat.HTML)) {
-            pluginsClasspath_.addAll(getJarList(project_.libBldDirectory(), HTML_PLUGIN_REGEXP));
+            pluginsClasspath_.addAll(CompileKotlinOperation.getJarList(project_.libBldDirectory(),
+                    HTML_PLUGIN_REGEXP));
         } else if (format.equals(OutputFormat.MARKDOWN)) {
-            pluginsClasspath_.addAll(getJarList(project_.libBldDirectory(), GFM_PLUGIN_REGEXP));
+            pluginsClasspath_.addAll(CompileKotlinOperation.getJarList(project_.libBldDirectory(),
+                    GFM_PLUGIN_REGEXP));
         } else if (format.equals(OutputFormat.JEKYLL)) {
-            pluginsClasspath_.addAll(getJarList(project_.libBldDirectory(), JEKYLL_PLUGIN_REGEXP));
+            pluginsClasspath_.addAll(CompileKotlinOperation.getJarList(project_.libBldDirectory(),
+                    JEKYLL_PLUGIN_REGEXP));
         }
         return this;
     }

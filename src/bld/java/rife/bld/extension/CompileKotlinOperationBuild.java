@@ -44,7 +44,7 @@ public class CompileKotlinOperationBuild extends Project {
         var kotlin = version(1, 9, 20);
         scope(compile)
                 .include(dependency("org.jetbrains.kotlin", "kotlin-compiler", kotlin))
-                .include(dependency("org.jetbrains.kotlin", "kotlin-annotation-processing", kotlin ))
+                .include(dependency("org.jetbrains.kotlin", "kotlin-annotation-processing", kotlin))
                 .include(dependency("org.jetbrains.dokka", "dokka-cli", dokka))
                 .include(dependency("org.jetbrains.dokka", "dokka-base", dokka))
                 .include(dependency("org.jetbrains.dokka", "analysis-kotlin-descriptors", dokka))
