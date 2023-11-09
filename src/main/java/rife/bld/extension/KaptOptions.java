@@ -140,12 +140,12 @@ public class KaptOptions {
 
         // apoptions
         if (!apOptions_.isEmpty()) {
-            apOptions_.forEach(a -> {
+            apOptions_.forEach(o -> {
                 try {
-                    args.add(PLUGIN_ID + "apoptions=" + encodeList(a));
+                    args.add(PLUGIN_ID + "apoptions=" + encodeList(o));
                 } catch (IOException e) {
                     if (LOGGER.isLoggable(Level.WARNING)) {
-                        LOGGER.log(Level.WARNING, "Could not encode application processor option.", e);
+                        LOGGER.log(Level.WARNING, "Could not encode application processor option: " + o, e);
                     }
                 }
             });
@@ -173,7 +173,7 @@ public class KaptOptions {
                     args.add(PLUGIN_ID + "javacArguments=" + encodeList(a));
                 } catch (IOException e) {
                     if (LOGGER.isLoggable(Level.WARNING)) {
-                        LOGGER.log(Level.WARNING, "Could not encode javac argument.", e);
+                        LOGGER.log(Level.WARNING, "Could not encode javac argument: " + a, e);
                     }
                 }
             });

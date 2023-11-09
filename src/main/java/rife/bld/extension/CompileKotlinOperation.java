@@ -341,7 +341,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Provides the directory containing the Kotlin libraries (compiler, plugins, etc.) JARs.
+     * Provides the directory containing the Kotlin libraries (compiler, plugins, dokka, etc.) JARs.
      *
      * @param directory the directory location
      * @return this class instance
@@ -352,7 +352,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Provides the directory containing the Kotlin libraries (compiler, plugins, etc.) JARs.
+     * Provides the directory containing the Kotlin libraries (compiler, plugins, dokka, etc.) JARs.
      *
      * @param directory the directory location
      * @return this class instance
