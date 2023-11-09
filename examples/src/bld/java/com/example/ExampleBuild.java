@@ -94,6 +94,17 @@ public class ExampleBuild extends Project {
                 .execute();
     }
 
+    @BuildCommand(value = "dokka-jekyll", summary = "Generates documentation in Jekyll flavored markdown format")
+    public void dokkaJekyll() throws ExitStatusException, IOException, InterruptedException {
+        new DokkaOperation()
+                .fromProject(this)
+                .loggingLevel(LoggingLevel.INFO)
+                // Create build/dokka/jekyll
+                .outputDir(Path.of(buildDirectory().getAbsolutePath(), "dokka", "jekkyl").toFile())
+                .outputFormat(OutputFormat.JEKYLL)
+                .execute();
+    }
+
     @BuildCommand(summary = "Generates Javadoc for the project")
     @Override
     public void javadoc() throws ExitStatusException, IOException, InterruptedException {

@@ -23,5 +23,5 @@ package rife.bld.extension.dokka;
  * @since 1.0
  */
 public enum OutputFormat {
-    JAVADOC, HTML, MARKDOWN
+    JAVADOC, JEKYLL, HTML, MARKDOWN
 }
