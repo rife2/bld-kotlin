@@ -219,7 +219,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     /**
      * Configures the operation from a {@link BaseProject}.
      * <p>
-     * Sets the {@link #sourceSet} and {@link #moduleName} from the project.
+     * Sets the {@link #sourceSet sourceSet} and {@link #moduleName moduleName} from the project.
      *
      * @param project the project to configure the operation from
      */

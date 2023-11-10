@@ -46,7 +46,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     private File buildMainDirectory_;
     private File buildTestDirectory_;
     private CompileKotlinOptions compileOptions_;
-    private KaptOptions kaptOptions_;
     private BaseProject project_;
 
     /**
@@ -215,6 +214,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         executeCreateBuildDirectories();
         executeBuildMainSources();
         executeBuildTestSources();
+
         if (!silent()) {
             System.out.println("Kotlin compilation finished successfully.");
         }
@@ -260,28 +260,12 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
         // friend-path
         if (friendPaths != null) {
-            args.add("-Xfriend-paths");
-            args.add(friendPaths.getAbsolutePath());
+            args.add("-Xfriend-paths=" + friendPaths.getAbsolutePath());
         }
 
         // options
         if (compileOptions_ != null) {
             args.addAll(compileOptions_.args());
-        }
-
-        // kapt plugin & options
-        if (kaptOptions_ != null) {
-            var kaptJar = getJarList(project_.libBldDirectory(), "^.*kotlin-annotation-processing.*\\.jar$");
-            if (kaptJar.size() == 1) {
-                args.add("-Xplugin=" + kaptJar.get(0));
-                kaptOptions_.args().forEach(a -> {
-                    args.add("-P");
-                    args.add(a);
-                });
-            } else if (LOGGER.isLoggable(Level.WARNING)) {
-                LOGGER.warning("Could not locate the Kotlin annotation processing JAR in:" +
-                        project_.libBldDirectory().getAbsolutePath());
-            }
         }
 
         // sources
@@ -305,7 +289,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         executeBuildSources(
                 compileTestClasspath(),
                 sources(testSourceFiles(), testSourceDirectories()),
-                buildTestDirectory(), buildMainDirectory());
+                buildTestDirectory(),
+                buildMainDirectory());
     }
 
     /**
@@ -343,17 +328,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                 .compileTestClasspath(project.compileTestClasspath())
                 .mainSourceFiles(getKotlinFileList(new File(project.srcMainDirectory(), "kotlin")))
                 .testSourceFiles(getKotlinFileList(new File(project.srcTestDirectory(), "kotlin")));
-    }
-
-    /**
-     * Provides the annotation processor ({@code kapt} options.
-     *
-     * @param options the {@code kapt} options
-     * @return this class instance
-     */
-    public CompileKotlinOperation kaptOptions(KaptOptions options) {
-        kaptOptions_ = options;
-        return this;
     }
 
     /**
