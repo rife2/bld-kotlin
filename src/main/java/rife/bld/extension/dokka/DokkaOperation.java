@@ -227,9 +227,10 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     @Override
     public DokkaOperation fromProject(BaseProject project) {
         project_ = project;
-        sourceSet_ = new SourceSet()
-                .src(new File(project.srcMainDirectory(), "kotlin").getAbsolutePath())
-                .jdkVersion(project.javaRelease());
+        sourceSet_ = new SourceSet().src(new File(project.srcMainDirectory(), "kotlin").getAbsolutePath());
+        if (project.javaRelease() != null) {
+            sourceSet_ = sourceSet_.jdkVersion(project.javaRelease());
+        }
         moduleName_ = project.name();
         return this;
     }

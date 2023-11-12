@@ -324,13 +324,17 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     public CompileKotlinOperation fromProject(BaseProject project) {
         project_ = project;
-        return buildMainDirectory(project.buildMainDirectory())
+        var op = buildMainDirectory(project.buildMainDirectory())
                 .buildTestDirectory(project.buildTestDirectory())
                 .compileMainClasspath(project.compileMainClasspath())
                 .compileTestClasspath(project.compileTestClasspath())
                 .mainSourceFiles(getKotlinFileList(new File(project.srcMainDirectory(), "kotlin")))
-                .testSourceFiles(getKotlinFileList(new File(project.srcTestDirectory(), "kotlin")))
-                .compileOptions(new CompileKotlinOptions().jdkRelease(project.javaRelease()));
+                .testSourceFiles(getKotlinFileList(new File(project.srcTestDirectory(), "kotlin")));
+        if (project.javaRelease() != null) {
+            return op.compileOptions(new CompileKotlinOptions().jdkRelease(project.javaRelease()));
+        }
+
+        return op;
     }
 
     /**
