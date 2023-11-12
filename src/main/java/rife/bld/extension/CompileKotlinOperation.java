@@ -317,6 +317,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *     <li>{@link #compileTestClasspath() compilesTestClassPath}</li>
      *     <li>{@link #mainSourceFiles() mainSourceFiles}</li>
      *     <li>{@link #testSourceFiles() testSourceFile}</li>
+     *     <li>{@link CompileKotlinOptions#jdkRelease jdkRelease}</li>
      * </ul>
      *
      * @param project the project to configure the compile operation from
@@ -328,7 +329,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                 .compileMainClasspath(project.compileMainClasspath())
                 .compileTestClasspath(project.compileTestClasspath())
                 .mainSourceFiles(getKotlinFileList(new File(project.srcMainDirectory(), "kotlin")))
-                .testSourceFiles(getKotlinFileList(new File(project.srcTestDirectory(), "kotlin")));
+                .testSourceFiles(getKotlinFileList(new File(project.srcTestDirectory(), "kotlin")))
+                .compileOptions(new CompileKotlinOptions().jdkRelease(project.javaRelease()));
     }
 
     /**

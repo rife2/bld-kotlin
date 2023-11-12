@@ -219,14 +219,17 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     /**
      * Configures the operation from a {@link BaseProject}.
      * <p>
-     * Sets the {@link #sourceSet sourceSet} and {@link #moduleName moduleName} from the project.
+     * Sets the {@link #sourceSet sourceSet}, {@link SourceSet#jdkVersion jdkVersion} and {@link #moduleName moduleName}
+     * from the project.
      *
      * @param project the project to configure the operation from
      */
     @Override
     public DokkaOperation fromProject(BaseProject project) {
         project_ = project;
-        sourceSet_ = new SourceSet().src(new File(project.srcMainDirectory(), "kotlin").getAbsolutePath());
+        sourceSet_ = new SourceSet()
+                .src(new File(project.srcMainDirectory(), "kotlin").getAbsolutePath())
+                .jdkVersion(project.javaRelease());
         moduleName_ = project.name();
         return this;
     }
