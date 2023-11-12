@@ -123,7 +123,7 @@ public class SourceSet {
         if (!externalDocumentationLinks_.isEmpty()) {
             args.add("-externalDocumentationLinks");
             var links = new ArrayList<String>();
-            externalDocumentationLinks_.forEach((k, v) -> links.add(String.format("{%s}^{%s}", k, v)));
+            externalDocumentationLinks_.forEach((k, v) -> links.add(String.format("%s^%s", k, v)));
             args.add(String.join("^^", links));
         }
 
@@ -193,11 +193,11 @@ public class SourceSet {
             args.add(String.join(SEMICOLON, src_));
         }
 
-        // -srcLinks
+        // -srcLink
         if (!srcLinks_.isEmpty()) {
-            args.add("-srcLinks");
+            args.add("-srcLink");
             var links = new ArrayList<String>();
-            srcLinks_.forEach((k, v) -> links.add(String.format("{%s}={%s}", k, v)));
+            srcLinks_.forEach((k, v) -> links.add(String.format("%s=%s", k, v)));
             args.add(String.join(SEMICOLON, links));
         }
 
@@ -501,15 +501,15 @@ public class SourceSet {
     }
 
     /**
-     * Sets the mpping between a source directory and a Web service for browsing the code.
+     * Sets the mapping between a source directory and a Web service for browsing the code.
      *
      * @param srcPath    the source path
      * @param remotePath the remote path
      * @param lineSuffix the line suffix
      * @return this operation instance
      */
-    public SourceSet srcLinks(String srcPath, String remotePath, String lineSuffix) {
-        srcLinks_.put(srcPath, remotePath + '#' + lineSuffix);
+    public SourceSet srcLink(String srcPath, String remotePath, String lineSuffix) {
+        srcLinks_.put(srcPath, remotePath + lineSuffix);
         return this;
     }
 

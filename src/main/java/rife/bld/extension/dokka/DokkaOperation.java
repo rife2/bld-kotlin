@@ -142,7 +142,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
             args.add("-globalLinks");
             var links = new ArrayList<String>();
             globalLinks_.forEach((k, v) ->
-                    links.add(String.format("{%s}^{%s}", k, v)));
+                    links.add(String.format("%s^%s", k, v)));
             args.add(String.join("^^", links));
         }
 

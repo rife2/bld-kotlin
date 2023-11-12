@@ -69,7 +69,7 @@ class DokkaOperationTest {
                 "-outputDir", path + "/build",
                 "-delayTemplateSubstitution", "true",
                 "-failOnWarning", "true",
-                "-globalLinks", "{s}^{link}^^{s2}^{link2}",
+                "-globalLinks", "s^link^^s2^link2",
                 "-globalPackageOptions", "option1;option2;option3;option4",
                 "-globalSrcLinks_", "link1;link2;link3;link4",
                 "-includes", "file1;file2",

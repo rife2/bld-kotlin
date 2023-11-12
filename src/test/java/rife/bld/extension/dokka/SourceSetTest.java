@@ -39,7 +39,7 @@ class SourceSetTest {
         var matches = List.of(
                 "-classpath", "path1;path2",
                 "-dependentSourceSets", "set1/set2;set3/set4",
-                "-externalDocumentationLinks", "{link3}^{link4}^^{link1}^{link2}",
+                "-externalDocumentationLinks", "link3^link4^^link1^link2",
                 "-perPackageOptions", "option1;option2",
                 "-samples", "samples1;samples1",
                 "-suppressedFiles", "sup1;sup2"
@@ -62,8 +62,8 @@ class SourceSetTest {
                 .includes("includes1", "includes2")
                 .perPackageOptions("options1", "options2")
                 .samples("samples1", "sample2")
-                .srcLinks("path1", "remote1", "suffix1")
-                .srcLinks("path2", "remote2", "suffix2")
+                .srcLink("path1", "remote1", "#suffix1")
+                .srcLink("path2", "remote2", "#suffix2")
                 .src("src1", "src2")
                 .suppressedFiles("sup1", "sup2")
                 .analysisPlatform(AnalysisPlatform.JVM)
@@ -86,7 +86,7 @@ class SourceSetTest {
                 "-dependentSourceSets", "moduleName/sourceSetName",
                 "-displayName", "name",
                 "-documentedVisibilities", "package;private",
-                "-externalDocumentationLinks", "{url1}^{packageListUrl1}^^{url2}^{packageListUrl2}",
+                "-externalDocumentationLinks", "url1^packageListUrl1^^url2^packageListUrl2",
                 "-jdkVersion", "18",
                 "-includes", "includes1;includes2",
                 "-languageVersion", "2.0",
@@ -98,7 +98,7 @@ class SourceSetTest {
                 "-samples", "samples1;sample2",
                 "-skipDeprecated", "true",
                 "-src", "src1;src2",
-                "-srcLinks", "{path1}={remote1#suffix1};{path2}={remote2#suffix2}",
+                "-srcLink", "path1=remote1#suffix1;path2=remote2#suffix2",
                 "-sourceSetName", "setName",
                 "-suppressedFiles", "sup1;sup2");
 

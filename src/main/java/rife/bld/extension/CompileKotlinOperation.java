@@ -62,7 +62,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             var files = directory.listFiles();
             if (files != null) {
                 for (var f : files) {
-                    if (!f.getName().contains("-sources") && f.getName().matches(regex)) {
+                    if (!f.getName().endsWith("-sources.jar") && (!f.getName().endsWith("-javadoc.jar")) &&
+                            f.getName().matches(regex)) {
                         jars.add(f.getAbsolutePath());
                     }
                 }
