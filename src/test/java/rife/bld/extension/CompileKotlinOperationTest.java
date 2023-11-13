@@ -68,6 +68,7 @@ class CompileKotlinOperationTest {
                 testJars.add(f.getAbsolutePath());
             }
 
+
             var op = new CompileKotlinOperation()
                     .fromProject(new BaseProjectBlueprint(new File("examples"), "com.example",
                             "Example"))
@@ -77,9 +78,7 @@ class CompileKotlinOperationTest {
                     .compileMainClasspath(compileJars)
                     .compileTestClasspath(testJars)
                     .compileTestClasspath(compileJars)
-                    .compileTestClasspath(mainDir.getAbsolutePath())
-                    .mainSourceFiles(CompileKotlinOperation.getKotlinFileList(new File("examples/src/main/kotlin")))
-                    .testSourceFiles(CompileKotlinOperation.getKotlinFileList(new File("examples/src/test/kotlin")));
+                    .compileTestClasspath(mainDir.getAbsolutePath());
 
             op.execute();
 
@@ -87,8 +86,12 @@ class CompileKotlinOperationTest {
             assertThat(mainDir).isNotEmptyDirectory();
             assertThat(testDir).isNotEmptyDirectory();
 
-            var exampleClass = Path.of(mainDir.getAbsolutePath(), "com", "example", "Example.class").toFile();
-            assertThat(exampleClass).exists();
+            var mainOut = Path.of(mainDir.getAbsolutePath(), "com", "example").toFile();
+            assertThat(new File(mainOut, "Example.class")).exists();
+            assertThat(new File(mainOut, "Example$Companion.class")).exists();
+
+            var testOut = Path.of(testDir.getAbsolutePath(), "com", "example").toFile();
+            assertThat(new File(testOut, "ExampleTest.class")).exists();
         } finally {
             FileUtils.deleteDirectory(tmpDir);
         }

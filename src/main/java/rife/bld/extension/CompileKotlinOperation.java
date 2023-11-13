@@ -83,9 +83,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             }
             return Collections.emptyList();
         } else {
-            var dir_abs = directory.getAbsoluteFile();
-            return FileUtils.getFileList(dir_abs, KOTLIN_FILE_PATTERN, null).stream().map((file) ->
-                    new File(dir_abs, file)).toList();
+            return FileUtils.getFileList(directory, KOTLIN_FILE_PATTERN, null).stream().map((file) ->
+                    new File(directory, file)).toList();
         }
     }
 
@@ -424,6 +423,20 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     public CompileKotlinOperation plugins(Collection<String> plugins) {
         plugins_.addAll(plugins);
+        return this;
+    }
+
+    /**
+     * Provides compiler plugins.
+     *
+     * @param directory the directory containing the plugin JARs
+     * @param plugins   one or more plugins
+     * @return this class instance
+     */
+    public CompileKotlinOperation plugins(File directory, CompileKotlinPlugin... plugins) {
+        for (var plugin : plugins) {
+            plugins_.addAll(CompileKotlinOperation.getJarList(directory, plugin.label));
+        }
         return this;
     }
 
