@@ -4,9 +4,9 @@
 [![Java](https://img.shields.io/badge/java-17%2B-blue)](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)
 [![Kotlin](https://img.shields.io/badge/kotlin-1.9.20-7f52ff.svg)](https://kotlinlang.org)
 [![bld](https://img.shields.io/badge/1.7.3-FA9052?label=bld&labelColor=2392FF)](https://rife2.com/bld)
-[![Release](https://flat.badgen.net/maven/v/metadata-url/repo.rife2.com/releases/com/uwyn/rife2/bld-kotlin/maven-metadata.xml?color=blue)](https://repo.rife2.com/#/releases/com/uwyn/rife2/bld-spring-boot)
-[![Snapshot](https://flat.badgen.net/maven/v/metadata-url/repo.rife2.com/snapshots/com/uwyn/rife2/bld-kotlin/maven-metadata.xml?label=snapshot)](https://repo.rife2.com/#/snapshots/com/uwyn/rife2/bld-spring-boot)
-[![GitHub CI](https://github.com/rife2/bld-kotlin/actions/workflows/bld.yml/badge.svg)](https://github.com/rife2/bld-spring-boot/actions/workflows/bld.yml)
+[![Release](https://flat.badgen.net/maven/v/metadata-url/repo.rife2.com/releases/com/uwyn/rife2/bld-kotlin/maven-metadata.xml?color=blue)](https://repo.rife2.com/#/releases/com/uwyn/rife2/bld-kotlin)
+[![Snapshot](https://flat.badgen.net/maven/v/metadata-url/repo.rife2.com/snapshots/com/uwyn/rife2/bld-kotlin/maven-metadata.xml?label=snapshot)](https://repo.rife2.com/#/snapshots/com/uwyn/rife2/bld-kotlin)
+[![GitHub CI](https://github.com/rife2/bld-kotlin/actions/workflows/bld.yml/badge.svg)](https://github.com/rife2/bld-kotlin/actions/workflows/bld.yml)
 
 To install, please refer to the [extensions documentation](https://github.com/rife2/bld/wiki/Extensions).
 
