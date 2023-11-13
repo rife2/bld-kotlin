@@ -41,6 +41,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     private final Collection<String> compileTestClasspath_ = new ArrayList<>();
     private final Collection<File> mainSourceDirectories_ = new ArrayList<>();
     private final Collection<File> mainSourceFiles_ = new ArrayList<>();
+    private final Collection<String> plugins_ = new ArrayList<>();
     private final Collection<File> testSourceDirectories_ = new ArrayList<>();
     private final Collection<File> testSourceFiles_ = new ArrayList<>();
     private File buildMainDirectory_;
@@ -269,6 +270,11 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             args.addAll(compileOptions_.args());
         }
 
+        // plugins
+        if (!plugins_.isEmpty()) {
+            plugins_.forEach(p -> args.add("-Xplugin=" + p));
+        }
+
         // sources
         sources.forEach(f -> args.add(f.getAbsolutePath()));
 
@@ -397,6 +403,28 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     public Collection<File> mainSourceFiles() {
         return mainSourceFiles_;
+    }
+
+    /**
+     * Provides compiler plugins.
+     *
+     * @param plugins one or more plugins
+     * @return this class instance
+     */
+    public CompileKotlinOperation plugins(String... plugins) {
+        plugins_.addAll(List.of(plugins));
+        return this;
+    }
+
+    /**
+     * Provides compiler plugins.
+     *
+     * @param plugins a list of plugins
+     * @return this class instance
+     */
+    public CompileKotlinOperation plugins(Collection<String> plugins) {
+        plugins_.addAll(plugins);
+        return this;
     }
 
     // Combine Kotlin sources

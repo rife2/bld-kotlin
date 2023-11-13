@@ -496,9 +496,9 @@ public class CompileKotlinOptions {
     }
 
     /**
-     * Enable verbose logging output which includes details of the compilation process.
+     * Pass an option to a plugin.
      *
-     * @param id         the plugin
+     * @param id         the plugin ID
      * @param optionName the plugin option name
      * @param value      the plugin option value
      */
