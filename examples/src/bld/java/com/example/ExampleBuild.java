@@ -3,7 +3,6 @@ package com.example;
 import rife.bld.BuildCommand;
 import rife.bld.Project;
 import rife.bld.extension.CompileKotlinOperation;
-import rife.bld.extension.CompileKotlinOptions;
 import rife.bld.extension.dokka.DokkaOperation;
 import rife.bld.extension.dokka.LoggingLevel;
 import rife.bld.extension.dokka.OutputFormat;
@@ -64,12 +63,11 @@ public class ExampleBuild extends Project {
         // The source code located in src/main/kotlin and src/test/kotlin will be compiled
         new CompileKotlinOperation()
                 .fromProject(this)
-                .compileOptions(
-                        new CompileKotlinOptions()
-                                .jdkRelease(javaRelease)
-                                .verbose(true)
-                )
                 .execute();
+
+//        var op = new CompileKotlinOperation().fromProject(this);
+//        op.compileOptions().verbose(true);
+//        op.execute();
     }
 
     @BuildCommand(value = "dokka-gfm", summary = "Generates documentation in GitHub flavored markdown format")

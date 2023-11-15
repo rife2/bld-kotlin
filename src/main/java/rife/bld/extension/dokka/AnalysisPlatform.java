@@ -17,7 +17,7 @@
 package rife.bld.extension.dokka;
 
 /**
- * Dokka analysis platforms.
+ * Dokka's analysis platforms.
  *
  * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
  * @since 1.0

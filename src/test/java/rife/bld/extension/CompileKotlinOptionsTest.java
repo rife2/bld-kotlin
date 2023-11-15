@@ -76,7 +76,7 @@ class CompileKotlinOptionsTest {
                 .progressive(true)
                 .scriptTemplates("name", "name2")
                 .verbose(true)
-                .wErrpr(true)
+                .wError(true)
                 .args();
 
         var matches = List.of(

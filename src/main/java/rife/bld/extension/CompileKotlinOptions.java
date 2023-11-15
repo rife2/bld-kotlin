@@ -266,6 +266,15 @@ public class CompileKotlinOptions {
     }
 
     /**
+     * Indicates whether the {@link #jdkRelease(String) jdkRelease} was set.
+     *
+     * @return {@code true} if the release was set; or {@code false} otherwise
+     */
+    public boolean hasRelease() {
+        return jdkRelease_ != null;
+    }
+
+    /**
      * Include the Kotlin runtime into the resulting JAR file. Makes the resulting archive runnable on any Java-enabled
      * environment.
      *
@@ -317,7 +326,7 @@ public class CompileKotlinOptions {
      * Specify the target version of the generated JVM bytecode.
      *
      * @param version the target version
-     * @return this class insance
+     * @return this class instance
      * @see #jdkRelease(String)
      */
     public CompileKotlinOptions jdkRelease(int version) {
@@ -557,7 +566,7 @@ public class CompileKotlinOptions {
      * @param wError {@code true} or {@code false}
      * @return this class instance
      */
-    public CompileKotlinOptions wErrpr(boolean wError) {
+    public CompileKotlinOptions wError(boolean wError) {
         wError_ = wError;
         return this;
     }

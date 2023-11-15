@@ -46,7 +46,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     private final Collection<File> testSourceFiles_ = new ArrayList<>();
     private File buildMainDirectory_;
     private File buildTestDirectory_;
-    private CompileKotlinOptions compileOptions_;
+    private CompileKotlinOptions compileOptions_ = new CompileKotlinOptions();
     private BaseProject project_;
 
     /**
@@ -157,6 +157,13 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     public Collection<String> compileMainClasspath() {
         return compileMainClasspath_;
+    }
+
+    /**
+     * Retrieves the list of compilation options for the compiler.
+     */
+    public CompileKotlinOptions compileOptions() {
+        return compileOptions_;
     }
 
     /**
@@ -320,9 +327,11 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *     <li>{@link #buildTestDirectory() buildTestDirectory}</li>
      *     <li>{@link #compileMainClasspath() compileMainClassPath}</li>
      *     <li>{@link #compileTestClasspath() compilesTestClassPath}</li>
-     *     <li>{@link #mainSourceFiles() mainSourceFiles}</li>
-     *     <li>{@link #testSourceFiles() testSourceFile}</li>
-     *     <li>{@link CompileKotlinOptions#jdkRelease jdkRelease}</li>
+     *     <li>{@link #mainSourceFiles() mainSourceFiles} to the {@code kotlin} directory in
+     *     {@link BaseProject#srcMainDirectory() srcMainDirectory}</li>
+     *     <li>{@link #testSourceFiles() testSourceFile} to the {@code kotlin} directory in
+     *     {@link BaseProject#srcTestDirectory() srcTestDirectory}</li>
+     *     <li>{@link CompileKotlinOptions#jdkRelease jdkRelease} to {@link BaseProject#javaRelease() javaRelease}</li>
      * </ul>
      *
      * @param project the project to configure the compile operation from
@@ -335,8 +344,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                 .compileTestClasspath(project.compileTestClasspath())
                 .mainSourceFiles(getKotlinFileList(new File(project.srcMainDirectory(), "kotlin")))
                 .testSourceFiles(getKotlinFileList(new File(project.srcTestDirectory(), "kotlin")));
-        if (project.javaRelease() != null) {
-            return op.compileOptions(new CompileKotlinOptions().jdkRelease(project.javaRelease()));
+        if (project.javaRelease() != null && !compileOptions_.hasRelease()) {
+            compileOptions_.jdkRelease(project.javaRelease());
         }
 
         return op;
@@ -437,6 +446,26 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         for (var plugin : plugins) {
             plugins_.addAll(CompileKotlinOperation.getJarList(directory, plugin.label));
         }
+        return this;
+    }
+
+    /**
+     * Provides compiler plugins.
+     *
+     * @param jars    the list of plugin JARs
+     * @param plugins one or more plugins
+     * @return this class instance
+     */
+    public CompileKotlinOperation plugins(Collection<File> jars, CompileKotlinPlugin... plugins) {
+        jars.forEach(jar -> {
+            for (var plugin : plugins) {
+                if (jar.getName().matches(plugin.label)) {
+                    plugins_.add(jar.getAbsolutePath());
+                    break;
+                }
+            }
+        });
+
         return this;
     }
 

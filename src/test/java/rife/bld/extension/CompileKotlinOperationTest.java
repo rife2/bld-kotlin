@@ -72,7 +72,6 @@ class CompileKotlinOperationTest {
             var op = new CompileKotlinOperation()
                     .fromProject(new BaseProjectBlueprint(new File("examples"), "com.example",
                             "Example"))
-                    .compileOptions(new CompileKotlinOptions().verbose(true))
                     .buildMainDirectory(mainDir)
                     .buildTestDirectory(testDir)
                     .compileMainClasspath(compileJars)
@@ -80,6 +79,7 @@ class CompileKotlinOperationTest {
                     .compileTestClasspath(compileJars)
                     .compileTestClasspath(mainDir.getAbsolutePath());
 
+            op.compileOptions().verbose(true);
             op.execute();
 
             assertThat(tmpDir).isNotEmptyDirectory();

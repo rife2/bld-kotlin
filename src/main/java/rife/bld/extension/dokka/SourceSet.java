@@ -52,7 +52,7 @@ public class SourceSet {
     /**
      * Sets the platform used for setting up analysis. Default is {@link AnalysisPlatform#JVM}
      *
-     * @param analysisPlatform the analysis platfrom
+     * @param analysisPlatform the analysis platform
      * @return this operation instance
      */
     public SourceSet analysisPlatform(AnalysisPlatform analysisPlatform) {
@@ -424,7 +424,7 @@ public class SourceSet {
     }
 
     /**
-     * Sets Wwether to report undocumented declarations.
+     * Sets whether to report undocumented declarations.
      *
      * @param reportUndocumented {@code true} or {@code false}
      * @return this operation instance
