@@ -332,6 +332,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *     <li>{@link #testSourceFiles() testSourceFile} to the {@code kotlin} directory in
      *     {@link BaseProject#srcTestDirectory() srcTestDirectory}</li>
      *     <li>{@link CompileKotlinOptions#jdkRelease jdkRelease} to {@link BaseProject#javaRelease() javaRelease}</li>
+     *     <li>{@link CompileKotlinOptions#noStdLib(boolean) noStdLib} to {@code true}</li>
      * </ul>
      *
      * @param project the project to configure the compile operation from
@@ -347,6 +348,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         if (project.javaRelease() != null && !compileOptions_.hasRelease()) {
             compileOptions_.jdkRelease(project.javaRelease());
         }
+        compileOptions_.noStdLib(true);
 
         return op;
     }

@@ -16,10 +16,10 @@
 
 package rife.bld.extension;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.io.File;
 
 /**
  * Configuration for the Kotlin compiler options.
@@ -45,7 +45,7 @@ public class CompileKotlinOptions {
     private String moduleName_;
     private boolean noJdk_;
     private boolean noReflect_;
-    private boolean noStdLib_ = true;
+    private boolean noStdLib_;
     private boolean noWarn_;
     private String path_;
     private boolean progressive_;
