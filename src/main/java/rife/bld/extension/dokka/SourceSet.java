@@ -51,6 +51,8 @@ public class SourceSet {
 
     /**
      * Sets the platform used for setting up analysis. Default is {@link AnalysisPlatform#JVM}
+     * <p>
+     * Platform to be used for setting up code analysis and {@code @sample} environment.
      *
      * @param analysisPlatform the analysis platform
      * @return this operation instance
@@ -218,6 +220,10 @@ public class SourceSet {
 
     /**
      * Sets classpath for analysis and interactive samples.
+     * <p>
+     * This is useful if some types that come from dependencies are not resolved/picked up automatically.
+     * <p>
+     * This option accepts both {@code .jar} and {@code .klib} files.
      *
      * @param classpath one or more classpath
      * @return this operation instance
@@ -229,6 +235,10 @@ public class SourceSet {
 
     /**
      * Sets classpath for analysis and interactive samples.
+     * <p>
+     * This is useful if some types that come from dependencies are not resolved/picked up automatically.
+     * <p>
+     * This option accepts both {@code .jar} and {@code .klib} files.
      *
      * @param classpath the list of classpath
      * @return this operation instance
@@ -264,6 +274,11 @@ public class SourceSet {
 
     /**
      * Sets the display name of the source set, used both internally and externally.
+     * <p>
+     * The name is used both externally (for example, the source set name is visible to documentation readers) and
+     * internally (for example, for logging messages of {@link #reportUndocumented}.
+     * <p>
+     * The platform name can be used if you don't have a better alternative.
      *
      * @param displayName the display name
      * @return this operation instance
@@ -275,6 +290,11 @@ public class SourceSet {
 
     /**
      * Sets visibilities to be documented.
+     * <p>
+     * This can be used if you want to document protected/internal/private declarations, as well as if you want to
+     * exclude public declarations and only document internal API.
+     * <p>
+     * This can be configured on per-package basis.
      *
      * @param visibilities one or more visibilities
      * @return this operation instance
@@ -286,6 +306,8 @@ public class SourceSet {
 
     /**
      * Sets the external documentation links.
+     * <p>
+     * A set of parameters for external documentation links that is applied only for this source set.
      *
      * @param url            the external documentation URL
      * @param packageListUrl the external documentation package list URL
@@ -298,10 +320,12 @@ public class SourceSet {
 
     /**
      * Sets the external documentation links.
+     * <p>
+     * A set of parameters for external documentation links that is applied only for this source set.
      *
      * @param externalDocumentationLinks the map of external documentation links
      * @return this operation instance
-     * @see #dependentSourceSets(String, String)
+     * @see #externalDocumentationLinks(String, String)
      */
     public SourceSet externalDocumentationLinks(Map<String, String> externalDocumentationLinks) {
         externalDocumentationLinks_.putAll(externalDocumentationLinks);
@@ -310,6 +334,11 @@ public class SourceSet {
 
     /**
      * Sets the Markdown files that contain module and package documentation.
+     * <p>
+     * A list of Markdown files that contain module and package documentation.
+     * <p>
+     * The contents of the specified files are parsed and embedded into documentation as module and package
+     * descriptions.
      *
      * @param files one or more files
      * @return this operation instance
@@ -321,6 +350,11 @@ public class SourceSet {
 
     /**
      * Sets the Markdown files that contain module and package documentation.
+     * <p>
+     * A list of Markdown files that contain module and package documentation.
+     * <p>
+     * The contents of the specified files are parsed and embedded into documentation as module and package
+     * descriptions.
      *
      * @param files the list of files
      * @return this operation instance
@@ -332,6 +366,11 @@ public class SourceSet {
 
     /**
      * Sets the version of JDK to use for linking to JDK Javadocs.
+     * <p>
+     * The JDK version to use when generating external documentation links for Java types.
+     * <p>
+     * For example, if you use {@link java.util.UUID} in some public declaration signature, and this option is set to 8,
+     * Dokka generates an external documentation link to JDK 8 Javadocs for it.
      *
      * @param jdkVersion the JDK version
      * @return this operation instance
@@ -354,6 +393,12 @@ public class SourceSet {
 
     /**
      * Sets whether to generate links to JDK Javadocs.
+     * <p>
+     * Whether to generate external documentation links to JDK's Javadocs.
+     * <p>
+     * The version of JDK Javadocs is determined by the {@link #jdkVersion} option.
+     * <p>
+     * Note: Links are generated when noJdkLink is set to false.
      *
      * @param noJdkLink {@code true} or {@code false}
      * @return this operation instance
@@ -365,6 +410,8 @@ public class SourceSet {
 
     /**
      * Sets whether to create pages for empty packages.
+     * <p>
+     * Whether to skip packages that contain no visible declarations after various filters have been applied.
      *
      * @param noSkipEmptyPackages {@code true} or {@code false}
      * @return this operation instance
@@ -376,6 +423,11 @@ public class SourceSet {
 
     /**
      * Sets whether to generate links to Standard library.
+     * <p>
+     * Whether to generate external documentation links that lead to the API reference documentation of Kotlin's
+     * standard library.
+     * <p>
+     * Note: Links are generated when noStdLibLink is set to {@code false}.
      *
      * @param noStdlibLink {@code true} or {@code false}
      * @return this operation instance
@@ -386,7 +438,9 @@ public class SourceSet {
     }
 
     /**
-     * Set the list of package source set configuration in format:
+     * Set the list of package source set configuration.
+     * <p>
+     * A set of parameters specific to matched packages within this source set in format:
      * <ul>
      * <li>matchingRegexp</li>
      * <li>-deprecated</li>
@@ -406,7 +460,9 @@ public class SourceSet {
     }
 
     /**
-     * Set the list of package source set configuration in format:
+     * Set the list of package source set configuration.
+     * <p>
+     * A set of parameters specific to matched packages within this source set in format:
      * <ul>
      * <li>matchingRegexp</li>
      * <li>-deprecated</li>
@@ -417,7 +473,7 @@ public class SourceSet {
      * <li>...</li>
      * </ul>
      *
-     * @param perPackageOptions one or more per package options
+     * @param perPackageOptions the list of per package options
      * @return this operation instance
      */
     public SourceSet perPackageOptions(String... perPackageOptions) {
@@ -427,6 +483,13 @@ public class SourceSet {
 
     /**
      * Sets whether to report undocumented declarations.
+     * <p>
+     * Whether to emit warnings about visible undocumented declarations, that is declarations without KDocs after they
+     * have been filtered by documentedVisibilities and other filters.
+     * <p>
+     * This setting works well with {@link DokkaOperation#failOnWarning}.
+     * <p>
+     * This can be configured on per-package basis.
      *
      * @param reportUndocumented {@code true} or {@code false}
      * @return this operation instance
@@ -438,6 +501,9 @@ public class SourceSet {
 
     /**
      * Set the list of directories or files that contain sample functions.
+     * <p>
+     * A list of directories or files that contain sample functions which are referenced via the {@code @sample} KDoc
+     * tag.
      *
      * @param samples the list of samples
      * @return this operation instance
@@ -449,6 +515,9 @@ public class SourceSet {
 
     /**
      * Set the list of directories or files that contain sample functions.
+     * <p>
+     * A list of directories or files that contain sample functions which are referenced via the {@code @sample} KDoc
+     * tag.
      *
      * @param samples nne or more samples
      * @return this operation instance
@@ -460,6 +529,10 @@ public class SourceSet {
 
     /**
      * Sets whether to skip deprecated declarations.
+     * <p>
+     * Whether to document declarations annotated with {@code @Deprecated}.
+     * <p>
+     * This can be configured on per-package basis.
      *
      * @param skipDeprecated {@code true} or {@code false}
      * @return this operation instance
@@ -482,6 +555,9 @@ public class SourceSet {
 
     /**
      * Sets the source code roots to be analyzed and documented.
+     * <p>
+     * The source code roots to be analyzed and documented. Acceptable inputs are directories and individual
+     * {@code .kt} / {@code .java} files.
      *
      * @param src the list of source code roots
      * @return this operation instance
@@ -493,6 +569,9 @@ public class SourceSet {
 
     /**
      * Sets the source code roots to be analyzed and documented.
+     * <p>
+     * The source code roots to be analyzed and documented. Acceptable inputs are directories and individual
+     * {@code .kt} / {@code .java} files.
      *
      * @param src pne ore moe source code roots
      * @return this operation instance
@@ -517,6 +596,8 @@ public class SourceSet {
 
     /**
      * Sets the paths to files to be suppressed.
+     * <p>
+     * The files to be suppressed when generating documentation.
      *
      * @param suppressedFiles the list of suppressed files
      * @return this operation instance
@@ -528,6 +609,8 @@ public class SourceSet {
 
     /**
      * Sets the paths to files to be suppressed.
+     * <p>
+     * The files to be suppressed when generating documentation.
      *
      * @param suppressedFiles one or moe suppressed files
      * @return this operation instance
