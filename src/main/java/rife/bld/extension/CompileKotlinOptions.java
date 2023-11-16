@@ -16,10 +16,10 @@
 
 package rife.bld.extension;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.io.File;
 
 /**
  * Configuration for the Kotlin compiler options.
@@ -68,14 +68,14 @@ public class CompileKotlinOptions {
      * <p>
      * Such a file can contain compiler options with values and paths to the source files.
      * Options and paths should be separated by whitespaces. For example:
-     * <p>
-     * {@code -include-runtime -d hello.jar hello.kt}
-     * <p>
+     * <ul>
+     * <li>{@code -include-runtime -d hello.jar hello.kt}</li>
+     * </ul>
      * To pass values that contain whitespaces, surround them with single ({@code '}) or double ({@code "}) quotes.
      * If a value contains quotation marks in it, escape them with a backslash (\).
-     * <p>
-     * {@code -include-runtime -d 'My folder'}
-     * <p>
+     * <ul>
+     * <li>{@code -include-runtime -d 'My folder'}</li>
+     * </ul>
      * If the files reside in locations different from the current directory, use relative paths.
      *
      * @param files one or more files
@@ -298,8 +298,7 @@ public class CompileKotlinOptions {
     }
 
     /**
-     * Use a custom JDK home directory to include into the classpath if it differs from the default JAVA_HOME.Use a
-     * custom JDK home directory to include into the classpath if it differs from the default {@code JAVA_HOME}.
+     * Use a custom JDK home directory to include into the classpath if it differs from the default {@code JAVA_HOME}.
      *
      * @param jdkHome the JDK home path
      * @return this class instance
@@ -310,9 +309,12 @@ public class CompileKotlinOptions {
     }
 
     /**
-     * Specify the target version of the generated JVM bytecode. Limit the API of the JDK in the classpath to the
-     * specified Java version. Automatically sets {@link #jvmTarget(String) JVM target} version. Possible values are
-     * 1.8, 9, 10, ..., 21. The default value is 1.8.
+     * Specify the target version of the generated JVM bytecode.
+     * <p>
+     * Limit the API of the JDK in the classpath to the specified Java version. Automatically sets
+     * {@link #jvmTarget(String) JVM target} version.
+     * <p>
+     * Possible values are 1.8, 9, 10, ..., 21. The default value is 1.8.
      *
      * @param version the target version
      * @return this class instance
@@ -336,6 +338,7 @@ public class CompileKotlinOptions {
 
     /**
      * Specify the target version of the generated JVM bytecode.
+     * <p>
      * Possible values are 1.8, 9, 10, ..., 21. The default value is 1.8.
      *
      * @param target the target version
@@ -359,7 +362,7 @@ public class CompileKotlinOptions {
     }
 
     /**
-     * Enable verbose logging output which includes details of the compilation process.
+     * Specify a custom path to the Kotlin compiler used for the discovery of runtime libraries.
      *
      * @param path the Kotlin home path
      * @return this class instance
@@ -481,8 +484,9 @@ public class CompileKotlinOptions {
     }
 
     /**
-     * Place the generated class files into the specified location. The location can be a directory, a ZIP, or a JAR
-     * file.
+     * Place the generated class files into the specified location.
+     * <p>
+     * The location can be a directory, a ZIP, or a JAR file.
      *
      * @param path the location path
      * @return this class instance
@@ -493,8 +497,9 @@ public class CompileKotlinOptions {
     }
 
     /**
-     * Place the generated class files into the specified location. The location can be a directory, a ZIP, or a JAR
-     * file.
+     * Place the generated class files into the specified location.
+     * <p>
+     * The location can be a directory, a ZIP, or a JAR file.
      *
      * @param path the location path
      * @return this class instance
@@ -528,7 +533,9 @@ public class CompileKotlinOptions {
     }
 
     /**
-     * Script definition template classes. Use fully qualified class names.
+     * Script definition template classes.
+     * <p>
+     * Use fully qualified class names.
      *
      * @param classNames one or more class names
      * @return this class instance
@@ -539,7 +546,9 @@ public class CompileKotlinOptions {
     }
 
     /**
-     * Script definition template classes. Use fully qualified class names.
+     * Script definition template classes.
+     * <p>
+     * Use fully qualified class names.
      *
      * @param classNames the list class names
      * @return this class instance

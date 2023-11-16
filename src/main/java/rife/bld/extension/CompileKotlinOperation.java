@@ -50,7 +50,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     private BaseProject project_;
 
     /**
-     * Returns the list JARs contained in a given directory.
+     * Returns the list of JARs contained in a given directory.
      *
      * @param directory the directory
      * @param regex     the regular expression to match
@@ -74,6 +74,12 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         return jars;
     }
 
+    /**
+     * Returns the list of Kotlin source file {{@code .kt}} contained in a given directory.
+     *
+     * @param directory the directory
+     * @return the list of Kotlin files
+     */
     public static Collection<File> getKotlinFileList(File directory) {
         if (directory == null) {
             return Collections.emptyList();
@@ -167,7 +173,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Provides a list of compilation options to pass to the {@code kotlinc} compiler.
+     * Provides a list of compilation options to pass to the Kotlin compiler.
      *
      * @param options the compiler options
      * @return this operation instance
@@ -241,7 +247,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Part of the {@link #execute} operation, build sources to a destination.
+     * Part of the {@link #execute} operation, build sources to a given destination.
      *
      * @param classpath   the classpath list used for the compilation
      * @param sources     the source files to compile
@@ -446,7 +452,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     public CompileKotlinOperation plugins(File directory, CompileKotlinPlugin... plugins) {
         for (var plugin : plugins) {
-            plugins_.addAll(CompileKotlinOperation.getJarList(directory, plugin.label));
+            plugins_.addAll(getJarList(directory, plugin.label));
         }
         return this;
     }

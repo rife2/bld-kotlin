@@ -388,11 +388,12 @@ public class SourceSet {
     /**
      * Set the list of package source set configuration in format:
      * <ul>
-     * <li><matchingRegexp</li>
+     * <li>matchingRegexp</li>
      * <li>-deprecated</li>
      * <li>-privateApi</li>
      * <li>+warnUndocumented</li>
      * <li>+suppress</li>
+     * <li>+visibility:PUBLIC</li>
      * <li>...</li>
      * </ul>
      *
@@ -407,11 +408,12 @@ public class SourceSet {
     /**
      * Set the list of package source set configuration in format:
      * <ul>
-     * <li><matchingRegexp</li>
+     * <li>matchingRegexp</li>
      * <li>-deprecated</li>
      * <li>-privateApi</li>
      * <li>+warnUndocumented</li>
      * <li>+suppress</li>
+     * <li>+visibility:PUBLIC</li>
      * <li>...</li>
      * </ul>
      *
@@ -468,7 +470,7 @@ public class SourceSet {
     }
 
     /**
-     * Sets the name of the source set. Default is  {@code main}.
+     * Sets the name of the source set. Default is {@code main}.
      *
      * @param sourceSetName the source set name.
      * @return this operation instance

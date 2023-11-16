@@ -28,7 +28,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Builds Javadocs using Dokka.
+ * Builds documentation (javadoc, HTML, etc.) using Dokka.
  *
  * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
  * @since 1.0
@@ -63,7 +63,9 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     private boolean suppressInheritedMembers_;
 
     /**
-     * Sets the delay substitution of some elements. Used in incremental builds of multimodule projects.
+     * Sets the delay substitution of some elements.
+     * <p>
+     * Used in incremental builds of multimodule projects.
      *
      * @param delayTemplateSubstitution the delay
      * @return this operation instance
@@ -74,8 +76,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     }
 
     /**
-     * Part of the {@link #execute} operation, constructs the command list
-     * to use for building the process.
+     * Part of the {@link #execute} operation, constructs the command list to use for building the process.
      *
      * @since 1.5
      */
@@ -247,7 +248,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     }
 
     /**
-     * Set the global external documentation links
+     * Set the global external documentation links.
      *
      * @param url            the external documentation URL
      * @param packageListUrl the external documentation package list URL
@@ -259,7 +260,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     }
 
     /**
-     * Set the global external documentation links
+     * Set the global external documentation links.
      *
      * @param globalLinks the map of global links
      * @return this operation instance
@@ -278,6 +279,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
      * <li>-privateApi</li>
      * <li>+warnUndocumented</li>
      * <li>+suppress</li>
+     * <li>+visibility:PUBLIC</li>
      * <li>...</li>
      * </ul>
      *
@@ -297,6 +299,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
      * <li>-privateApi</li>
      * <li>+warnUndocumented</li>
      * <li>+suppress</li>
+     * <li>+visibility:PUBLIC</li>
      * <li>...</li>
      * </ul>
      *
@@ -409,7 +412,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     }
 
     /**
-     * Sets the output directory path, {@code ./dokka} by default
+     * Sets the output directory path, {@code ./dokka} by default.
      *
      * @param outputDir the output directory
      * @return this operation instance
@@ -420,7 +423,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     }
 
     /**
-     * Sets the output directory path, {@code ./dokka} by default
+     * Sets the output directory path, {@code ./dokka} by default.
      *
      * @param outputDir the output directory
      * @return this operation instance

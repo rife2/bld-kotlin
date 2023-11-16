@@ -16,6 +16,12 @@
 
 package rife.bld.extension;
 
+/**
+ * Defines the known Kotlin compiler plugins match (regex) strings.
+ *
+ * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
+ * @since 1.0
+ */
 public enum CompileKotlinPlugin {
     ALL_OPEN("^allopen-compiler-plugin-.*$"),
     ASSIGNMENT("^assignment-compiler-plugin-.*$"),
