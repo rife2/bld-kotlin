@@ -93,7 +93,6 @@ class CompileKotlinOptionsTest {
                 "-module-name", "module",
                 "-no-jdk",
                 "-no-reflect",
-                "-no-stdlib",
                 "-no-warn",
                 "-opt-in", "opt1",
                 "-opt-in", "opt2",

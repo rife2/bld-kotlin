@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
@@ -80,6 +81,12 @@ class CompileKotlinOperationTest {
                     .compileTestClasspath(mainDir.getAbsolutePath());
 
             op.compileOptions().verbose(true);
+            op.compileOptions().jdkRelease("17");
+
+            var args = op.compileOptions().args();
+            var matches = List.of("-Xjdk-release=17", "-no-stdlib", "-verbose");
+            assertThat(args).isEqualTo(matches);
+
             op.execute();
 
             assertThat(tmpDir).isNotEmptyDirectory();

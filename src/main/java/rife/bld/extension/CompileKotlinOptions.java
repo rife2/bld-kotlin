@@ -462,7 +462,7 @@ public class CompileKotlinOptions {
     }
 
     /**
-     * Specified additional compiler options.
+     * Specify additional compiler options.
      *
      * @param options one or more compiler options
      * @return this class instance
@@ -473,7 +473,7 @@ public class CompileKotlinOptions {
     }
 
     /**
-     * Specified additional compiler options.
+     * Specify additional compiler options.
      *
      * @param options list of compiler options
      * @return this class instance
