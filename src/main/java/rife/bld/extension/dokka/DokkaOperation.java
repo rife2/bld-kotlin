@@ -76,7 +76,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     }
 
     /**
-     * Part of the {@link #execute} operation, constructs the command list to use for building the process.
+     * Part of the {@link #execute execute} operation, constructs the command list to use for building the process.
      *
      * @since 1.5
      */
@@ -358,7 +358,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     }
 
     /**
-     * Sets the Markdown
+     * Sets the Markdown files that contain module and package documentation.
      * <p>
      * The contents of specified files are parsed and embedded into documentation as module and package descriptions.
      * <p>

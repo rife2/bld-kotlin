@@ -235,7 +235,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Part of the {@link #execute} operation, builds the main sources.
+     * Part of the {@link #execute execute} operation, builds the main sources.
      */
     protected void executeBuildMainSources()
             throws IOException {
@@ -247,7 +247,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Part of the {@link #execute} operation, build sources to a given destination.
+     * Part of the {@link #execute execute} operation, build sources to a given destination.
      *
      * @param classpath   the classpath list used for the compilation
      * @param sources     the source files to compile
@@ -301,7 +301,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Part of the {@link #execute} operation, builds the test sources.
+     * Part of the {@link #execute execute} operation, builds the test sources.
      */
     protected void executeBuildTestSources()
             throws IOException {
@@ -313,7 +313,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Part of the {@link #execute} operation, creates the build directories.
+     * Part of the {@link #execute execute} operation, creates the build directories.
      */
     protected void executeCreateBuildDirectories() throws IOException {
         if (buildMainDirectory() != null && !buildMainDirectory().exists() && !buildMainDirectory().mkdirs()) {

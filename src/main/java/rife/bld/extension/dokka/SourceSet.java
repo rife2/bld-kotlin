@@ -276,7 +276,7 @@ public class SourceSet {
      * Sets the display name of the source set, used both internally and externally.
      * <p>
      * The name is used both externally (for example, the source set name is visible to documentation readers) and
-     * internally (for example, for logging messages of {@link #reportUndocumented}).
+     * internally (for example, for logging messages of {@link #reportUndocumented reportUndocumented}).
      * <p>
      * The platform name can be used if you don't have a better alternative.
      *
@@ -396,7 +396,7 @@ public class SourceSet {
      * <p>
      * Whether to generate external documentation links to JDK's Javadocs.
      * <p>
-     * The version of JDK Javadocs is determined by the {@link #jdkVersion} option.
+     * The version of JDK Javadocs is determined by the {@link #jdkVersion jdkVersion} option.
      * <p>
      * Note: Links are generated when noJdkLink is set to false.
      *
