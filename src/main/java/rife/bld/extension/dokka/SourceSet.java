@@ -50,7 +50,7 @@ public class SourceSet {
     private String sourceSetName_;
 
     /**
-     * Sets the platform used for setting up analysis. Default is {@link AnalysisPlatform#JVM}
+     * Sets the platform used for setting up analysis. Default is {@link AnalysisPlatform#JVM JVM}
      * <p>
      * Platform to be used for setting up code analysis and {@code @sample} environment.
      *
@@ -276,7 +276,7 @@ public class SourceSet {
      * Sets the display name of the source set, used both internally and externally.
      * <p>
      * The name is used both externally (for example, the source set name is visible to documentation readers) and
-     * internally (for example, for logging messages of {@link #reportUndocumented}.
+     * internally (for example, for logging messages of {@link #reportUndocumented}).
      * <p>
      * The platform name can be used if you don't have a better alternative.
      *
@@ -440,7 +440,9 @@ public class SourceSet {
     /**
      * Set the list of package source set configuration.
      * <p>
-     * A set of parameters specific to matched packages within this source set in format:
+     * A set of parameters specific to matched packages within this source set.
+     * <p>
+     * Using format:
      * <ul>
      * <li>matchingRegexp</li>
      * <li>-deprecated</li>
@@ -462,7 +464,9 @@ public class SourceSet {
     /**
      * Set the list of package source set configuration.
      * <p>
-     * A set of parameters specific to matched packages within this source set in format:
+     * A set of parameters specific to matched packages within this source set.
+     * <p>
+     * Using format:
      * <ul>
      * <li>matchingRegexp</li>
      * <li>-deprecated</li>

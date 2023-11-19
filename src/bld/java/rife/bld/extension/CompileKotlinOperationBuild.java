@@ -71,13 +71,24 @@ public class CompileKotlinOperationBuild extends Project {
                 .artifactId("bld-kotlin")
                 .description("bld Kotlin Extension")
                 .url("https://github.com/rife2/bld-kotlin")
-                .developer(new PublishDeveloper().id("ethauvin").name("Erik C. Thauvin").email("erik@thauvin.net")
-                        .url("https://erik.thauvin.net/"))
-                .license(new PublishLicense().name("The Apache License, Version 2.0")
-                        .url("http://www.apache.org/licenses/LICENSE-2.0.txt"))
-                .scm(new PublishScm().connection("scm:git:https://github.com/rife2/bld-kotlin.git")
-                        .developerConnection("scm:git:git@github.com:rife2/bld-kotlin.git")
-                        .url("https://github.com/rife2/bld-kotlin"))
+                .developer(
+                        new PublishDeveloper()
+                                .id("ethauvin")
+                                .name("Erik C. Thauvin")
+                                .email("erik@thauvin.net")
+                                .url("https://erik.thauvin.net/")
+                )
+                .license(
+                        new PublishLicense()
+                                .name("The Apache License, Version 2.0")
+                                .url("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                )
+                .scm(
+                        new PublishScm()
+                                .connection("scm:git:https://github.com/rife2/bld-kotlin.git")
+                                .developerConnection("scm:git:git@github.com:rife2/bld-kotlin.git")
+                                .url("https://github.com/rife2/bld-kotlin")
+                )
                 .signKey(property("sign.key"))
                 .signPassphrase(property("sign.passphrase"));
     }

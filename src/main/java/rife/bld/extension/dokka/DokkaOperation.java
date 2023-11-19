@@ -277,7 +277,9 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     }
 
     /**
-     * Sets the global list of package configurations in format:
+     * Sets the global list of package configurations.
+     * <p>
+     * Using format:
      * <ul>
      * <li>matchingRegexp</li>
      * <li>-deprecated</li>
@@ -297,7 +299,9 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     }
 
     /**
-     * Sets the global list of package configurations in format:
+     * Sets the global list of package configurations.
+     * <p>
+     * Using format:
      * <ul>
      * <li>matchingRegexp</li>
      * <li>-deprecated</li>
