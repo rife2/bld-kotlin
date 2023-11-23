@@ -23,7 +23,7 @@ public void compile() throws IOException {
 }
 ```
 
-```text
+```console
 ./bld compile
 ```
 
@@ -47,7 +47,7 @@ public void javadoc() throws ExitStatusException, IOException, InterruptedExcept
 }
 ```
 
-```text
+```console
 ./bld javadoc
 ```
 
