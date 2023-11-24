@@ -239,6 +239,9 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     protected void executeBuildMainSources()
             throws IOException {
+        if (!silent()) {
+            System.out.println("Compiling Kotlin main sources.");
+        }
         executeBuildSources(
                 compileMainClasspath(),
                 sources(mainSourceFiles(), mainSourceDirectories()),
@@ -305,6 +308,9 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     protected void executeBuildTestSources()
             throws IOException {
+        if (!silent()) {
+            System.out.println("Compiling Kotlin test sources.");
+        }
         executeBuildSources(
                 compileTestClasspath(),
                 sources(testSourceFiles(), testSourceDirectories()),
