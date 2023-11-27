@@ -271,7 +271,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
      *
      * @param globalLinks the map of global links
      * @return this operation instance
-     * @see #globalSrcLink(String...)
+     * @see #globalSrcLink(String...) #globalSrcLink(String...)#globalSrcLink(String...)
      */
     public DokkaOperation globalLinks(Map<String, String> globalLinks) {
         globalLinks_.putAll(globalLinks);

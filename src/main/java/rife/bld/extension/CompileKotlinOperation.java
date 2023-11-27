@@ -35,6 +35,9 @@ import java.util.regex.Pattern;
  * @since 1.0
  */
 public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOperation> {
+    /**
+     * The Kotlin file (.kt) pattern.
+     */
     public static final Pattern KOTLIN_FILE_PATTERN = Pattern.compile("^.*\\.kt$");
     private static final Logger LOGGER = Logger.getLogger(CompileKotlinOperation.class.getName());
     private final Collection<String> compileMainClasspath_ = new ArrayList<>();
@@ -177,6 +180,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
     /**
      * Retrieves the list of compilation options for the compiler.
+     *
+     * @return the compile kotlin options
      */
     public CompileKotlinOptions compileOptions() {
         return compileOptions_;
@@ -246,12 +251,16 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
     /**
      * Part of the {@link #execute execute} operation, builds the main sources.
+     *
+     * @throws IOException if an error occurs
      */
+    @SuppressWarnings("PMD.SystemPrintln")
     protected void executeBuildMainSources()
             throws IOException {
         if (!silent()) {
             System.out.println("Compiling Kotlin main sources.");
         }
+
         executeBuildSources(
                 compileMainClasspath(),
                 sources(mainSourceFiles(), mainSourceDirectories()),
@@ -266,6 +275,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param sources     the source files to compile
      * @param destination the destination directory
      * @param friendPaths the output directory for friendly modules
+     * @throws IOException if an error occurs
      */
     protected void executeBuildSources(Collection<String> classpath, Collection<File> sources, File destination,
                                        File friendPaths)
@@ -315,7 +325,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
     /**
      * Part of the {@link #execute execute} operation, builds the test sources.
+     *
+     * @throws IOException if an error occurs
      */
+    @SuppressWarnings("PMD.SystemPrintln")
     protected void executeBuildTestSources()
             throws IOException {
         if (!silent()) {
@@ -330,6 +343,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
     /**
      * Part of the {@link #execute execute} operation, creates the build directories.
+     *
+     * @throws IOException if an error occurs
      */
     protected void executeCreateBuildDirectories() throws IOException {
         if (buildMainDirectory() != null && !buildMainDirectory().exists() && !buildMainDirectory().mkdirs()) {
@@ -358,6 +373,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * </ul>
      *
      * @param project the project to configure the compile operation from
+     * @return this operation instance
      */
     public CompileKotlinOperation fromProject(BaseProject project) {
         project_ = project;

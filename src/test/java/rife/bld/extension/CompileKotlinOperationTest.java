@@ -35,7 +35,6 @@ import java.util.logging.Logger;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CompileKotlinOperationTest {
-
     @BeforeAll
     static void beforeAll() {
         var level = Level.ALL;
@@ -68,7 +67,6 @@ class CompileKotlinOperationTest {
             for (var f : Objects.requireNonNull(new File("examples/lib/test").listFiles())) {
                 testJars.add(f.getAbsolutePath());
             }
-
 
             var op = new CompileKotlinOperation()
                     .fromProject(new BaseProjectBlueprint(new File("examples"), "com.example",

@@ -58,7 +58,7 @@ public class CompileKotlinOptions {
      * Allow using declarations only from the specified version of Kotlin bundled libraries.
      *
      * @param version the api version
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions apiVersion(String version) {
         apiVersion_ = version;
@@ -81,7 +81,7 @@ public class CompileKotlinOptions {
      * If the files reside in locations different from the current directory, use relative paths.
      *
      * @param files one or more files
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions argFile(String... files) {
         argFile_.addAll(List.of(files));
@@ -92,7 +92,7 @@ public class CompileKotlinOptions {
      * Read the compiler options from the given files.
      *
      * @param files the list of files
-     * @return this class instance
+     * @return this operation instance
      * @see #argFile(String...)
      */
     public CompileKotlinOptions argFile(Collection<String> files) {
@@ -107,7 +107,7 @@ public class CompileKotlinOptions {
      */
     public List<String> args() {
         var args = new ArrayList<String>();
-        
+
         // api-isNotBlankversion
         if (isNotBlank(apiVersion_)) {
             args.add("-api-version");
@@ -191,12 +191,10 @@ public class CompileKotlinOptions {
         }
 
         // opt-in
-        if (!optIn_.isEmpty()) {
-            optIn_.forEach(o -> {
-                args.add("-opt-in");
-                args.add(o);
-            });
-        }
+        optIn_.stream().filter(CompileKotlinOperation::isNotBlank).forEach(o -> {
+            args.add("-opt-in");
+            args.add(o);
+        });
 
         // options
         if (!options_.isEmpty()) {
@@ -210,12 +208,10 @@ public class CompileKotlinOptions {
         }
 
         // plugin
-        if (!plugin_.isEmpty()) {
-            plugin_.forEach(p -> {
-                args.add("-P");
-                args.add("plugin:" + p);
-            });
-        }
+        plugin_.stream().filter(CompileKotlinOperation::isNotBlank).forEach(p -> {
+            args.add("-P");
+            args.add("plugin:" + p);
+        });
 
         // progressive
         if (progressive_) {
@@ -247,7 +243,7 @@ public class CompileKotlinOptions {
      * The classpath can contain file and directory paths, ZIP, or JAR files.
      *
      * @param paths one pr more paths
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions classpath(String... paths) {
         classpath_.addAll(List.of(paths));
@@ -260,7 +256,7 @@ public class CompileKotlinOptions {
      * The classpath can contain file and directory paths, ZIP, or JAR files.
      *
      * @param paths the list of paths
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions classpath(Collection<String> paths) {
         classpath_.addAll(paths);
@@ -281,7 +277,7 @@ public class CompileKotlinOptions {
      * environment.
      *
      * @param includeRuntime {@code true} or {@code false}
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions includeRuntime(boolean includeRuntime) {
         includeRuntime_ = includeRuntime;
@@ -292,7 +288,7 @@ public class CompileKotlinOptions {
      * Generate metadata for Java 1.8 reflection on method parameters.
      *
      * @param javaParameters {@code true} or {@code false}
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions javaParameters(boolean javaParameters) {
         javaParameters_ = javaParameters;
@@ -303,7 +299,7 @@ public class CompileKotlinOptions {
      * Use a custom JDK home directory to include into the classpath if it differs from the default {@code JAVA_HOME}.
      *
      * @param jdkHome the JDK home path
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions jdkHome(String jdkHome) {
         jdkHome_ = jdkHome;
@@ -319,7 +315,7 @@ public class CompileKotlinOptions {
      * Possible values are 1.8, 9, 10, ..., 21. The default value is 1.8.
      *
      * @param version the target version
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions jdkRelease(String version) {
         jdkRelease_ = version;
@@ -330,7 +326,7 @@ public class CompileKotlinOptions {
      * Specify the target version of the generated JVM bytecode.
      *
      * @param version the target version
-     * @return this class instance
+     * @return this operation instance
      * @see #jdkRelease(String)
      */
     public CompileKotlinOptions jdkRelease(int version) {
@@ -344,7 +340,7 @@ public class CompileKotlinOptions {
      * Possible values are 1.8, 9, 10, ..., 21. The default value is 1.8.
      *
      * @param target the target version
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions jvmTarget(String target) {
         jvmTarget_ = target;
@@ -355,7 +351,7 @@ public class CompileKotlinOptions {
      * Specify the target version of the generated JVM bytecode.
      *
      * @param target the target version
-     * @return this class instance
+     * @return this operation instance
      * @see #jvmTarget(String)
      */
     public CompileKotlinOptions jvmTarget(int target) {
@@ -367,7 +363,7 @@ public class CompileKotlinOptions {
      * Specify a custom path to the Kotlin compiler used for the discovery of runtime libraries.
      *
      * @param path the Kotlin home path
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions kotlinHome(String path) {
         kotlinHome_ = path;
@@ -378,7 +374,7 @@ public class CompileKotlinOptions {
      * Provide source compatibility with the specified version of Kotlin.
      *
      * @param version the language version
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions languageVersion(String version) {
         languageVersion_ = version;
@@ -389,7 +385,7 @@ public class CompileKotlinOptions {
      * Set a custom name for the generated {@code .kotlin_module} file.
      *
      * @param name the module name
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions moduleName(String name) {
         moduleName_ = name;
@@ -400,7 +396,7 @@ public class CompileKotlinOptions {
      * Don't automatically include the Java runtime into the classpath.
      *
      * @param noJdk {@code true} or {@code false}
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions noJdk(boolean noJdk) {
         noJdk_ = noJdk;
@@ -411,7 +407,7 @@ public class CompileKotlinOptions {
      * Don't automatically include the Kotlin reflection ({@code kotlin-reflect.jar}) into the classpath.
      *
      * @param noReflect {@code true} or {@code false}
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions noReflect(boolean noReflect) {
         noReflect_ = noReflect;
@@ -423,7 +419,7 @@ public class CompileKotlinOptions {
      * ({@code kotlin-reflect.jar}) into the classpath.
      *
      * @param noStdLib {@code true} or {@code false}
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions noStdLib(boolean noStdLib) {
         noStdLib_ = noStdLib;
@@ -434,7 +430,7 @@ public class CompileKotlinOptions {
      * Suppress the compiler from displaying warnings during compilation.
      *
      * @param noWarn {@code true} or {@code false}
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions noWarn(boolean noWarn) {
         noWarn_ = noWarn;
@@ -445,7 +441,7 @@ public class CompileKotlinOptions {
      * Enable usages of API that requires opt-in with a requirement annotation with the given fully qualified name.
      *
      * @param annotations one or more annotation names
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions optIn(String... annotations) {
         optIn_.addAll(List.of(annotations));
@@ -456,7 +452,7 @@ public class CompileKotlinOptions {
      * Enable usages of API that requires opt-in with a requirement annotation with the given fully qualified name.
      *
      * @param annotations list of annotation names
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions optIn(Collection<String> annotations) {
         optIn_.addAll(annotations);
@@ -467,7 +463,7 @@ public class CompileKotlinOptions {
      * Specify additional compiler options.
      *
      * @param options one or more compiler options
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions options(String... options) {
         options_.addAll(List.of(options));
@@ -478,7 +474,7 @@ public class CompileKotlinOptions {
      * Specify additional compiler options.
      *
      * @param options list of compiler options
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions options(Collection<String> options) {
         options_.addAll(options);
@@ -491,7 +487,7 @@ public class CompileKotlinOptions {
      * The location can be a directory, a ZIP, or a JAR file.
      *
      * @param path the location path
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions path(File path) {
         path_ = path.getAbsolutePath();
@@ -504,7 +500,7 @@ public class CompileKotlinOptions {
      * The location can be a directory, a ZIP, or a JAR file.
      *
      * @param path the location path
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions path(String path) {
         path_ = path;
@@ -517,6 +513,7 @@ public class CompileKotlinOptions {
      * @param id         the plugin ID
      * @param optionName the plugin option name
      * @param value      the plugin option value
+     * @return this operation instance
      */
     public CompileKotlinOptions plugin(String id, String optionName, String value) {
         plugin_.add(id + ':' + optionName + ':' + value);
@@ -527,7 +524,7 @@ public class CompileKotlinOptions {
      * Allow using declarations only from the specified version of Kotlin bundled libraries.
      *
      * @param progressive {@code true} or {@code false}
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions progressive(boolean progressive) {
         progressive_ = progressive;
@@ -540,7 +537,7 @@ public class CompileKotlinOptions {
      * Use fully qualified class names.
      *
      * @param classNames one or more class names
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions scriptTemplates(String... classNames) {
         scriptTemplates_.addAll(List.of(classNames));
@@ -553,7 +550,7 @@ public class CompileKotlinOptions {
      * Use fully qualified class names.
      *
      * @param classNames the list class names
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions scriptTemplates(Collection<String> classNames) {
         scriptTemplates_.addAll(classNames);
@@ -564,7 +561,7 @@ public class CompileKotlinOptions {
      * Enable verbose logging output which includes details of the compilation process.
      *
      * @param verbose {@code true} or {@code false}
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions verbose(boolean verbose) {
         verbose_ = verbose;
@@ -575,7 +572,7 @@ public class CompileKotlinOptions {
      * Turn any warnings into a compilation error.
      *
      * @param wError {@code true} or {@code false}
-     * @return this class instance
+     * @return this operation instance
      */
     public CompileKotlinOptions wError(boolean wError) {
         wError_ = wError;
