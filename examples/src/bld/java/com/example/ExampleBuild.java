@@ -32,8 +32,11 @@ public class ExampleBuild extends Project {
         autoDownloadPurge = true;
         repositories = List.of(MAVEN_LOCAL, MAVEN_CENTRAL, RIFE2_RELEASES);
 
+        final var kotlin = version(1, 9, 21);
         scope(compile)
-                .include(dependency("org.jetbrains.kotlin", "kotlin-stdlib", version(1, 9, 21)));
+                .include(dependency("org.jetbrains.kotlin", "kotlin-stdlib", kotlin))
+                .include(dependency("org.jetbrains.kotlin", "kotlin-stdlib-jdk7", kotlin))
+                .include(dependency("org.jetbrains.kotlin", "kotlin-stdlib-jdk8", kotlin));
         scope(test)
                 .include(dependency("org.jetbrains.kotlin:kotlin-test-junit5:1.9.21"))
                 .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 10, 1)))
@@ -57,7 +60,7 @@ public class ExampleBuild extends Project {
         new ExampleBuild().start(args);
     }
 
-    @BuildCommand(summary = "Compile the Kotlin project")
+    @BuildCommand(summary = "Compiles the Kotlin project")
     @Override
     public void compile() throws IOException {
         // The source code located in src/main/kotlin and src/test/kotlin will be compiled

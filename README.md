@@ -15,7 +15,7 @@ To install, please refer to the [extensions documentation](https://github.com/ri
 To compile the source code located in `src/main/kotlin` and `src/test/kotlin` from the current project:
 
 ```java
-@BuildCommand(summary = "Compile the Kotlin project")
+@BuildCommand(summary = "Compiles the Kotlin project")
 public void compile() throws IOException {
     new CompileKotlinOperation()
             .fromProject(this)

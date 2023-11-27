@@ -95,6 +95,16 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
+     * Determines if the given string is not blank.
+     *
+     * @param s the string
+     * @return {@code true} if not blank, {@code false} otherwise.
+     */
+    public static boolean isNotBlank(String s) {
+        return s != null && !s.isBlank();
+    }
+
+    /**
      * Provides the main build destination directory.
      *
      * @param directory the directory to use for the main build destination
@@ -276,7 +286,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         args.add(destination.getAbsolutePath());
 
         // friend-path
-        if (friendPaths != null) {
+        if (friendPaths != null && friendPaths.exists()) {
             args.add("-Xfriend-paths=" + friendPaths.getAbsolutePath());
         }
 

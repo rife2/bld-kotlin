@@ -27,6 +27,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static rife.bld.extension.CompileKotlinOperation.isNotBlank;
+
 /**
  * Builds documentation (javadoc, HTML, etc.) using Dokka.
  *
@@ -172,13 +174,13 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
         }
 
         // -moduleName
-        if (moduleName_ != null) {
+        if (isNotBlank(moduleName_)) {
             args.add("-moduleName");
             args.add(moduleName_);
         }
 
         // -moduleVersion
-        if (moduleVersion_ != null) {
+        if (isNotBlank(moduleVersion_)) {
             args.add("-moduleVersion");
             args.add(moduleVersion_);
         }

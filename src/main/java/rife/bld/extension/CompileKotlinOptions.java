@@ -21,6 +21,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import static rife.bld.extension.CompileKotlinOperation.isNotBlank;
+
 /**
  * Configuration for the Kotlin compiler options.
  *
@@ -105,9 +107,9 @@ public class CompileKotlinOptions {
      */
     public List<String> args() {
         var args = new ArrayList<String>();
-
-        // api-version
-        if (apiVersion_ != null) {
+        
+        // api-isNotBlankversion
+        if (isNotBlank(apiVersion_)) {
             args.add("-api-version");
             args.add(apiVersion_);
         }
@@ -129,7 +131,7 @@ public class CompileKotlinOptions {
         }
 
         // jvm-target
-        if (jvmTarget_ != null) {
+        if (isNotBlank(jvmTarget_)) {
             args.add("-jvm-target");
             args.add(jvmTarget_);
         }
@@ -140,30 +142,30 @@ public class CompileKotlinOptions {
         }
 
         // jdk-home
-        if (jdkHome_ != null) {
+        if (isNotBlank(jdkHome_)) {
             args.add("-jdk-home");
             args.add(jdkHome_);
         }
 
         // jdk-release
-        if (jdkRelease_ != null) {
+        if (isNotBlank(jdkRelease_)) {
             args.add("-Xjdk-release=" + jdkRelease_);
         }
 
         // kotlin-home
-        if (kotlinHome_ != null) {
+        if (isNotBlank(kotlinHome_)) {
             args.add("-kotlin-home");
             args.add(kotlinHome_);
         }
 
         // language-version
-        if (languageVersion_ != null) {
+        if (isNotBlank(languageVersion_)) {
             args.add("-language-version");
             args.add(languageVersion_);
         }
 
         // module-name
-        if (moduleName_ != null) {
+        if (isNotBlank(moduleName_)) {
             args.add("-module-name");
             args.add(moduleName_);
         }
@@ -202,7 +204,7 @@ public class CompileKotlinOptions {
         }
 
         // path
-        if (path_ != null) {
+        if (isNotBlank(path_)) {
             args.add("-d");
             args.add(path_);
         }
