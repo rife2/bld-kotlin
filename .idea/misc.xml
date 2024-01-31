@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="EntryPointsManager">
     <pattern value="rife.bld.extension.CompileKotlinOperationBuild" method="pmd" />
@@ -12,6 +13,12 @@
         <option value="$PROJECT_DIR$/../bld-exec/config/pmd.xml" />
         <option value="$PROJECT_DIR$/../bld-testng/config/pmd.xml" />
         <option value="$PROJECT_DIR$/../bld-generated-version/config/pmd.xml" />
+        <option value="$PROJECT_DIR$/../../bld-generated-version/config/pmd.xml" />
+        <option value="$PROJECT_DIR$/../../bld-pitest/config/pmd.xml" />
+        <option value="$PROJECT_DIR$/../../bld-jacoco-report/config/pmd.xml" />
+        <option value="$PROJECT_DIR$/../../bld-checkstyle/config/pmd.xml" />
+        <option value="$PROJECT_DIR$/../../bld-exec/config/pmd.xml" />
+        <option value="$PROJECT_DIR$/../../bld-testng/config/pmd.xml" />
       </list>
     </option>
     <option name="skipTestSources" value="false" />
