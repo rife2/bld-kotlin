@@ -1,4 +1,5 @@
-j## Compile the Kotlin Example
+
+## Compile the Kotlin Example
 
 ```console
 ./bld compile
@@ -10,7 +11,13 @@ j## Compile the Kotlin Example
 ./bld run
 ```
 
-## Build the documentation with Dokka
+## Run the Tests
+
+```console
+./bld test
+```
+
+## Build the documentation with [Dokka](https://github.com/Kotlin/dokka)
 
 ```console
 ./bld javadoc
