@@ -41,9 +41,7 @@ jobs:
           ./bld dokka-jekyll
 
       - name: Grant execute permission for bld
-        run: | 
-          cd ..
-          chmod +x bld
+        run: chmod +x bld
 
       - name: Download the dependencies
         run: ./bld download
