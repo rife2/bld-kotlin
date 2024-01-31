@@ -34,9 +34,7 @@ public class ExampleBuild extends Project {
 
         final var kotlin = version(1, 9, 22);
         scope(compile)
-                .include(dependency("org.jetbrains.kotlin", "kotlin-stdlib", kotlin))
-                .include(dependency("org.jetbrains.kotlin", "kotlin-stdlib-jdk7", kotlin))
-                .include(dependency("org.jetbrains.kotlin", "kotlin-stdlib-jdk8", kotlin));
+                .include(dependency("org.jetbrains.kotlin", "kotlin-stdlib", kotlin));
         scope(test)
                 .include(dependency("org.jetbrains.kotlin", "kotlin-test-junit5", kotlin))
                 .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 10, 1)))
@@ -47,15 +45,15 @@ public class ExampleBuild extends Project {
     }
 
     public static void main(String[] args) {
-        var level = Level.ALL;
-        var logger = Logger.getLogger("rife.bld.extension");
-        var consoleHandler = new ConsoleHandler();
-
         // Enable detailed logging for the Kotlin extension
-        consoleHandler.setLevel(level);
-        logger.addHandler(consoleHandler);
-        logger.setLevel(level);
-        logger.setUseParentHandlers(false);
+        // var level = Level.ALL;
+        // var logger = Logger.getLogger("rife.bld.extension");
+        // var consoleHandler = new ConsoleHandler();
+
+        // consoleHandler.setLevel(level);
+        // logger.addHandler(consoleHandler);
+        // logger.setLevel(level);
+        // logger.setUseParentHandlers(false);
 
         new ExampleBuild().start(args);
     }
