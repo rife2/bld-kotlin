@@ -8,7 +8,8 @@
 [![Snapshot](https://flat.badgen.net/maven/v/metadata-url/repo.rife2.com/snapshots/com/uwyn/rife2/bld-kotlin/maven-metadata.xml?label=snapshot)](https://repo.rife2.com/#/snapshots/com/uwyn/rife2/bld-kotlin)
 [![GitHub CI](https://github.com/rife2/bld-kotlin/actions/workflows/bld.yml/badge.svg)](https://github.com/rife2/bld-kotlin/actions/workflows/bld.yml)
 
-To install, please refer to the [extensions documentation](https://github.com/rife2/bld/wiki/Extensions).
+To install, please refer to the [extensions](https://github.com/rife2/bld/wiki/Extensions) and [support](https://github.com/rife2/bld/wiki/Kotlin-Support)
+documentation.
 
 ## Compile Kotlin Source Code
 
@@ -55,3 +56,8 @@ public void javadoc() throws ExitStatusException, IOException, InterruptedExcept
 
 Please check the [Dokka Operation documentation](https://rife2.github.io/bld-kotlin/rife/bld/extension/dokka/DokkaOperation.html#method-summary)
 for all available configuration options.
+
+## Template Project
+
+There is also a [Template Project](https://github.com/rife2/kotlin-bld-example) with support for Dokka and the
+[Detekt](https://github.com/rife2/bld-detekt) extensions.
