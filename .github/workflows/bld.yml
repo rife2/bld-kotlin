@@ -23,15 +23,17 @@ jobs:
           java-version: ${{ matrix.java-version }}
 
       - name: Download the examples dependencies
+        working-directory: examples
         run: |
-          cd examples
           chmod +x bld
           ./bld download
 
       - name: Run examples tests
+        working-directory: examples
         run: ./bld compile test
 
       - name: Build examples documentation
+        working-directory: examples
         run : |
           ./bld javadoc
           ./bld dokka-html
