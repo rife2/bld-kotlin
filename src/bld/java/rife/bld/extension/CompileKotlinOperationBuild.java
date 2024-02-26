@@ -33,7 +33,7 @@ public class CompileKotlinOperationBuild extends Project {
     public CompileKotlinOperationBuild() {
         pkg = "rife.bld.extension";
         name = "bld-kotlin";
-        version = version(0, 9, 0);
+        version = version(0, 9, 1, "SNAPSHOT");
 
         javaRelease = 17;
         downloadSources = true;
@@ -54,9 +54,9 @@ public class CompileKotlinOperationBuild extends Project {
                 .include(dependency("org.jetbrains.dokka", "jekyll-plugin", dokka))
                 .include(dependency("com.uwyn.rife2", "bld", version(1, 8, 0)));
         scope(test)
-                .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 10, 1)))
-                .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 10, 1)))
-                .include(dependency("org.assertj", "assertj-core", version(3, 25, 2)));
+                .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 10, 2)))
+                .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 10, 2)))
+                .include(dependency("org.assertj", "assertj-core", version(3, 25, 3)));
 
         javadocOperation()
                 .javadocOptions()
