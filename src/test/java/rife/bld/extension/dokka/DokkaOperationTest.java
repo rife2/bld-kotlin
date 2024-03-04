@@ -58,13 +58,14 @@ class DokkaOperationTest {
                 .executeConstructProcessCommandList();
 
         var path = examples.getAbsolutePath();
+        var dokkaJar = "1.9.20.jar";
         var matches = List.of("java",
-                "-jar", path + "/lib/bld/dokka-cli-1.9.10.jar",
-                "-pluginsClasspath", path + "/lib/bld/dokka-base-1.9.10.jar;" +
-                        path + "/lib/bld/analysis-kotlin-descriptors-1.9.10.jar;" +
-                        path + "/lib/bld/javadoc-plugin-1.9.10.jar;" +
-                        path + "/lib/bld/korte-jvm-2.7.0.jar;" +
-                        path + "/lib/bld/kotlin-as-java-plugin-1.9.10.jar;path1;path2;path3;path4",
+                "-jar", path + "/lib/bld/dokka-cli-" + dokkaJar,
+                "-pluginsClasspath", path + "/lib/bld/dokka-base-" + dokkaJar + ';' +
+                        path + "/lib/bld/analysis-kotlin-descriptors-" + dokkaJar + ';' +
+                        path + "/lib/bld/javadoc-plugin-" + dokkaJar + ';' +
+                        path + "/lib/bld/korte-jvm-4.0.10.jar;" +
+                        path + "/lib/bld/kotlin-as-java-plugin-" + dokkaJar + ";path1;path2;path3;path4",
                 "-sourceSet", "-src " + path + "/src/main/kotlin",
                 "-outputDir", path + "/build",
                 "-delayTemplateSubstitution", "true",
