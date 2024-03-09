@@ -33,7 +33,7 @@ public class CompileKotlinOperationBuild extends Project {
     public CompileKotlinOperationBuild() {
         pkg = "rife.bld.extension";
         name = "bld-kotlin";
-        version = version(0, 9, 2);
+        version = version(0, 9, 3);
 
         javaRelease = 17;
         downloadSources = true;
@@ -41,7 +41,7 @@ public class CompileKotlinOperationBuild extends Project {
         repositories = List.of(MAVEN_LOCAL, MAVEN_CENTRAL, RIFE2_RELEASES);
 
         var dokka = version(1, 9, 20);
-        var kotlin = version(1, 9, 22);
+        var kotlin = version(1, 9, 23);
         scope(compile)
                 .include(dependency("org.jetbrains.kotlin", "kotlin-compiler", kotlin))
                 .include(dependency("org.jetbrains.kotlin", "kotlin-annotation-processing", kotlin))
