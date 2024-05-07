@@ -41,7 +41,7 @@ public class CompileKotlinOperationBuild extends Project {
         repositories = List.of(MAVEN_LOCAL, MAVEN_CENTRAL, RIFE2_RELEASES);
 
         var dokka = version(1, 9, 20);
-        var kotlin = version(1, 9, 23);
+        var kotlin = version(1, 9, 24);
         scope(compile)
                 .include(dependency("org.jetbrains.kotlin", "kotlin-compiler", kotlin))
                 .include(dependency("org.jetbrains.kotlin", "kotlin-annotation-processing", kotlin))
