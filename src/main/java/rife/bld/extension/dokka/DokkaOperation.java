@@ -131,13 +131,11 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
         // -delayTemplateSubstitution
         if (delayTemplateSubstitution_) {
             args.add("-delayTemplateSubstitution");
-            args.add(String.valueOf(delayTemplateSubstitution_));
         }
 
         // -failOnWarning
         if (failOnWarning_) {
             args.add("-failOnWarning");
-            args.add(String.valueOf(failOnWarning_));
         }
 
         // -globalLinks_
@@ -188,13 +186,11 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
         // -noSuppressObviousFunctions
         if (noSuppressObviousFunctions_) {
             args.add("-noSuppressObviousFunctions");
-            args.add(String.valueOf(noSuppressObviousFunctions_));
         }
 
         // -offlineMode
         if (offlineMode_) {
             args.add("-offlineMode");
-            args.add(String.valueOf(offlineMode_));
         }
 
         // -pluginConfiguration
@@ -209,7 +205,6 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
         // -suppressInheritedMembers
         if (suppressInheritedMembers_) {
             args.add("-suppressInheritedMembers");
-            args.add(String.valueOf(suppressInheritedMembers_));
         }
 
         if (LOGGER.isLoggable(Level.FINE)) {

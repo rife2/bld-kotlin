@@ -111,6 +111,7 @@ public class ExampleBuild extends Project {
     public void javadoc() throws ExitStatusException, IOException, InterruptedException {
         new DokkaOperation()
                 .fromProject(this)
+                .failOnWarning(true)
                 .loggingLevel(LoggingLevel.INFO)
                 // Create build/javadoc
                 .outputDir(new File(buildDirectory(), "javadoc"))

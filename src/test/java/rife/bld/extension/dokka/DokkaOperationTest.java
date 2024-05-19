@@ -68,8 +68,8 @@ class DokkaOperationTest {
                         path + "/lib/bld/kotlin-as-java-plugin-" + dokkaJar + ";path1;path2;path3;path4",
                 "-sourceSet", "-src " + path + "/src/main/kotlin",
                 "-outputDir", path + "/build",
-                "-delayTemplateSubstitution", "true",
-                "-failOnWarning", "true",
+                "-delayTemplateSubstitution",
+                "-failOnWarning",
                 "-globalLinks", "s^link^^s2^link2",
                 "-globalPackageOptions", "option1;option2;option3;option4",
                 "-globalSrcLinks_", "link1;link2;link3;link4",
@@ -77,10 +77,10 @@ class DokkaOperationTest {
                 "-loggingLevel", "debug",
                 "-moduleName", "name",
                 "-moduleVersion", "1.0",
-                "-noSuppressObviousFunctions", "true",
-                "-offlineMode", "true",
+                "-noSuppressObviousFunctions",
+                "-offlineMode",
                 "-pluginConfiguration", "{name}={\\\"json\\\"}^^{\\\"name2\\\"}={json2}",
-                "-suppressInheritedMembers", "true");
+                "-suppressInheritedMembers");
 
         assertThat(args).hasSize(matches.size());
 
