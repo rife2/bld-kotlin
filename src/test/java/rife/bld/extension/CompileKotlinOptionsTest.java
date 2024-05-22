@@ -19,6 +19,7 @@ package rife.bld.extension;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
 
@@ -54,7 +55,7 @@ class CompileKotlinOptionsTest {
 
     @Test
     void argsTest() {
-        var args = new CompileKotlinOptions()
+        var options = new CompileKotlinOptions()
                 .apiVersion("11")
                 .argFile("file.txt", "file2.txt")
                 .classpath("path1", "path2")
@@ -76,8 +77,7 @@ class CompileKotlinOptionsTest {
                 .progressive(true)
                 .scriptTemplates("name", "name2")
                 .verbose(true)
-                .wError(true)
-                .args();
+                .wError(true);
 
         var matches = List.of(
                 "-api-version", "11",
@@ -105,8 +105,13 @@ class CompileKotlinOptionsTest {
                 "-verbose",
                 "-Werror");
 
-        assertThat(args).hasSize(matches.size());
+        var args = new ArrayList<List<String>>();
+        args.add(options.args());
+        args.add(options.apiVersion(11).jvmTarget(11).args());
 
-        IntStream.range(0, args.size()).forEach(i -> assertThat(args.get(i)).isEqualTo(matches.get(i)));
+        for (var a: args) {
+            assertThat(a).hasSize(matches.size());
+            IntStream.range(0, a.size()).forEach(i -> assertThat(a.get(i)).isEqualTo(matches.get(i)));
+        }
     }
 }

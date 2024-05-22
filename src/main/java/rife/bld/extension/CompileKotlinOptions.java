@@ -66,6 +66,17 @@ public class CompileKotlinOptions {
     }
 
     /**
+     * Allow using declarations only from the specified version of Kotlin bundled libraries.
+     *
+     * @param version the api version
+     * @return this operation instance
+     */
+    public CompileKotlinOptions apiVersion(int version) {
+        apiVersion_ = String.valueOf(version);
+        return this;
+    }
+
+    /**
      * Read the compiler options from the given files.
      * <p>
      * Such a file can contain compiler options with values and paths to the source files.
