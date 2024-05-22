@@ -30,6 +30,7 @@ public enum CompileKotlinPlugin {
     KOTLINX_SERIALIZATION("^kotlinx-serialization-compiler-plugin-.*$"),
     LOMBOK("^lombok-compiler-plugin-.*$"),
     NOARG("^noarg-compiler-plugin-.*$"),
+    POWER_ASSERT("^power-assert-compiler-plugin-.*$"),
     SAM_WITH_RECEIVER("^sam-with-receiver-compiler-plugin-.*$");
 
     public final String label;
