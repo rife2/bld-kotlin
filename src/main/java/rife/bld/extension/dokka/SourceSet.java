@@ -40,7 +40,7 @@ public class SourceSet {
     private AnalysisPlatform analysisPlatform_;
     private String apiVersion_;
     private String displayName_;
-    private int jdkVersion_;
+    private String jdkVersion_;
     private String languageVersion_;
     private boolean noJdkLink_;
     private boolean noSkipEmptyPackages_;
@@ -70,6 +70,17 @@ public class SourceSet {
      */
     public SourceSet apiVersion(String apiVersion) {
         apiVersion_ = apiVersion;
+        return this;
+    }
+
+    /**
+     * Sets the Kotlin API version used for setting up analysis and samples.
+     *
+     * @param apiVersion the api version
+     * @return this operation instance
+     */
+    public SourceSet apiVersion(int apiVersion) {
+        apiVersion_ = String.valueOf(apiVersion);
         return this;
     }
 
@@ -130,9 +141,9 @@ public class SourceSet {
         }
 
         // -jdkVersion
-        if (jdkVersion_ > 0) {
+        if (jdkVersion_ != null) {
             args.add("-jdkVersion");
-            args.add(String.valueOf(jdkVersion_));
+            args.add(jdkVersion_);
         }
 
         // -includes
@@ -375,8 +386,24 @@ public class SourceSet {
      * @param jdkVersion the JDK version
      * @return this operation instance
      */
-    public SourceSet jdkVersion(int jdkVersion) {
+    public SourceSet jdkVersion(String jdkVersion) {
         jdkVersion_ = jdkVersion;
+        return this;
+    }
+
+    /**
+     * Sets the version of JDK to use for linking to JDK Javadocs.
+     * <p>
+     * The JDK version to use when generating external documentation links for Java types.
+     * <p>
+     * For example, if you use {@link java.util.UUID} in some public declaration signature, and this option is set to 8,
+     * Dokka generates an external documentation link to JDK 8 Javadocs for it.
+     *
+     * @param jdkVersion the JDK version
+     * @return this operation instance
+     */
+    public SourceSet jdkVersion(int jdkVersion) {
+        jdkVersion_ = String.valueOf(jdkVersion);
         return this;
     }
 
@@ -388,6 +415,17 @@ public class SourceSet {
      */
     public SourceSet languageVersion(String languageVersion) {
         languageVersion_ = languageVersion;
+        return this;
+    }
+
+    /**
+     * Sets the language version used for setting up analysis and samples.
+     *
+     * @param languageVersion the language version
+     * @return this operation instance
+     */
+    public SourceSet languageVersion(int languageVersion) {
+        languageVersion_ = String.valueOf(languageVersion);
         return this;
     }
 
