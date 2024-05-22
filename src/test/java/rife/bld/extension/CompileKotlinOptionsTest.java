@@ -109,7 +109,7 @@ class CompileKotlinOptionsTest {
         args.add(options.args());
         args.add(options.apiVersion(11).jvmTarget(11).args());
 
-        for (var a: args) {
+        for (var a : args) {
             assertThat(a).hasSize(matches.size());
             IntStream.range(0, a.size()).forEach(i -> assertThat(a.get(i)).isEqualTo(matches.get(i)));
         }
