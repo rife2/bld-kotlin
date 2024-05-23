@@ -50,7 +50,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     private final Collection<String> globalPackageOptions_ = new ArrayList<>();
     private final Collection<String> globalSrcLinks_ = new ArrayList<>();
     private final Collection<String> includes_ = new ArrayList<>();
-    private final Map<String, String> pluginConfiguration_ = new ConcurrentHashMap<>();
+    private final Map<String, String> pluginsConfiguration_ = new ConcurrentHashMap<>();
     private final Collection<String> pluginsClasspath_ = new ArrayList<>();
     private boolean delayTemplateSubstitution_;
     private boolean failOnWarning_;
@@ -63,6 +63,15 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     private BaseProject project_;
     private SourceSet sourceSet_;
     private boolean suppressInheritedMembers_;
+
+    // Encodes to JSON adding braces as needed
+    private static String encodeJson(final String json) {
+        var sb = new StringBuilder(json);
+        if (!json.startsWith("{") || !json.endsWith("}")) {
+            sb.insert(0, "{").append("}");
+        }
+        return StringUtils.encodeJson(sb.toString());
+    }
 
     /**
      * Sets the delay substitution of some elements.
@@ -194,11 +203,11 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
         }
 
         // -pluginConfiguration
-        if (!pluginConfiguration_.isEmpty()) {
-            args.add("-pluginConfiguration");
+        if (!pluginsConfiguration_.isEmpty()) {
+            args.add("-pluginsConfiguration");
             var confs = new ArrayList<String>();
-            pluginConfiguration_.forEach((k, v) ->
-                    confs.add(String.format("{%s}={%s}", StringUtils.encodeJson(k), StringUtils.encodeJson(v))));
+            pluginsConfiguration_.forEach((k, v) ->
+                    confs.add(String.format("%s=%s", encodeJson(k), encodeJson(v))));
             args.add(String.join("^^", confs));
         }
 
@@ -501,20 +510,20 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
      * @param jsonConfiguration The plugin JSON configuration
      * @return this operation instance
      */
-    public DokkaOperation pluginConfiguration(String name, String jsonConfiguration) {
-        pluginConfiguration_.put(name, jsonConfiguration);
+    public DokkaOperation pluginConfigurations(String name, String jsonConfiguration) {
+        pluginsConfiguration_.put(name, jsonConfiguration);
         return this;
     }
 
     /**
      * Sets the configuration for Dokka plugins.
      *
-     * @param pluginConfiguration the map of configurations
+     * @param pluginConfiguratione the map of configurations
      * @return this operation instance
-     * @see #pluginConfiguration(String, String)
+     * @see #pluginConfigurations(String, String)
      */
-    public DokkaOperation pluginConfiguration(Map<String, String> pluginConfiguration) {
-        pluginConfiguration_.putAll(pluginConfiguration);
+    public DokkaOperation pluginConfigurations(Map<String, String> pluginConfiguratione) {
+        pluginsConfiguration_.putAll(pluginConfiguratione);
         return this;
     }
 

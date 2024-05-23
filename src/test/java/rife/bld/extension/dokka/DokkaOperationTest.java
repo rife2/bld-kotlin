@@ -41,8 +41,8 @@ class DokkaOperationTest {
                 .globalSrcLink("link1", "link2")
                 .globalSrcLink(List.of("link3", "link4"))
                 .includes("file1", "file2")
-                .pluginConfiguration("name", "\"json\"")
-                .pluginConfiguration(Map.of("\"name2\"", "json2"))
+                .pluginConfigurations("name", "{\"json\"}")
+                .pluginConfigurations(Map.of("{\"name2\"}", "json2", "name3}", "{json3"))
                 .pluginsClasspath("path1", "path2")
                 .pluginsClasspath(List.of("path3", "path4"))
                 .delayTemplateSubstitution(true)
@@ -79,7 +79,7 @@ class DokkaOperationTest {
                 "-moduleVersion", "1.0",
                 "-noSuppressObviousFunctions",
                 "-offlineMode",
-                "-pluginConfiguration", "{name}={\\\"json\\\"}^^{\\\"name2\\\"}={json2}",
+                "-pluginsConfiguration", "{\\\"name2\\\"}={json2}^^{name}={\\\"json\\\"}^^{name3}}={{json3}",
                 "-suppressInheritedMembers");
 
         assertThat(args).hasSize(matches.size());
