@@ -16,6 +16,7 @@
 
 package rife.bld.extension.dokka;
 
+import java.io.File;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -236,11 +237,11 @@ public class SourceSet {
      * <p>
      * This option accepts both {@code .jar} and {@code .klib} files.
      *
-     * @param classpath one or more classpath
+     * @param files one or more file
      * @return this operation instance
      */
-    public SourceSet classpath(String... classpath) {
-        classpath_.addAll(Arrays.asList(classpath));
+    public SourceSet classpath(String... files) {
+        classpath_.addAll(Arrays.asList(files));
         return this;
     }
 
@@ -251,11 +252,26 @@ public class SourceSet {
      * <p>
      * This option accepts both {@code .jar} and {@code .klib} files.
      *
-     * @param classpath the list of classpath
+     * @param files the list of files
      * @return this operation instance
      */
-    public SourceSet classpath(Collection<String> classpath) {
-        classpath_.addAll(classpath);
+    public SourceSet classpath(Collection<String> files) {
+        classpath_.addAll(files);
+        return this;
+    }
+
+    /**
+     * Sets classpath for analysis and interactive samples.
+     * <p>
+     * This is useful if some types that come from dependencies are not resolved/picked up automatically.
+     * <p>
+     * This option accepts both {@code .jar} and {@code .klib} files.
+     *
+     * @param files the list of files
+     * @return this operation instance
+     */
+    public SourceSet classpath(List<File> files) {
+        files.forEach(it -> classpath_.add(it.getAbsolutePath()));
         return this;
     }
 

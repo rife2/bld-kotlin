@@ -53,7 +53,7 @@ class SourceSetTest {
     @Test
     @SuppressWarnings("PMD.AvoidDuplicateLiterals")
     void sourceSetTest() {
-        var args = new SourceSet()
+        var sourceSet = new SourceSet()
                 .classpath("classpath1", "classpath2")
                 .dependentSourceSets("moduleName", "sourceSetName")
                 .documentedVisibilities(DocumentedVisibility.PACKAGE, DocumentedVisibility.PRIVATE)
@@ -76,8 +76,9 @@ class SourceSetTest {
                 .noStdlibLink(true)
                 .reportUndocumented(true)
                 .skipDeprecated(true)
-                .sourceSetName("setName")
-                .args();
+                .sourceSetName("setName");
+
+        var args = sourceSet.args();
 
         var matches = List.of(
                 "-analysisPlatform", "jvm",
@@ -103,6 +104,10 @@ class SourceSetTest {
                 "-suppressedFiles", "sup1;sup2");
 
         assertThat(args).hasSize(matches.size());
+
+        IntStream.range(0, args.size()).forEach(i -> assertThat(args.get(i)).isEqualTo(matches.get(i)));
+
+        sourceSet.classpath(List.of("classpath1", "classpath2"));
 
         IntStream.range(0, args.size()).forEach(i -> assertThat(args.get(i)).isEqualTo(matches.get(i)));
     }

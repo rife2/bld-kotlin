@@ -50,8 +50,8 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     private final Collection<String> globalPackageOptions_ = new ArrayList<>();
     private final Collection<String> globalSrcLinks_ = new ArrayList<>();
     private final Collection<String> includes_ = new ArrayList<>();
-    private final Map<String, String> pluginsConfiguration_ = new ConcurrentHashMap<>();
     private final Collection<String> pluginsClasspath_ = new ArrayList<>();
+    private final Map<String, String> pluginsConfiguration_ = new ConcurrentHashMap<>();
     private boolean delayTemplateSubstitution_;
     private boolean failOnWarning_;
     private LoggingLevel loggingLevel_;
@@ -226,15 +226,18 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     /**
      * Configures the operation from a {@link BaseProject}.
      * <p>
-     * Sets the {@link #sourceSet sourceSet}, {@link SourceSet#jdkVersion jdkVersion} and {@link #moduleName moduleName}
-     * from the project.
+     * Sets the {@link #sourceSet sourceSet}, {@link SourceSet#jdkVersion jdkVersion}, {@link #moduleName moduleName}
+     * and {@link SourceSet#classpath(String...) classpath} from the project.
      *
      * @param project the project to configure the operation from
      */
     @Override
     public DokkaOperation fromProject(BaseProject project) {
         project_ = project;
-        sourceSet_ = new SourceSet().src(new File(project.srcMainDirectory(), "kotlin").getAbsolutePath());
+        sourceSet_ = new SourceSet()
+                .src(new File(project.srcMainDirectory(), "kotlin").getAbsolutePath())
+                .classpath(project.compileClasspathJars())
+                .classpath(project.providedClasspathJars());
         if (project.javaRelease() != null) {
             sourceSet_ = sourceSet_.jdkVersion(project.javaRelease());
         }

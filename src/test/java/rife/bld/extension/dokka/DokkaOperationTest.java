@@ -55,6 +55,11 @@ class DokkaOperationTest {
                 .outputDir(new File(examples, "build"))
                 .outputFormat(OutputFormat.JAVADOC)
                 .suppressInheritedMembers(true)
+                .sourceSet(new SourceSet().classpath(
+                        List.of(
+                                new File("examples/foo.jar"),
+                                new File("examples/bar.jar")
+                        )))
                 .executeConstructProcessCommandList();
 
         var path = examples.getAbsolutePath();
@@ -66,7 +71,7 @@ class DokkaOperationTest {
                         path + "/lib/bld/javadoc-plugin-" + dokkaJar + ';' +
                         path + "/lib/bld/korte-jvm-4.0.10.jar;" +
                         path + "/lib/bld/kotlin-as-java-plugin-" + dokkaJar + ";path1;path2;path3;path4",
-                "-sourceSet", "-src " + path + "/src/main/kotlin",
+                "-sourceSet", "-src " + path + "/src/main/kotlin" + " -classpath " + path + "/foo.jar;" + path + "/bar.jar",
                 "-outputDir", path + "/build",
                 "-delayTemplateSubstitution",
                 "-failOnWarning",
@@ -87,9 +92,9 @@ class DokkaOperationTest {
         IntStream.range(0, args.size()).forEach(i -> {
             if (args.get(i).contains(".jar;")) {
                 var jars = args.get(i).split(";");
-                Arrays.stream(jars).forEach(jar -> assertThat(matches.get(i)).contains(jar));
+                Arrays.stream(jars).forEach(jar -> assertThat(matches.get(i)).as(matches.get(i)).contains(jar));
             } else {
-                assertThat(args.get(i)).isEqualTo(matches.get(i));
+                assertThat(args.get(i)).as(args.get(i)).isEqualTo(matches.get(i));
             }
         });
     }
