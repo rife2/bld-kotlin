@@ -54,6 +54,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     private final Map<String, String> pluginsConfiguration_ = new ConcurrentHashMap<>();
     private boolean delayTemplateSubstitution_;
     private boolean failOnWarning_;
+    private File json;
     private LoggingLevel loggingLevel_;
     private String moduleName_;
     private String moduleVersion_;
@@ -214,6 +215,11 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
         // -suppressInheritedMembers
         if (suppressInheritedMembers_) {
             args.add("-suppressInheritedMembers");
+        }
+
+        // json
+        if (json != null) {
+            args.add(json.getAbsolutePath());
         }
 
         if (LOGGER.isLoggable(Level.FINE)) {
@@ -378,6 +384,16 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
      */
     public DokkaOperation includes(Collection<String> files) {
         includes_.addAll(files);
+        return this;
+    }
+
+    /**
+     * JSON configuration file path.
+     *
+     * @param configuration the configuration file path
+     */
+    public DokkaOperation json(File configuration) {
+        json = configuration;
         return this;
     }
 
