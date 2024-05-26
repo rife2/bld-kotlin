@@ -31,7 +31,25 @@ class DokkaOperationTest {
     @Test
     @SuppressWarnings({"ExtractMethodRecommender", "PMD.AvoidDuplicateLiterals"})
     void executeConstructProcessCommandListTest() {
+        var params = List.of(
+                "-moduleName",
+                "-moduleVersion",
+                "-outputDir",
+                "-sourceSet",
+                "-pluginsConfiguration",
+                "-pluginsClasspath",
+                "-offlineMode",
+                "-failOnWarning",
+                "-delayTemplateSubstitution",
+                "-noSuppressObviousFunctions",
+                "-includes",
+                "-suppressInheritedMembers",
+                "-globalPackageOptions",
+                "-globalLinks",
+                "-globalSrcLink",
+                "-loggingLevel");
         var examples = new File("examples");
+        var jsonConf = new File("config.json");
         var args = new DokkaOperation()
                 .fromProject(new BaseProjectBlueprint(examples, "com.example", "Example"))
                 .globalLinks("s", "link")
@@ -41,6 +59,7 @@ class DokkaOperationTest {
                 .globalSrcLink("link1", "link2")
                 .globalSrcLink(List.of("link3", "link4"))
                 .includes("file1", "file2")
+                .includes(List.of("file3", "file4"))
                 .pluginConfigurations("name", "{\"json\"}")
                 .pluginConfigurations(Map.of("{\"name2\"}", "json2", "name3}", "{json3"))
                 .pluginsClasspath("path1", "path2")
@@ -60,7 +79,19 @@ class DokkaOperationTest {
                                 new File("examples/foo.jar"),
                                 new File("examples/bar.jar")
                         )))
+                .json(jsonConf)
                 .executeConstructProcessCommandList();
+
+        for (var p : params) {
+            var found = false;
+            for (var a : args) {
+                if (a.startsWith(p)) {
+                    found = true;
+                    break;
+                }
+            }
+            assertThat(found).as(p + " not found.").isTrue();
+        }
 
         var path = examples.getAbsolutePath();
         var dokkaJar = "1.9.20.jar";
@@ -78,14 +109,15 @@ class DokkaOperationTest {
                 "-globalLinks", "s^link^^s2^link2",
                 "-globalPackageOptions", "option1;option2;option3;option4",
                 "-globalSrcLinks_", "link1;link2;link3;link4",
-                "-includes", "file1;file2",
+                "-includes", "file1;file2;file3;file4",
                 "-loggingLevel", "debug",
                 "-moduleName", "name",
                 "-moduleVersion", "1.0",
                 "-noSuppressObviousFunctions",
                 "-offlineMode",
                 "-pluginsConfiguration", "{\\\"name2\\\"}={json2}^^{name}={\\\"json\\\"}^^{name3}}={{json3}",
-                "-suppressInheritedMembers");
+                "-suppressInheritedMembers",
+                jsonConf.getAbsolutePath());
 
         assertThat(args).hasSize(matches.size());
 

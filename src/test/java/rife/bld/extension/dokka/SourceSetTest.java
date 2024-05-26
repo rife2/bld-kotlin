@@ -53,6 +53,29 @@ class SourceSetTest {
     @Test
     @SuppressWarnings("PMD.AvoidDuplicateLiterals")
     void sourceSetTest() {
+        var params = List.of(
+                "-sourceSetName",
+                "-displayName",
+                "-classpath",
+                "-src",
+                "-dependentSourceSets",
+                "-samples",
+                "-includes",
+                "-documentedVisibilities",
+                "-reportUndocumented",
+                "-noSkipEmptyPackages",
+                "-skipDeprecated",
+                "-jdkVersion",
+                "-languageVersion",
+                "-apiVersion",
+                "-noStdlibLink",
+                "-noJdkLink",
+                "-suppressedFiles",
+                "-analysisPlatform",
+                "-perPackageOptions",
+                "-externalDocumentationLinks",
+                "-srcLink"
+        );
         var sourceSet = new SourceSet()
                 .classpath("classpath1", "classpath2")
                 .dependentSourceSets("moduleName", "sourceSetName")
@@ -79,6 +102,17 @@ class SourceSetTest {
                 .sourceSetName("setName");
 
         var args = sourceSet.args();
+
+        for (var p : params) {
+            var found = false;
+            for (var a : args) {
+                if (a.startsWith(p)) {
+                    found = true;
+                    break;
+                }
+            }
+            assertThat(found).as(p + " not found.").isTrue();
+        }
 
         var matches = List.of(
                 "-analysisPlatform", "jvm",
