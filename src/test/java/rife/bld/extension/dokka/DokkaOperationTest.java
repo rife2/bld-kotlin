@@ -32,25 +32,27 @@ class DokkaOperationTest {
     @SuppressWarnings({"ExtractMethodRecommender", "PMD.AvoidDuplicateLiterals"})
     void executeConstructProcessCommandListTest() {
         var params = List.of(
+                "-delayTemplateSubstitution",
+                "-failOnWarning",
+                "-globalLinks",
+                "-globalPackageOptions",
+                "-globalSrcLink",
+                "-includes",
+                "-loggingLevel",
                 "-moduleName",
                 "-moduleVersion",
-                "-outputDir",
-                "-sourceSet",
-                "-pluginsConfiguration",
-                "-pluginsClasspath",
-                "-offlineMode",
-                "-failOnWarning",
-                "-delayTemplateSubstitution",
                 "-noSuppressObviousFunctions",
-                "-includes",
-                "-suppressInheritedMembers",
-                "-globalPackageOptions",
-                "-globalLinks",
-                "-globalSrcLink",
-                "-loggingLevel");
+                "-offlineMode",
+                "-outputDir",
+                "-pluginsClasspath",
+                "-pluginsConfiguration",
+                "-sourceSet",
+                "-suppressInheritedMembers");
         var examples = new File("examples");
         var jsonConf = new File("config.json");
         var args = new DokkaOperation()
+                .delayTemplateSubstitution(true)
+                .failOnWarning(true)
                 .fromProject(new BaseProjectBlueprint(examples, "com.example", "Example"))
                 .globalLinks("s", "link")
                 .globalLinks(Map.of("s2", "link2"))
@@ -60,12 +62,7 @@ class DokkaOperationTest {
                 .globalSrcLink(List.of("link3", "link4"))
                 .includes("file1", "file2")
                 .includes(List.of("file3", "file4"))
-                .pluginConfigurations("name", "{\"json\"}")
-                .pluginConfigurations(Map.of("{\"name2\"}", "json2", "name3}", "{json3"))
-                .pluginsClasspath("path1", "path2")
-                .pluginsClasspath(List.of("path3", "path4"))
-                .delayTemplateSubstitution(true)
-                .failOnWarning(true)
+                .json(jsonConf)
                 .loggingLevel(LoggingLevel.DEBUG)
                 .moduleName("name")
                 .moduleVersion("1.0")
@@ -73,13 +70,16 @@ class DokkaOperationTest {
                 .offlineMode(true)
                 .outputDir(new File(examples, "build"))
                 .outputFormat(OutputFormat.JAVADOC)
-                .suppressInheritedMembers(true)
+                .pluginConfigurations("name", "{\"json\"}")
+                .pluginConfigurations(Map.of("{\"name2\"}", "json2", "name3}", "{json3"))
+                .pluginsClasspath("path1", "path2")
+                .pluginsClasspath(List.of("path3", "path4"))
                 .sourceSet(new SourceSet().classpath(
                         List.of(
                                 new File("examples/foo.jar"),
                                 new File("examples/bar.jar")
                         )))
-                .json(jsonConf)
+                .suppressInheritedMembers(true)
                 .executeConstructProcessCommandList();
 
         for (var p : params) {

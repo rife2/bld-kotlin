@@ -54,52 +54,52 @@ class SourceSetTest {
     @SuppressWarnings("PMD.AvoidDuplicateLiterals")
     void sourceSetTest() {
         var params = List.of(
-                "-sourceSetName",
-                "-displayName",
+                "-analysisPlatform",
+                "-apiVersion",
                 "-classpath",
-                "-src",
                 "-dependentSourceSets",
-                "-samples",
-                "-includes",
+                "-displayName",
                 "-documentedVisibilities",
-                "-reportUndocumented",
-                "-noSkipEmptyPackages",
-                "-skipDeprecated",
+                "-externalDocumentationLinks",
+                "-includes",
                 "-jdkVersion",
                 "-languageVersion",
-                "-apiVersion",
-                "-noStdlibLink",
                 "-noJdkLink",
-                "-suppressedFiles",
-                "-analysisPlatform",
+                "-noSkipEmptyPackages",
+                "-noStdlibLink",
                 "-perPackageOptions",
-                "-externalDocumentationLinks",
-                "-srcLink"
+                "-reportUndocumented",
+                "-samples",
+                "-skipDeprecated",
+                "-sourceSetName",
+                "-src",
+                "-srcLink",
+                "-suppressedFiles"
         );
         var sourceSet = new SourceSet()
+                .analysisPlatform(AnalysisPlatform.JVM)
+                .apiVersion("1.0")
                 .classpath("classpath1", "classpath2")
                 .dependentSourceSets("moduleName", "sourceSetName")
+                .displayName("name")
                 .documentedVisibilities(DocumentedVisibility.PACKAGE, DocumentedVisibility.PRIVATE)
                 .externalDocumentationLinks("url1", "packageListUrl1")
                 .externalDocumentationLinks("url2", "packageListUrl2")
                 .includes("includes1", "includes2")
-                .perPackageOptions("options1", "options2")
-                .samples("samples1", "sample2")
-                .srcLink("path1", "remote1", "#suffix1")
-                .srcLink("path2", "remote2", "#suffix2")
-                .src("src1", "src2")
-                .suppressedFiles("sup1", "sup2")
-                .analysisPlatform(AnalysisPlatform.JVM)
-                .apiVersion("1.0")
-                .displayName("name")
                 .jdkVersion(18)
                 .languageVersion("2.0")
                 .noJdkLink(true)
                 .noSkipEmptyPackages(true)
                 .noStdlibLink(true)
+                .perPackageOptions("options1", "options2")
                 .reportUndocumented(true)
+                .samples("samples1", "sample2")
                 .skipDeprecated(true)
-                .sourceSetName("setName");
+                .sourceSetName("setName")
+                .src("src1", "src2")
+                .srcLink("path1", "remote1", "#suffix1")
+                .srcLink("path2", "remote2", "#suffix2")
+                .suppressedFiles("sup1", "sup2");
 
         var args = sourceSet.args();
 
