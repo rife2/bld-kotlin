@@ -38,7 +38,7 @@ for all available configuration options.
 To generate the Javadoc using [Dokka](https://github.com/Kotlin/dokka):
 
 ```java
-@BuildCommand(summary = "Generates Javadoc for the project")
+@Override
 public void javadoc() throws ExitStatusException, IOException, InterruptedException {
     new DokkaOperation()
             .fromProject(this)

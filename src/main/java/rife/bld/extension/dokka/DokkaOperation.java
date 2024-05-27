@@ -69,7 +69,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
     private static String encodeJson(final String json) {
         var sb = new StringBuilder(json);
         if (!json.startsWith("{") || !json.endsWith("}")) {
-            sb.insert(0, "{").append("}");
+            sb.insert(0, "{").append('}');
         }
         return StringUtils.encodeJson(sb.toString());
     }
@@ -489,6 +489,8 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
 
     /**
      * Sets the output directory path, {@code ./dokka} by default.
+     * <p>
+     * The directory to where documentation is generated, regardless of output format.
      *
      * @param outputDir the output directory
      * @return this operation instance
