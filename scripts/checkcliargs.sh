@@ -1,17 +1,17 @@
 #!/bin/bash
 
-TMPNEW=/tmp/checkcliargs-new
-TMPOLD=/tmp/checkcliargs-old
+main=org.jetbrains.dokka.MainKt
+new=/tmp/checkcliargs-new
+old=/tmp/checkcliargs-old
 
-java -cp "lib/compile/*" -jar lib/compile/dokka-cli-*.jar -h >$TMPNEW
-java -cp "/examples/lib/bld*" -jar examples/lib/bld/dokka-cli-*.jar -h >$TMPOLD
+java -cp "lib/compile/*" $main -h >$new
+java -cp "/examples/lib/bld*" $main -h >$old
 
-diff $TMPOLD $TMPNEW
+diff $old $new
 
-java -cp "lib/compile/*" -jar lib/compile/dokka-cli-*.jar -sourceSet -h >$TMPNEW
-java -cp "/examples/lib/bld*" -jar examples/lib/bld/dokka-cli-*.jar -sourceSet -h >$TMPOLD
+java -cp "lib/compile/*" $main -sourceSet -h >$new
+java -cp "/examples/lib/bld*" $main -sourceSet -h >$old
 
-diff $TMPOLD $TMPNEW
+diff $old $new
 
-
-rm -rf $TMPNEW $TMPOLD
+rm -rf $new $old
