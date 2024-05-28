@@ -18,6 +18,9 @@ package rife.bld.extension.dokka;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
@@ -52,30 +55,11 @@ class SourceSetTest {
 
     @Test
     @SuppressWarnings("PMD.AvoidDuplicateLiterals")
-    void sourceSetTest() {
-        var params = List.of(
-                "-analysisPlatform",
-                "-apiVersion",
-                "-classpath",
-                "-dependentSourceSets",
-                "-displayName",
-                "-documentedVisibilities",
-                "-externalDocumentationLinks",
-                "-includes",
-                "-jdkVersion",
-                "-languageVersion",
-                "-noJdkLink",
-                "-noSkipEmptyPackages",
-                "-noStdlibLink",
-                "-perPackageOptions",
-                "-reportUndocumented",
-                "-samples",
-                "-skipDeprecated",
-                "-sourceSetName",
-                "-src",
-                "-srcLink",
-                "-suppressedFiles"
-        );
+    void sourceSetTest() throws IOException {
+        var args = Files.readAllLines(Paths.get("src", "test", "resources", "dokka-sourceset-args.txt"));
+
+        assertThat(args).isNotEmpty();
+
         var sourceSet = new SourceSet()
                 .analysisPlatform(AnalysisPlatform.JVM)
                 .apiVersion("1.0")
@@ -101,11 +85,11 @@ class SourceSetTest {
                 .srcLink("path2", "remote2", "#suffix2")
                 .suppressedFiles("sup1", "sup2");
 
-        var args = sourceSet.args();
+        var params = sourceSet.args();
 
-        for (var p : params) {
+        for (var p : args) {
             var found = false;
-            for (var a : args) {
+            for (var a : params) {
                 if (a.startsWith(p)) {
                     found = true;
                     break;
@@ -137,12 +121,12 @@ class SourceSetTest {
                 "-sourceSetName", "setName",
                 "-suppressedFiles", "sup1;sup2");
 
-        assertThat(args).hasSize(matches.size());
+        assertThat(params).hasSize(matches.size());
 
-        IntStream.range(0, args.size()).forEach(i -> assertThat(args.get(i)).isEqualTo(matches.get(i)));
+        IntStream.range(0, params.size()).forEach(i -> assertThat(params.get(i)).isEqualTo(matches.get(i)));
 
         sourceSet.classpath(List.of("classpath1", "classpath2"));
 
-        IntStream.range(0, args.size()).forEach(i -> assertThat(args.get(i)).isEqualTo(matches.get(i)));
+        IntStream.range(0, params.size()).forEach(i -> assertThat(params.get(i)).isEqualTo(matches.get(i)));
     }
 }

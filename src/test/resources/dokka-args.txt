@@ -1,0 +1,16 @@
+-delayTemplateSubstitution
+-failOnWarning
+-globalLinks
+-globalPackageOptions
+-globalSrcLink
+-includes
+-loggingLevel
+-moduleName
+-moduleVersion
+-noSuppressObviousFunctions
+-offlineMode
+-outputDir
+-pluginsClasspath
+-pluginsConfiguration
+-sourceSet
+-suppressInheritedMembers

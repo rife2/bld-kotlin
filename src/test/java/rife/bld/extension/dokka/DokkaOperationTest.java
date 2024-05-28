@@ -20,6 +20,9 @@ import org.junit.jupiter.api.Test;
 import rife.bld.blueprints.BaseProjectBlueprint;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -30,24 +33,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 class DokkaOperationTest {
     @Test
     @SuppressWarnings({"ExtractMethodRecommender", "PMD.AvoidDuplicateLiterals"})
-    void executeConstructProcessCommandListTest() {
-        var params = List.of(
-                "-delayTemplateSubstitution",
-                "-failOnWarning",
-                "-globalLinks",
-                "-globalPackageOptions",
-                "-globalSrcLink",
-                "-includes",
-                "-loggingLevel",
-                "-moduleName",
-                "-moduleVersion",
-                "-noSuppressObviousFunctions",
-                "-offlineMode",
-                "-outputDir",
-                "-pluginsClasspath",
-                "-pluginsConfiguration",
-                "-sourceSet",
-                "-suppressInheritedMembers");
+    void executeConstructProcessCommandListTest() throws IOException {
+        var params = Files.readAllLines(Paths.get("src", "test", "resources", "dokka-args.txt"));
+
+        assertThat(params).isNotEmpty();
+
         var examples = new File("examples");
         var jsonConf = new File("config.json");
         var args = new DokkaOperation()
