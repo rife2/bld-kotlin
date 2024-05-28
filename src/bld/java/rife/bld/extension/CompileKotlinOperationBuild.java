@@ -98,6 +98,15 @@ public class CompileKotlinOperationBuild extends Project {
         new CompileKotlinOperationBuild().start(args);
     }
 
+    @Override
+    public void test() throws Exception {
+        new ExecOperation()
+                .fromProject(this)
+                .command("scripts/cliargs.sh")
+                .execute();
+        super.test();
+    }
+
     @BuildCommand(summary = "Runs PMD analysis")
     public void pmd() {
         new PmdOperation()
