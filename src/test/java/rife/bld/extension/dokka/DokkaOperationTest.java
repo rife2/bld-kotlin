@@ -34,13 +34,13 @@ class DokkaOperationTest {
     @Test
     @SuppressWarnings({"ExtractMethodRecommender", "PMD.AvoidDuplicateLiterals"})
     void executeConstructProcessCommandListTest() throws IOException {
-        var params = Files.readAllLines(Paths.get("src", "test", "resources", "dokka-args.txt"));
+        var args = Files.readAllLines(Paths.get("src", "test", "resources", "dokka-args.txt"));
 
-        assertThat(params).isNotEmpty();
+        assertThat(args).isNotEmpty();
 
         var examples = new File("examples");
         var jsonConf = new File("config.json");
-        var args = new DokkaOperation()
+        var params = new DokkaOperation()
                 .delayTemplateSubstitution(true)
                 .failOnWarning(true)
                 .fromProject(new BaseProjectBlueprint(examples, "com.example", "Example"))
@@ -72,9 +72,9 @@ class DokkaOperationTest {
                 .suppressInheritedMembers(true)
                 .executeConstructProcessCommandList();
 
-        for (var p : params) {
+        for (var p : args) {
             var found = false;
-            for (var a : args) {
+            for (var a : params) {
                 if (a.startsWith(p)) {
                     found = true;
                     break;
@@ -109,14 +109,14 @@ class DokkaOperationTest {
                 "-suppressInheritedMembers",
                 jsonConf.getAbsolutePath());
 
-        assertThat(args).hasSize(matches.size());
+        assertThat(params).hasSize(matches.size());
 
-        IntStream.range(0, args.size()).forEach(i -> {
-            if (args.get(i).contains(".jar;")) {
-                var jars = args.get(i).split(";");
+        IntStream.range(0, params.size()).forEach(i -> {
+            if (params.get(i).contains(".jar;")) {
+                var jars = params.get(i).split(";");
                 Arrays.stream(jars).forEach(jar -> assertThat(matches.get(i)).as(matches.get(i)).contains(jar));
             } else {
-                assertThat(args.get(i)).as(args.get(i)).isEqualTo(matches.get(i));
+                assertThat(params.get(i)).as(params.get(i)).isEqualTo(matches.get(i));
             }
         });
     }

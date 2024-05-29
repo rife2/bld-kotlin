@@ -31,13 +31,16 @@ import static rife.bld.extension.CompileKotlinOperation.isNotBlank;
  * @since 1.0
  */
 public class CompileKotlinOptions {
+    private final List<String> advancedOptions_ = new ArrayList<>();
     private final List<String> argFile_ = new ArrayList<>();
     private final List<String> classpath_ = new ArrayList<>();
+    private final List<String> jvmOptions_ = new ArrayList<>();
     private final List<String> optIn_ = new ArrayList<>();
     private final List<String> options_ = new ArrayList<>();
     private final List<String> plugin_ = new ArrayList<>();
     private final List<String> scriptTemplates_ = new ArrayList<>();
     private String apiVersion_;
+    private String expression_;
     private boolean includeRuntime_;
     private boolean javaParameters_;
     private String jdkHome_;
@@ -54,6 +57,28 @@ public class CompileKotlinOptions {
     private boolean progressive_;
     private boolean verbose_;
     private boolean wError_;
+
+    /**
+     * Specify advanced compiler options.
+     *
+     * @param options one or more advanced options
+     * @return this operation instance
+     */
+    public CompileKotlinOptions advancedOptions(String... options) {
+        Collections.addAll(advancedOptions_, options);
+        return this;
+    }
+
+    /**
+     * Specify advanced compiler options.
+     *
+     * @param options list of compiler options
+     * @return this operation instance
+     */
+    public CompileKotlinOptions advancedOptions(Collection<String> options) {
+        advancedOptions_.addAll(options);
+        return this;
+    }
 
     /**
      * Allow using declarations only from the specified version of Kotlin bundled libraries.
@@ -120,7 +145,7 @@ public class CompileKotlinOptions {
     public List<String> args() {
         var args = new ArrayList<String>();
 
-        // api-isNotBlankversion
+        // api-version
         if (isNotBlank(apiVersion_)) {
             args.add("-api-version");
             args.add(apiVersion_);
@@ -135,6 +160,12 @@ public class CompileKotlinOptions {
         if (!classpath_.isEmpty()) {
             args.add("-classpath");
             args.add(String.join(File.pathSeparator, classpath_));
+        }
+
+        // expression
+        if (isNotBlank(expression_)) {
+            args.add("-expression");
+            args.add(expression_);
         }
 
         // java-parameters
@@ -162,6 +193,11 @@ public class CompileKotlinOptions {
         // jdk-release
         if (isNotBlank(jdkRelease_)) {
             args.add("-Xjdk-release=" + jdkRelease_);
+        }
+
+        // JVM options
+        if (!jvmOptions_.isEmpty()) {
+            jvmOptions_.forEach(s -> args.add("-J" + s));
         }
 
         // kotlin-home
@@ -199,7 +235,7 @@ public class CompileKotlinOptions {
 
         // no-warn
         if (noWarn_) {
-            args.add("-no-warn");
+            args.add("-nowarn");
         }
 
         // opt-in
@@ -246,6 +282,11 @@ public class CompileKotlinOptions {
             args.add("-Werror");
         }
 
+        // advanced option (X)
+        if (!advancedOptions_.isEmpty()) {
+            advancedOptions_.forEach(it -> args.add("-X" + it));
+        }
+
         return args;
     }
 
@@ -272,6 +313,17 @@ public class CompileKotlinOptions {
      */
     public CompileKotlinOptions classpath(Collection<String> paths) {
         classpath_.addAll(paths);
+        return this;
+    }
+
+    /**
+     * Evaluate the given string as a Kotlin script.
+     *
+     * @param expression the expression
+     * @return this operation instance
+     */
+    public CompileKotlinOptions expression(String expression) {
+        expression_ = expression;
         return this;
     }
 
@@ -343,6 +395,28 @@ public class CompileKotlinOptions {
      */
     public CompileKotlinOptions jdkRelease(int version) {
         jdkRelease_ = String.valueOf(version);
+        return this;
+    }
+
+    /**
+     * Pass an option directly to JVM
+     *
+     * @param jvmOptions one or more JVM option
+     * @return this operation instance
+     */
+    public CompileKotlinOptions jvmOptions(String... jvmOptions) {
+        Collections.addAll(jvmOptions_, jvmOptions);
+        return this;
+    }
+
+    /**
+     * Pass an option directly to JVM
+     *
+     * @param jvmOptions the list JVM options
+     * @return this operation instance
+     */
+    public CompileKotlinOptions jvmOptions(Collection<String> jvmOptions) {
+        jvmOptions_.addAll(jvmOptions);
         return this;
     }
 

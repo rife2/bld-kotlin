@@ -36,7 +36,7 @@ public class CompileKotlinOperationBuild extends Project {
         version = version(0, 9, 8);
 
         javaRelease = 17;
- 
+
         downloadSources = true;
         autoDownloadPurge = true;
         repositories = List.of(MAVEN_LOCAL, MAVEN_CENTRAL, RIFE2_RELEASES);
@@ -98,15 +98,6 @@ public class CompileKotlinOperationBuild extends Project {
         new CompileKotlinOperationBuild().start(args);
     }
 
-    @Override
-    public void test() throws Exception {
-        new ExecOperation()
-                .fromProject(this)
-                .command("scripts/cliargs.sh")
-                .execute();
-        super.test();
-    }
-
     @BuildCommand(summary = "Runs PMD analysis")
     public void pmd() {
         new PmdOperation()
@@ -114,5 +105,14 @@ public class CompileKotlinOperationBuild extends Project {
                 .failOnViolation(true)
                 .ruleSets("config/pmd.xml")
                 .execute();
+    }
+
+    @Override
+    public void test() throws Exception {
+        new ExecOperation()
+                .fromProject(this)
+                .command("scripts/cliargs.sh")
+                .execute();
+        super.test();
     }
 }

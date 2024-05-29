@@ -19,6 +19,9 @@ package rife.bld.extension;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.IntStream;
@@ -30,8 +33,10 @@ class CompileKotlinOptionsTest {
     @Test
     void argsCollectionTest() {
         var args = new CompileKotlinOptions()
+                .advancedOptions(List.of("Xoption1", "Xoption2"))
                 .argFile(List.of("arg1.txt", "arg2.txt"))
                 .classpath(List.of("path1", "path2"))
+                .jvmOptions(List.of("option1", "option2"))
                 .noStdLib(false)
                 .optIn(List.of("opt1", "opt2"))
                 .options(List.of("-foo", "-bar"))
@@ -40,18 +45,26 @@ class CompileKotlinOptionsTest {
         var matches = List.of(
                 "@arg1.txt", "@arg2.txt",
                 "-classpath", "path1:path2",
+                "-Joption1", "-Joption2",
                 "-opt-in", "opt1",
                 "-opt-in", "opt2",
-                "-foo",
-                "-bar",
-                "-script-templates", "temp1,temp2");
+                "-foo", "-bar",
+                "-script-templates",
+                "temp1,temp2",
+                "-XXoption1", "-XXoption2");
 
-        assertThat(args).hasSize(matches.size());
-
-        IntStream.range(0, args.size()).forEach(i -> assertThat(args.get(i)).isEqualTo(matches.get(i)));
-
-
+        for (var arg : args) {
+            var found = false;
+            for (var match : matches) {
+                if (match.equals(arg)) {
+                    found = true;
+                    break;
+                }
+            }
+            assertThat(found).as(arg).isTrue();
+        }
     }
+
 
     @Test
     void argsTest() {
@@ -93,7 +106,7 @@ class CompileKotlinOptionsTest {
                 "-module-name", "module",
                 "-no-jdk",
                 "-no-reflect",
-                "-no-warn",
+                "-nowarn",
                 "-opt-in", "opt1",
                 "-opt-in", "opt2",
                 "-foo",
@@ -112,6 +125,49 @@ class CompileKotlinOptionsTest {
         for (var a : args) {
             assertThat(a).hasSize(matches.size());
             IntStream.range(0, a.size()).forEach(i -> assertThat(a.get(i)).isEqualTo(matches.get(i)));
+        }
+    }
+
+    @Test
+    void checkAllParamsTest() throws IOException {
+        var args = Files.readAllLines(Paths.get("src", "test", "resources", "kotlinc-args.txt"));
+
+        assertThat(args).isNotEmpty();
+
+        var params = new CompileKotlinOptions()
+                .advancedOptions("Xoption")
+                .argFile("file")
+                .classpath("classpath")
+                .expression("expression")
+                .jvmOptions("option")
+                .includeRuntime(true)
+                .javaParameters(true)
+                .jdkHome("jdkhome")
+                .jvmTarget(12)
+                .kotlinHome("kotlin")
+                .moduleName("moduleName")
+                .noJdk(true)
+                .noReflect(true)
+                .noStdLib(true)
+                .noWarn(true)
+                .optIn("annotation")
+                .options("option")
+                .path("path")
+                .plugin("id", "option", "value")
+                .progressive(true)
+                .scriptTemplates("template")
+                .verbose(true)
+                .wError(true);
+
+        for (var p : args) {
+            var found = false;
+            for (var a : params.args()) {
+                if (a.startsWith(p)) {
+                    found = true;
+                    break;
+                }
+            }
+            assertThat(found).as(p + " not found.").isTrue();
         }
     }
 }
