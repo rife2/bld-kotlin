@@ -19,6 +19,7 @@ package rife.bld.extension;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 
 import static rife.bld.extension.CompileKotlinOperation.isNotBlank;
@@ -95,7 +96,7 @@ public class CompileKotlinOptions {
      * @return this operation instance
      */
     public CompileKotlinOptions argFile(String... files) {
-        argFile_.addAll(List.of(files));
+        Collections.addAll(argFile_, files);
         return this;
     }
 
@@ -257,7 +258,7 @@ public class CompileKotlinOptions {
      * @return this operation instance
      */
     public CompileKotlinOptions classpath(String... paths) {
-        classpath_.addAll(List.of(paths));
+        Collections.addAll(classpath_, paths);
         return this;
     }
 
@@ -455,7 +456,7 @@ public class CompileKotlinOptions {
      * @return this operation instance
      */
     public CompileKotlinOptions optIn(String... annotations) {
-        optIn_.addAll(List.of(annotations));
+        Collections.addAll(optIn_, annotations);
         return this;
     }
 
@@ -477,7 +478,7 @@ public class CompileKotlinOptions {
      * @return this operation instance
      */
     public CompileKotlinOptions options(String... options) {
-        options_.addAll(List.of(options));
+        Collections.addAll(options_, options);
         return this;
     }
 
@@ -551,7 +552,7 @@ public class CompileKotlinOptions {
      * @return this operation instance
      */
     public CompileKotlinOptions scriptTemplates(String... classNames) {
-        scriptTemplates_.addAll(List.of(classNames));
+        Collections.addAll(scriptTemplates_, classNames);
         return this;
     }
 

@@ -309,7 +309,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
      * @return this operation instance
      */
     public DokkaOperation globalPackageOptions(String... options) {
-        globalPackageOptions_.addAll(Arrays.asList(options));
+        Collections.addAll(globalPackageOptions_, options);
         return this;
     }
 
@@ -342,7 +342,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
      * @return this operation instance
      */
     public DokkaOperation globalSrcLink(String... links) {
-        globalSrcLinks_.addAll(Arrays.asList(links));
+        Collections.addAll(globalSrcLinks_, links);
         return this;
     }
 
@@ -368,7 +368,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
      * @return this operation instance
      */
     public DokkaOperation includes(String... files) {
-        includes_.addAll(Arrays.asList(files));
+        Collections.addAll(includes_, files);
         return this;
     }
 
@@ -555,7 +555,7 @@ public class DokkaOperation extends AbstractProcessOperation<DokkaOperation> {
      * @return this operation instance
      */
     public DokkaOperation pluginsClasspath(String... jars) {
-        pluginsClasspath_.addAll(Arrays.asList(jars));
+        Collections.addAll(pluginsClasspath_, jars);
         return this;
     }
 

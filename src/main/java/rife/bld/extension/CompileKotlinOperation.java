@@ -154,7 +154,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @return this operation instance
      */
     public CompileKotlinOperation compileMainClasspath(String... classpath) {
-        compileMainClasspath_.addAll(Arrays.asList(classpath));
+        Collections.addAll(compileMainClasspath_, classpath);
         return this;
     }
 
@@ -205,7 +205,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @return this operation instance
      */
     public CompileKotlinOperation compileTestClasspath(String... classpath) {
-        compileTestClasspath_.addAll(Arrays.asList(classpath));
+        Collections.addAll(compileTestClasspath_, classpath);
         return this;
     }
 
@@ -398,7 +398,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @return this operation instance
      */
     public CompileKotlinOperation mainSourceDirectories(File... directories) {
-        mainSourceDirectories_.addAll(List.of(directories));
+        Collections.addAll(mainSourceDirectories_, directories);
         return this;
     }
 
@@ -460,7 +460,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @return this class instance
      */
     public CompileKotlinOperation plugins(String... plugins) {
-        plugins_.addAll(List.of(plugins));
+        Collections.addAll(plugins_, plugins);
         return this;
     }
 
@@ -526,7 +526,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @return this operation instance
      */
     public CompileKotlinOperation testSourceDirectories(File... directories) {
-        testSourceDirectories_.addAll(List.of(directories));
+        Collections.addAll(testSourceDirectories_, directories);
         return this;
     }
 

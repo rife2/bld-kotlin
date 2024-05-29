@@ -241,7 +241,7 @@ public class SourceSet {
      * @return this operation instance
      */
     public SourceSet classpath(String... files) {
-        classpath_.addAll(Arrays.asList(files));
+        Collections.addAll(classpath_, files);
         return this;
     }
 
@@ -371,7 +371,7 @@ public class SourceSet {
      * @return this operation instance
      */
     public SourceSet includes(String... files) {
-        includes_.addAll(Arrays.asList(files));
+        Collections.addAll(includes_, files);
         return this;
     }
 
@@ -535,7 +535,7 @@ public class SourceSet {
      * @return this operation instance
      */
     public SourceSet perPackageOptions(String... perPackageOptions) {
-        perPackageOptions_.addAll(List.of(perPackageOptions));
+        Collections.addAll(perPackageOptions_, perPackageOptions);
         return this;
     }
 
@@ -581,7 +581,7 @@ public class SourceSet {
      * @return this operation instance
      */
     public SourceSet samples(String... samples) {
-        samples_.addAll(List.of(samples));
+        Collections.addAll(samples_, samples);
         return this;
     }
 
@@ -635,7 +635,7 @@ public class SourceSet {
      * @return this operation instance
      */
     public SourceSet src(String... src) {
-        src_.addAll(List.of(src));
+        Collections.addAll(src_, src);
         return this;
     }
 
