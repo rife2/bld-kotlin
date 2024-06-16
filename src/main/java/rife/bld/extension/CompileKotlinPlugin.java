@@ -25,9 +25,7 @@ package rife.bld.extension;
 public enum CompileKotlinPlugin {
     ALL_OPEN("^allopen-compiler-plugin-.*$"),
     ASSIGNMENT("^assignment-compiler-plugin-.*$"),
-    KOTLIN_IMPORTS_DUMPER("^kotlin-imports-dumper-compiler-plugin-.*$"),
     KOTLIN_SERIALIZATION("^kotlin-serialization-compiler-plugin-.*$"),
-    KOTLINX_SERIALIZATION("^kotlinx-serialization-compiler-plugin-.*$"),
     LOMBOK("^lombok-compiler-plugin-.*$"),
     NOARG("^noarg-compiler-plugin-.*$"),
     POWER_ASSERT("^power-assert-compiler-plugin-.*$"),
