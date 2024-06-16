@@ -3,9 +3,6 @@ package com.example;
 import rife.bld.BuildCommand;
 import rife.bld.Project;
 import rife.bld.extension.CompileKotlinOperation;
-import rife.bld.extension.dokka.DokkaOperation;
-import rife.bld.extension.dokka.LoggingLevel;
-import rife.bld.extension.dokka.OutputFormat;
 import rife.bld.operations.exceptions.ExitStatusException;
 
 import java.io.File;
@@ -48,14 +45,14 @@ public class ExampleBuild extends Project {
 
     public static void main(String[] args) {
         // Enable detailed logging for the Kotlin extension
-        // var level = Level.ALL;
-        // var logger = Logger.getLogger("rife.bld.extension");
-        // var consoleHandler = new ConsoleHandler();
-
-        // consoleHandler.setLevel(level);
-        // logger.addHandler(consoleHandler);
-        // logger.setLevel(level);
-        // logger.setUseParentHandlers(false);
+//        var level = Level.ALL;
+//        var logger = Logger.getLogger("rife.bld.extension");
+//        var consoleHandler = new ConsoleHandler();
+//
+//        consoleHandler.setLevel(level);
+//        logger.addHandler(consoleHandler);
+//        logger.setLevel(level);
+//        logger.setUseParentHandlers(false);
 
         new ExampleBuild().start(args);
     }
@@ -71,51 +68,5 @@ public class ExampleBuild extends Project {
 //        var op = new CompileKotlinOperation().fromProject(this);
 //        op.compileOptions().verbose(true);
 //        op.execute();
-    }
-
-    @BuildCommand(value = "dokka-gfm", summary = "Generates documentation in GitHub flavored markdown format")
-    public void dokkaGfm() throws ExitStatusException, IOException, InterruptedException {
-        new DokkaOperation()
-                .fromProject(this)
-                .loggingLevel(LoggingLevel.INFO)
-                // Create build/dokka/gfm
-                .outputDir(Path.of(buildDirectory().getAbsolutePath(), "dokka", "gfm").toFile())
-                .outputFormat(OutputFormat.MARKDOWN)
-                .execute();
-    }
-
-    @BuildCommand(value = "dokka-html", summary = "Generates documentation in HTML format")
-    public void dokkaHtml() throws ExitStatusException, IOException, InterruptedException {
-        new DokkaOperation()
-                .fromProject(this)
-                .loggingLevel(LoggingLevel.INFO)
-                // Create build/dokka/html
-                .outputDir(Path.of(buildDirectory().getAbsolutePath(), "dokka", "html").toFile())
-                .outputFormat(OutputFormat.HTML)
-                .execute();
-    }
-
-    @BuildCommand(value = "dokka-jekyll", summary = "Generates documentation in Jekyll flavored markdown format")
-    public void dokkaJekyll() throws ExitStatusException, IOException, InterruptedException {
-        new DokkaOperation()
-                .fromProject(this)
-                .loggingLevel(LoggingLevel.INFO)
-                // Create build/dokka/jekyll
-                .outputDir(Path.of(buildDirectory().getAbsolutePath(), "dokka", "jekkyl").toFile())
-                .outputFormat(OutputFormat.JEKYLL)
-                .execute();
-    }
-
-    @BuildCommand(summary = "Generates Javadoc for the project")
-    @Override
-    public void javadoc() throws ExitStatusException, IOException, InterruptedException {
-        new DokkaOperation()
-                .fromProject(this)
-                .failOnWarning(true)
-                .loggingLevel(LoggingLevel.INFO)
-                // Create build/javadoc
-                .outputDir(new File(buildDirectory(), "javadoc"))
-                .outputFormat(OutputFormat.JAVADOC)
-                .execute();
     }
 }

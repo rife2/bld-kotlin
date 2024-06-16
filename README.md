@@ -33,31 +33,6 @@ public void compile() throws IOException {
 Please check the [Compile Operation documentation](https://rife2.github.io/bld-kotlin/rife/bld/extension/CompileKotlinOperation.html#method-summary)
 for all available configuration options.
 
-## Generate Javadoc
-
-To generate the Javadoc using [Dokka](https://github.com/Kotlin/dokka):
-
-```java
-@Override
-public void javadoc() throws ExitStatusException, IOException, InterruptedException {
-    new DokkaOperation()
-            .fromProject(this)
-            .outputDir(new File(buildDirectory(), "javadoc"))
-            .outputFormat(OutputFormat.JAVADOC)
-            .execute();
-}
-```
-
-```console
-./bld javadoc
-```
-
-- [View Examples Project](https://github.com/rife2/bld-kotlin/tree/main/examples/)
-
-Please check the [Dokka Operation documentation](https://rife2.github.io/bld-kotlin/rife/bld/extension/dokka/DokkaOperation.html#method-summary)
-for all available configuration options.
-
 ## Template Project
 
-There is also a [Template Project](https://github.com/rife2/kotlin-bld-example) with support for Dokka and the
-[Detekt](https://github.com/rife2/bld-detekt) extensions.
+There is also a [Template Project](https://github.com/rife2/kotlin-bld-example) with support for the [Dokka](https://github.com/rife2/bld-dokka) and [Detekt](https://github.com/rife2/bld-detekt) extensions.

@@ -32,14 +32,6 @@ jobs:
         working-directory: examples
         run: ./bld compile test
 
-      - name: Build examples documentation
-        working-directory: examples
-        run: |
-          ./bld javadoc
-          ./bld dokka-html
-          ./bld dokka-gfm
-          ./bld dokka-jekyll
-
       - name: Grant execute permission for bld
         run: chmod +x bld
 
