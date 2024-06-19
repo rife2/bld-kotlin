@@ -39,6 +39,7 @@ public class CompileKotlinOperationBuild extends Project {
 
         downloadSources = true;
         autoDownloadPurge = true;
+
         repositories = List.of(MAVEN_LOCAL, MAVEN_CENTRAL, RIFE2_RELEASES);
 
         var kotlin = version(2, 0, 0);

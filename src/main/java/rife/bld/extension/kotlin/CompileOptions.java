@@ -19,7 +19,10 @@ package rife.bld.extension.kotlin;
 import rife.bld.extension.CompileKotlinOperation;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static rife.bld.extension.CompileKotlinOperation.isNotBlank;
@@ -65,14 +68,14 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions advancedOptions(String... options) {
-        Collections.addAll(advancedOptions_, options);
+        advancedOptions_.addAll(List.of(options));
         return this;
     }
 
     /**
      * Specify advanced compiler options.
      *
-     * @param options list of compiler options
+     * @param options the compiler options
      * @return this operation instance
      */
     public CompileOptions advancedOptions(Collection<String> options) {
@@ -130,9 +133,7 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions argFile(String... files) {
-        Collections.addAll(argFile_, Arrays.stream(files)
-                .map(File::new)
-                .toArray(File[]::new));
+        argFile_.addAll(Arrays.stream(files).map(File::new).toList());
         return this;
     }
 
@@ -155,7 +156,7 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions argFile(File... files) {
-        Collections.addAll(argFile_, files);
+        argFile_.addAll(List.of(files));
         return this;
     }
 
@@ -163,7 +164,7 @@ public class CompileOptions {
     /**
      * Read the compiler options from the given files.
      *
-     * @param files the list of files
+     * @param files the compiler options files
      * @return this operation instance
      * @see #argFile(String...)
      */
@@ -175,7 +176,7 @@ public class CompileOptions {
     /**
      * Retrieves the files containing compiler options.
      *
-     * @return the list of files
+     * @return the compiler options files
      */
     public Collection<File> argFile() {
         return argFile_;
@@ -343,9 +344,7 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions classpath(String... paths) {
-        Collections.addAll(classpath_, Arrays.stream(paths)
-                .map(File::new)
-                .toArray(File[]::new));
+        classpath_.addAll(Arrays.stream(paths).map(File::new).toList());
         return this;
     }
 
@@ -358,7 +357,7 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions classpath(File... paths) {
-        Collections.addAll(classpath_, paths);
+        classpath_.addAll(List.of(paths));
         return this;
     }
 
@@ -367,7 +366,7 @@ public class CompileOptions {
      * <p>
      * The classpath can contain file and directory paths, ZIP, or JAR files.
      *
-     * @param paths the list of paths
+     * @param paths the search paths
      * @return this operation instance
      */
     public CompileOptions classpath(Collection<File> paths) {
@@ -378,7 +377,7 @@ public class CompileOptions {
     /**
      * Retrieves the class files classpath.
      *
-     * @return the list of classpath
+     * @return the class files classpath
      */
     public Collection<File> classpath() {
         return classpath_;
@@ -493,23 +492,23 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions jvmOptions(String... jvmOptions) {
-        Collections.addAll(jvmOptions_, jvmOptions);
+        jvmOptions_.addAll(List.of(jvmOptions));
         return this;
     }
 
     /**
-     * Retrieves the JVM options.
+     * Retrieves the Java Virtual Machine options.
      *
-     * @return the list of options
+     * @return the JVM options
      */
     public Collection<String> jvmOptions() {
         return jvmOptions_;
     }
 
     /**
-     * Pass an option directly to JVM
+     * Pass an option directly to Java Virtual Machine
      *
-     * @param jvmOptions the list JVM options
+     * @param jvmOptions the JVM options
      * @return this operation instance
      */
     public CompileOptions jvmOptions(Collection<String> jvmOptions) {
@@ -638,14 +637,14 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions optIn(String... annotations) {
-        Collections.addAll(optIn_, annotations);
+        optIn_.addAll(List.of(annotations));
         return this;
     }
 
     /**
      * Retrieves the opt-in fully qualified names.
      *
-     * @return the list of fully qualified names
+     * @return the fully qualified names
      */
     public Collection<String> optIn() {
         return optIn_;
@@ -654,7 +653,7 @@ public class CompileOptions {
     /**
      * Enable usages of API that requires opt-in with a requirement annotation with the given fully qualified name.
      *
-     * @param annotations list of annotation names
+     * @param annotations the annotation names
      * @return this operation instance
      */
     public CompileOptions optIn(Collection<String> annotations) {
@@ -669,14 +668,14 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions options(String... options) {
-        Collections.addAll(options_, options);
+        options_.addAll(List.of(options));
         return this;
     }
 
     /**
      * Retrieves additional compiler options.
      *
-     * @return the list of options
+     * @return the compiler options
      */
     public Collection<String> options() {
         return options_;
@@ -685,7 +684,7 @@ public class CompileOptions {
     /**
      * Specify additional compiler options.
      *
-     * @param options list of compiler options
+     * @param options the compiler options
      * @return this operation instance
      */
     public CompileOptions options(Collection<String> options) {
@@ -735,7 +734,7 @@ public class CompileOptions {
     /**
      * Retrieves the plugin options.
      *
-     * @return the list ofoptions.
+     * @return the plugin ofoptions.
      */
     public Collection<String> plugin() {
         return plugin_;
@@ -761,14 +760,14 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions scriptTemplates(String... classNames) {
-        Collections.addAll(scriptTemplates_, classNames);
+        scriptTemplates_.addAll(List.of(classNames));
         return this;
     }
 
     /**
      * Retrieves the script templates.
      *
-     * @return the list of templates.
+     * @return the script templates.
      */
     public Collection<String> scriptTemplates() {
         return scriptTemplates_;
@@ -779,7 +778,7 @@ public class CompileOptions {
      * <p>
      * Use fully qualified class names.
      *
-     * @param classNames the list class names
+     * @param classNames the class names
      * @return this operation instance
      */
     public CompileOptions scriptTemplates(Collection<String> classNames) {

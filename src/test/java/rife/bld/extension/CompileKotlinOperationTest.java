@@ -18,7 +18,10 @@ package rife.bld.extension;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import rife.bld.Project;
 import rife.bld.blueprints.BaseProjectBlueprint;
+import rife.bld.extension.kotlin.CompileOptions;
+import rife.bld.extension.kotlin.CompilerPlugin;
 import rife.tools.FileUtils;
 
 import java.io.File;
@@ -26,6 +29,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.ConsoleHandler;
@@ -44,6 +48,48 @@ class CompileKotlinOperationTest {
         logger.addHandler(consoleHandler);
         logger.setLevel(level);
         logger.setUseParentHandlers(false);
+    }
+
+    @Test
+    void testCollections() {
+        var op = new CompileKotlinOperation()
+                .fromProject(new Project())
+                .compileMainClasspath("path1", "path2")
+                .compileOptions(new CompileOptions().jdkRelease("17").verbose(true))
+                .mainSourceDirectories("dir1", "dir2")
+                .mainSourceDirectories(List.of(new File("dir3"), new File("dir4")))
+                .mainSourceFiles("file1", "file2")
+                .mainSourceFiles(List.of(new File("file3"), new File("file4")))
+                .mainSourceFiles(new File("file5"), new File("file6"))
+                .testSourceDirectories("tdir1", "tdir2")
+                .testSourceDirectories(List.of(new File("tdir3"), new File("tdir4")))
+                .testSourceFiles("tfile1", "tfile2")
+                .testSourceFiles(List.of(new File("tfile3"), new File("tfile4")))
+                .testSourceFiles(new File("tfile5"), new File("tfile6"))
+                .plugins("plugin1", "plugin2")
+                .plugins(CompilerPlugin.KOTLIN_SERIALIZATION, CompilerPlugin.ASSIGNMENT)
+                .plugins(new File("lib/compile"), CompilerPlugin.LOMBOK, CompilerPlugin.POWER_ASSERT)
+                .plugins(List.of("plugin3", "plugin4"))
+                .plugins(Arrays.stream(Objects.requireNonNull(new File("lib/compile").listFiles())).toList(),
+                        CompilerPlugin.ALL_OPEN, CompilerPlugin.SAM_WITH_RECEIVER);
+
+        assertThat(op.compileMainClasspath()).as("compileMainClassPath")
+                .containsAll(List.of("path1", "path2"));
+        assertThat(op.compileOptions().hasRelease()).as("hasRelease").isTrue();
+        assertThat(op.compileOptions().isVerbose()).as("isVerbose").isTrue();
+        assertThat(op.mainSourceDirectories()).as("mainSourceDirectories").containsExactly(
+                Path.of("src", "main", "kotlin").toFile().getAbsoluteFile(), new File("dir1"),
+                new File("dir2"), new File("dir3"), new File("dir4"));
+        assertThat(op.testSourceDirectories()).as("testSourceDirectories").containsOnly(
+                Path.of("src", "test", "kotlin").toFile().getAbsoluteFile(), new File("tdir1"),
+                new File("tdir2"), new File("tdir3"), new File("tdir4"));
+        assertThat(op.mainSourceFiles()).as("mainSourceFiles").containsOnly(
+                new File("file1"), new File("file2"), new File("file3"),
+                new File("file4"), new File("file5"), new File("file6"));
+        assertThat(op.testSourceFiles()).as("testSourceFiles").containsOnly(
+                new File("tfile1"), new File("tfile2"), new File("tfile3"),
+                new File("tfile4"), new File("tfile5"), new File("tfile6"));
+        assertThat(op.plugins()).hasSize(10);
     }
 
     @Test
