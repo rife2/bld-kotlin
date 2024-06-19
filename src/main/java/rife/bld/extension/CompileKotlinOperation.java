@@ -364,12 +364,12 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *     <li>{@link #buildTestDirectory() buildTestDirectory}</li>
      *     <li>{@link #compileMainClasspath() compileMainClassPath}</li>
      *     <li>{@link #compileTestClasspath() compilesTestClassPath}</li>
-     *     <li>{@link #mainSourceFiles() mainSourceFiles} to the {@code kotlin} directory in
+     *     <li>{@link #mainSourceDirectories()} () mainSourceDirectories} to the {@code kotlin} directory in
      *     {@link BaseProject#srcMainDirectory() srcMainDirectory}</li>
-     *     <li>{@link #testSourceFiles() testSourceFile} to the {@code kotlin} directory in
+     *     <li>{@link #testSourceDirectories() testSourceDirectories} to the {@code kotlin} directory in
      *     {@link BaseProject#srcTestDirectory() srcTestDirectory}</li>
-     *     <li>{@link CompileKotlinOptions#jdkRelease jdkRelease} to {@link BaseProject#javaRelease() javaRelease}</li>
-     *     <li>{@link CompileKotlinOptions#noStdLib(boolean) noStdLib} to {@code true}</li>
+     *     <li>{@link CompileOptions#jdkRelease jdkRelease} to {@link BaseProject#javaRelease() javaRelease}</li>
+     *     <li>{@link CompileOptions#noStdLib(boolean) noStdLib} to {@code true}</li>
      * </ul>
      *
      * @param project the project to configure the compile operation from
@@ -381,8 +381,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                 .buildTestDirectory(project.buildTestDirectory())
                 .compileMainClasspath(project.compileMainClasspath())
                 .compileTestClasspath(project.compileTestClasspath())
-                .mainSourceFiles(getKotlinFileList(new File(project.srcMainDirectory(), "kotlin")))
-                .testSourceFiles(getKotlinFileList(new File(project.srcTestDirectory(), "kotlin")));
+                .mainSourceDirectories(new File(project.srcMainDirectory(), "kotlin"))
+                .testSourceDirectories(new File(project.srcTestDirectory(), "kotlin"));
         if (project.javaRelease() != null && !compileOptions_.hasRelease()) {
             compileOptions_.jdkRelease(project.javaRelease());
         }
