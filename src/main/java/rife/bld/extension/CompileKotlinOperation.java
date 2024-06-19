@@ -18,6 +18,8 @@ package rife.bld.extension;
 
 import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler;
 import rife.bld.BaseProject;
+import rife.bld.extension.kotlin.CompileOptions;
+import rife.bld.extension.kotlin.CompilerPlugin;
 import rife.bld.operations.AbstractOperation;
 import rife.tools.FileUtils;
 
@@ -26,7 +28,6 @@ import java.io.IOException;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 /**
  * Compiles main and test Kotlin sources in the relevant build directories.
@@ -35,10 +36,6 @@ import java.util.regex.Pattern;
  * @since 1.0
  */
 public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOperation> {
-    /**
-     * The Kotlin file (.kt) pattern.
-     */
-    public static final Pattern KOTLIN_FILE_PATTERN = Pattern.compile("^.*\\.kt$");
     private static final Logger LOGGER = Logger.getLogger(CompileKotlinOperation.class.getName());
     private final Collection<String> compileMainClasspath_ = new ArrayList<>();
     private final Collection<String> compileTestClasspath_ = new ArrayList<>();
@@ -49,7 +46,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     private final Collection<File> testSourceFiles_ = new ArrayList<>();
     private File buildMainDirectory_;
     private File buildTestDirectory_;
-    private CompileKotlinOptions compileOptions_ = new CompileKotlinOptions();
+    private CompileOptions compileOptions_ = new CompileOptions();
     private BaseProject project_;
 
     /**
@@ -78,26 +75,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Returns the list of Kotlin source file {{@code .kt}} contained in a given directory.
-     *
-     * @param directory the directory
-     * @return the list of Kotlin files
-     */
-    public static Collection<File> getKotlinFileList(File directory) {
-        if (directory == null) {
-            return Collections.emptyList();
-        } else if (!directory.exists()) {
-            if (LOGGER.isLoggable(Level.WARNING)) {
-                LOGGER.warning("Directory not found: " + directory.getAbsolutePath());
-            }
-            return Collections.emptyList();
-        } else {
-            return FileUtils.getFileList(directory, KOTLIN_FILE_PATTERN, null).stream().map((file) ->
-                    new File(directory, file)).toList();
-        }
-    }
-
-    /**
      * Determines if the given string is not blank.
      *
      * @param s the string
@@ -121,7 +98,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     /**
      * Retrieves the main build destination directory.
      *
-     * @return the main build destination
+     * @return the main build directory
      */
     public File buildMainDirectory() {
         return buildMainDirectory_;
@@ -141,7 +118,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     /**
      * Retrieves the test build destination directory.
      *
-     * @return the test build destination
+     * @return the test build directory
      */
     public File buildTestDirectory() {
         return buildTestDirectory_;
@@ -172,7 +149,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     /**
      * Retrieves the list of entries for the main compilation classpath.
      *
-     * @return the main compilation classpath list
+     * @return the list of classpath
      */
     public Collection<String> compileMainClasspath() {
         return compileMainClasspath_;
@@ -181,9 +158,9 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     /**
      * Retrieves the list of compilation options for the compiler.
      *
-     * @return the compile kotlin options
+     * @return the compilation options
      */
-    public CompileKotlinOptions compileOptions() {
+    public CompileOptions compileOptions() {
         return compileOptions_;
     }
 
@@ -193,7 +170,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param options the compiler options
      * @return this operation instance
      */
-    public CompileKotlinOperation compileOptions(CompileKotlinOptions options) {
+    public CompileKotlinOperation compileOptions(CompileOptions options) {
         compileOptions_ = options;
         return this;
     }
@@ -221,9 +198,9 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Retrieves the list of entries for the test compilation classpath.
+     * Retrieves the entries for the test compilation classpath.
      *
-     * @return the test compilation classpath list
+     * @return the list of classpath
      */
     public Collection<String> compileTestClasspath() {
         return compileTestClasspath_;
@@ -317,7 +294,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             LOGGER.fine("kotlinc " + String.join(" ", args));
         }
 
-        var exitCode = k2.exec(System.err, args.toArray(new String[0]));
+        var exitCode = k2.exec(System.err, args.toArray(String[]::new));
         if (exitCode.getCode() != 0) {
             throw new IOException("Kotlin compilation failed.");
         }
@@ -403,6 +380,19 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
+     * Provides main source directories that should be compiled.
+     *
+     * @param directories one or more main source directories
+     * @return this operation instance
+     */
+    public CompileKotlinOperation mainSourceDirectories(String... directories) {
+        Collections.addAll(mainSourceDirectories_, Arrays.stream(directories)
+                .map(File::new)
+                .toArray(File[]::new));
+        return this;
+    }
+
+    /**
      * Provides a list of main source directories that should be compiled.
      *
      * @param directories a list of main source directories
@@ -414,9 +404,9 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Retrieves the list of main source directories that should be compiled.
+     * Retrieves the main source directories that should be compiled.
      *
-     * @return the list of main source directories to compile
+     * @return the list of directories
      */
     public Collection<File> mainSourceDirectories() {
         return mainSourceDirectories_;
@@ -434,6 +424,19 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
+     * Provides main files that should be compiled.
+     *
+     * @param files one or more main files
+     * @return this operation instance
+     */
+    public CompileKotlinOperation mainSourceFiles(String... files) {
+        Collections.addAll(mainSourceFiles_, Arrays.stream(files)
+                .map(File::new)
+                .toArray(File[]::new));
+        return this;
+    }
+
+    /**
      * Provides a list of main files that should be compiled.
      *
      * @param files a list of main files
@@ -445,9 +448,9 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Retrieves the list of main files that should be compiled.
+     * Retrieves the main files that should be compiled.
      *
-     * @return the list of main files to compile
+     * @return the list of files
      */
     public Collection<File> mainSourceFiles() {
         return mainSourceFiles_;
@@ -462,6 +465,15 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     public CompileKotlinOperation plugins(String... plugins) {
         Collections.addAll(plugins_, plugins);
         return this;
+    }
+
+    /**
+     * Retrieves the compiler plugins.
+     *
+     * @return the list of plugins
+     */
+    public Collection<String> plugins() {
+        return plugins_;
     }
 
     /**
@@ -482,9 +494,22 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param plugins   one or more plugins
      * @return this class instance
      */
-    public CompileKotlinOperation plugins(File directory, CompileKotlinPlugin... plugins) {
+    public CompileKotlinOperation plugins(File directory, CompilerPlugin... plugins) {
         for (var plugin : plugins) {
-            plugins_.addAll(getJarList(directory, plugin.label));
+            plugins_.addAll(getJarList(directory, plugin.regex));
+        }
+        return this;
+    }
+
+    /**
+     * Provides compiler plugins.
+     *
+     * @param plugins one or more plugins
+     * @return this class instance
+     */
+    public CompileKotlinOperation plugins(CompilerPlugin... plugins) {
+        for (var plugin : plugins) {
+            plugins_.addAll(getJarList(project_.libBldDirectory(), plugin.regex));
         }
         return this;
     }
@@ -496,10 +521,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param plugins one or more plugins
      * @return this class instance
      */
-    public CompileKotlinOperation plugins(Collection<File> jars, CompileKotlinPlugin... plugins) {
+    public CompileKotlinOperation plugins(Collection<File> jars, CompilerPlugin... plugins) {
         jars.forEach(jar -> {
             for (var plugin : plugins) {
-                if (jar.getName().matches(plugin.label)) {
+                if (jar.getName().matches(plugin.regex)) {
                     plugins_.add(jar.getAbsolutePath());
                     break;
                 }
@@ -512,10 +537,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     // Combine Kotlin sources
     private Collection<File> sources(Collection<File> files, Collection<File> directories) {
         var sources = new ArrayList<>(files);
-        for (var directory : directories) {
-            sources.addAll(getKotlinFileList(directory));
-        }
-
+        sources.addAll(directories);
         return sources;
     }
 
@@ -531,6 +553,19 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
+     * Provides test source directories that should be compiled.
+     *
+     * @param directories one or more test source directories
+     * @return this operation instance
+     */
+    public CompileKotlinOperation testSourceDirectories(String... directories) {
+        Collections.addAll(testSourceDirectories_, Arrays.stream(directories)
+                .map(File::new)
+                .toArray(File[]::new));
+        return this;
+    }
+
+    /**
      * Provides a list of test source directories that should be compiled.
      *
      * @param directories a list of test source directories
@@ -542,9 +577,9 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Retrieves the list of test source directories that should be compiled.
+     * Retrieves the test source directories that should be compiled.
      *
-     * @return the list of test source directories to compile
+     * @return the list of directories
      */
     public Collection<File> testSourceDirectories() {
         return testSourceDirectories_;
@@ -562,6 +597,19 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
+     * Provides test files that should be compiled.
+     *
+     * @param files one or more test files
+     * @return this operation instance
+     */
+    public CompileKotlinOperation testSourceFiles(String... files) {
+        Collections.addAll(testSourceFiles_, Arrays.stream(files)
+                .map(File::new)
+                .toArray(size -> new File[files.length]));
+        return this;
+    }
+
+    /**
      * Provides a list of test files that should be compiled.
      *
      * @param files a list of test files
@@ -573,9 +621,9 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Retrieves the list of test files that should be compiled.
+     * Retrieves the test files that should be compiled.
      *
-     * @return the list of test files to compile
+     * @return the list of files
      */
     public Collection<File> testSourceFiles() {
         return testSourceFiles_;
