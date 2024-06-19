@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package rife.bld.extension;
+package rife.bld.extension.kotlin;
 
 /**
  * Defines the known Kotlin compiler plugins match (regex) strings.
@@ -22,18 +22,18 @@ package rife.bld.extension;
  * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
  * @since 1.0
  */
-public enum CompileKotlinPlugin {
-    ALL_OPEN("^allopen-compiler-plugin-.*$"),
-    ASSIGNMENT("^assignment-compiler-plugin-.*$"),
+public enum CompilerPlugin {
+    ALL_OPEN("^kotlin-allopen-compiler-plugin-.*$"),
+    ASSIGNMENT("^kotlin-assignment-compiler-plugin-.*$"),
     KOTLIN_SERIALIZATION("^kotlin-serialization-compiler-plugin-.*$"),
-    LOMBOK("^lombok-compiler-plugin-.*$"),
-    NOARG("^noarg-compiler-plugin-.*$"),
-    POWER_ASSERT("^power-assert-compiler-plugin-.*$"),
-    SAM_WITH_RECEIVER("^sam-with-receiver-compiler-plugin-.*$");
+    LOMBOK("^kotlin-lombok-compiler-plugin-.*$"),
+    NOARG("^kotlin-noarg-compiler-plugin-.*$"),
+    POWER_ASSERT("^kotlin-power-assert-compiler-plugin-.*$"),
+    SAM_WITH_RECEIVER("^kotlin-sam-with-receiver-compiler-plugin-.*$");
 
-    public final String label;
+    public final String regex;
 
-    CompileKotlinPlugin(String label) {
-        this.label = label;
+    CompilerPlugin(String regex) {
+        this.regex = regex;
     }
 }
