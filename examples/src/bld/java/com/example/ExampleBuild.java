@@ -3,11 +3,9 @@ package com.example;
 import rife.bld.BuildCommand;
 import rife.bld.Project;
 import rife.bld.extension.CompileKotlinOperation;
-import rife.bld.operations.exceptions.ExitStatusException;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
@@ -45,14 +43,14 @@ public class ExampleBuild extends Project {
 
     public static void main(String[] args) {
         // Enable detailed logging for the Kotlin extension
-//        var level = Level.ALL;
-//        var logger = Logger.getLogger("rife.bld.extension");
-//        var consoleHandler = new ConsoleHandler();
-//
-//        consoleHandler.setLevel(level);
-//        logger.addHandler(consoleHandler);
-//        logger.setLevel(level);
-//        logger.setUseParentHandlers(false);
+       var level = Level.ALL;
+       var logger = Logger.getLogger("rife.bld.extension");
+       var consoleHandler = new ConsoleHandler();
+
+       consoleHandler.setLevel(level);
+       logger.addHandler(consoleHandler);
+       logger.setLevel(level);
+       logger.setUseParentHandlers(false);
 
         new ExampleBuild().start(args);
     }
