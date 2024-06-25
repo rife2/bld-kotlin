@@ -57,7 +57,7 @@ public class ExampleBuild extends Project {
 
     @BuildCommand(summary = "Compiles the Kotlin project")
     @Override
-    public void compile() throws IOException {
+    public void compile() throws Exception {
         // The source code located in src/main/kotlin and src/test/kotlin will be compiled
         new CompileKotlinOperation()
                 .fromProject(this)

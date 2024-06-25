@@ -21,6 +21,7 @@ import rife.bld.BaseProject;
 import rife.bld.extension.kotlin.CompileOptions;
 import rife.bld.extension.kotlin.CompilerPlugin;
 import rife.bld.operations.AbstractOperation;
+import rife.bld.operations.exceptions.ExitStatusException;
 import rife.tools.FileUtils;
 
 import java.io.File;
@@ -214,10 +215,12 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     @Override
     @SuppressWarnings("PMD.SystemPrintln")
-    public void execute()
-            throws IOException {
+    public void execute() throws Exception {
         if (project_ == null) {
-            throw new IllegalArgumentException("A project must be specified.");
+            if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
+                LOGGER.severe("A project must be specified.");
+            }
+            throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
         }
 
         executeCreateBuildDirectories();
@@ -232,11 +235,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     /**
      * Part of the {@link #execute execute} operation, builds the main sources.
      *
-     * @throws IOException if an error occurs
+     * @throws ExitStatusException if an error occurs
      */
     @SuppressWarnings("PMD.SystemPrintln")
-    protected void executeBuildMainSources()
-            throws IOException {
+    protected void executeBuildMainSources() throws ExitStatusException {
         if (!silent()) {
             System.out.println("Compiling Kotlin main sources.");
         }
@@ -255,11 +257,11 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param sources     the source files to compile
      * @param destination the destination directory
      * @param friendPaths the output directory for friendly modules
-     * @throws IOException if an error occurs
+     * @throws ExitStatusException if an error occurs
      */
     protected void executeBuildSources(Collection<String> classpath, Collection<File> sources, File destination,
                                        File friendPaths)
-            throws IOException {
+            throws ExitStatusException {
         if (sources.isEmpty() || destination == null) {
             return;
         }
@@ -299,18 +301,17 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
         var exitCode = k2.exec(System.err, args.toArray(String[]::new));
         if (exitCode.getCode() != 0) {
-            throw new IOException("Kotlin compilation failed.");
+            throw new ExitStatusException(exitCode.getCode());
         }
     }
 
     /**
      * Part of the {@link #execute execute} operation, builds the test sources.
      *
-     * @throws IOException if an error occurs
+     * @throws ExitStatusException if an error occurs
      */
     @SuppressWarnings("PMD.SystemPrintln")
-    protected void executeBuildTestSources()
-            throws IOException {
+    protected void executeBuildTestSources() throws ExitStatusException {
         if (!silent()) {
             System.out.println("Compiling Kotlin test sources.");
         }

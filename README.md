@@ -17,7 +17,7 @@ To compile the source code located in `src/main/kotlin` and `src/test/kotlin` fr
 
 ```java
 @BuildCommand(summary = "Compiles the Kotlin project")
-public void compile() throws IOException {
+public void compile() throws Exception {
     new CompileKotlinOperation()
             .fromProject(this)
             .execute();
