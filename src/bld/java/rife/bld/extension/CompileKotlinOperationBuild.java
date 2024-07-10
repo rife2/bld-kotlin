@@ -105,7 +105,7 @@ public class CompileKotlinOperationBuild extends Project {
     }
 
     @BuildCommand(summary = "Runs PMD analysis")
-    public void pmd() {
+    public void pmd() throws Exception {
         new PmdOperation()
                 .fromProject(this)
                 .failOnViolation(true)
