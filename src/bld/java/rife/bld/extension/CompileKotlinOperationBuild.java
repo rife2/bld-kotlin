@@ -61,9 +61,9 @@ public class CompileKotlinOperationBuild extends Project {
                 .include(dependency("org.jetbrains.kotlin", "kotlin-sam-with-receiver-compiler-plugin", kotlin))
                 .include(dependency("com.uwyn.rife2", "bld", version(1, 9, 1)));
         scope(test)
-                .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 10, 2)))
-                .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 10, 2)))
-                .include(dependency("org.assertj", "assertj-core", version(3, 26, 0)));
+                .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 10, 3)))
+                .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 10, 3)))
+                .include(dependency("org.assertj", "assertj-core", version(3, 26, 3)));
 
         javadocOperation()
                 .javadocOptions()
