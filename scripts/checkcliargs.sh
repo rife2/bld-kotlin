@@ -1,10 +1,11 @@
 #!/bin/bash
 
-main=org.jetbrains.kotlin.cli.jvm.K2JVMCompiler
+new=/tmp/checkcliargs-new
+old=/tmp/checkcliargs-old
 
-java -cp "lib/compile/*" $main -h 2>$new
-java -cp "examples/lib/bld/*" $main -h 2>$old
+kotlinc -h 2>$new
+~/.sdkman/candidates/kotlin/2.0.0/bin/kotlinc -h 2>$old
 
-diff $old $new
+code --diff --wait $old $new
 
 rm -rf $new $old

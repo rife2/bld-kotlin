@@ -1,5 +1,5 @@
 #!/bin/bash
 
-java -cp "lib/compile/*" org.jetbrains.kotlin.cli.jvm.K2JVMCompiler -h 2> >(grep "^  ") |\
+kotlinc -h 2> >(grep "^  ") |\
 sed -e "s/^  //" -e "s/ .*//" -e "s/<.*//" -e '/-help/d' -e '/-version/d' -e '/^$/d'|\
 sort > "src/test/resources/kotlinc-args.txt"

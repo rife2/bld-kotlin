@@ -53,6 +53,8 @@ class CompileKotlinOperationTest {
     void testCollections() {
         var op = new CompileKotlinOperation()
                 .fromProject(new Project())
+                .kotlinHome("/kotlin_home")
+                .workDir("work_dir")
                 .compileMainClasspath("path1", "path2")
                 .compileOptions(new CompileOptions().jdkRelease("17").verbose(true))
                 .mainSourceDirectories("dir1", "dir2")
@@ -72,6 +74,9 @@ class CompileKotlinOperationTest {
                 .plugins(Arrays.stream(Objects.requireNonNull(new File("lib/compile").listFiles())).toList(),
                         CompilerPlugin.ALL_OPEN, CompilerPlugin.SAM_WITH_RECEIVER);
 
+        assertThat(op.kotlinHome().getName()).as("kotlin_home").isEqualTo("kotlin_home");
+        assertThat(op.workDir().getName()).as("work_dir").isEqualTo("work_dir");
+
         assertThat(op.compileMainClasspath()).as("compileMainClassPath")
                 .containsAll(List.of("path1", "path2"));
         assertThat(op.compileOptions().hasRelease()).as("hasRelease").isTrue();
@@ -88,7 +93,9 @@ class CompileKotlinOperationTest {
         assertThat(op.testSourceFiles()).as("testSourceFiles").containsOnly(
                 new File("tfile1"), new File("tfile2"), new File("tfile3"),
                 new File("tfile4"), new File("tfile5"), new File("tfile6"));
-        assertThat(op.plugins()).hasSize(10);
+        assertThat(op.plugins()).as("plugins").contains("/kotlin_home/lib/kotlin-serialization-compiler-plugin.jar",
+                "/kotlin_home/lib/kotlin-assignment-compiler-plugin.jar", "plugin2", "plugin3", "plugin4");
+        assertThat(op.plugins()).as("plugins size").hasSize(8);
     }
 
     @Test

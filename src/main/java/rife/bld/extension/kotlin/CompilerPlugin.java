@@ -17,23 +17,24 @@
 package rife.bld.extension.kotlin;
 
 /**
- * Defines the known Kotlin compiler plugins match (regex) strings.
+ * Defines the known Kotlin compiler plugin JARs.
  *
  * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
  * @since 1.0
  */
 public enum CompilerPlugin {
-    ALL_OPEN("^kotlin-allopen-compiler-plugin-.*$"),
-    ASSIGNMENT("^kotlin-assignment-compiler-plugin-.*$"),
-    KOTLIN_SERIALIZATION("^kotlin-serialization-compiler-plugin-.*$"),
-    LOMBOK("^kotlin-lombok-compiler-plugin-.*$"),
-    NOARG("^kotlin-noarg-compiler-plugin-.*$"),
-    POWER_ASSERT("^kotlin-power-assert-compiler-plugin-.*$"),
-    SAM_WITH_RECEIVER("^kotlin-sam-with-receiver-compiler-plugin-.*$");
+    ALL_OPEN("kotlin-allopen-compiler-plugin.jar"),
+    ASSIGNMENT("kotlin-assignment-compiler-plugin.jar"),
+    KOTLINX_SERIALIZATION("kotlinx-serialization-compiler-plugin.jar"),
+    KOTLIN_SERIALIZATION("kotlin-serialization-compiler-plugin.jar"),
+    LOMBOK("kotlin-lombok-compiler-plugin.jar"),
+    NOARG("kotlin-noarg-compiler-plugin.jar"),
+    POWER_ASSERT("kotlin-power-assert-compiler-plugin.jar"),
+    SAM_WITH_RECEIVER("kotlin-sam-with-receiver-compiler-plugin.jar");
 
-    public final String regex;
+    public final String jar;
 
-    CompilerPlugin(String regex) {
-        this.regex = regex;
+    CompilerPlugin(String jar) {
+        this.jar = jar;
     }
 }

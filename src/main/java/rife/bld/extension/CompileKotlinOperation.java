@@ -16,7 +16,6 @@
 
 package rife.bld.extension;
 
-import org.jetbrains.kotlin.cli.jvm.K2JVMCompiler;
 import rife.bld.BaseProject;
 import rife.bld.extension.kotlin.CompileOptions;
 import rife.bld.extension.kotlin.CompilerPlugin;
@@ -26,7 +25,7 @@ import rife.tools.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.time.format.DateTimeFormatter;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -52,32 +51,9 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     private File buildMainDirectory_;
     private File buildTestDirectory_;
     private CompileOptions compileOptions_ = new CompileOptions();
+    private File kotlinHome_;
     private BaseProject project_;
-
-    /**
-     * Returns the list of Java archives contained in a given directory.
-     *
-     * @param directory the directory
-     * @param regex     the regular expression to match
-     * @return the list of JARs
-     */
-    public static List<String> getJarList(File directory, String regex) {
-        var jars = new ArrayList<String>();
-
-        if (directory.isDirectory()) {
-            var files = directory.listFiles();
-            if (files != null) {
-                for (var f : files) {
-                    if (!f.getName().endsWith("-sources.jar") && (!f.getName().endsWith("-javadoc.jar")) &&
-                            f.getName().matches(regex)) {
-                        jars.add(f.getAbsolutePath());
-                    }
-                }
-            }
-        }
-
-        return jars;
-    }
+    private File workDir_;
 
     /**
      * Determines if the given string is not blank.
@@ -222,6 +198,18 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                 LOGGER.severe("A project must be specified.");
             }
             throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
+        } else if (!workDir_.isDirectory()) {
+            if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
+                LOGGER.severe("Invalid working directory: " + workDir_.getAbsolutePath());
+            }
+            throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
+        }
+
+        if (kotlinHome_ == null) {
+            if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
+                LOGGER.severe("The KOTLIN_HOME environment variable is not set.");
+            }
+            throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
         }
 
         executeCreateBuildDirectories();
@@ -239,7 +227,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @throws ExitStatusException if an error occurs
      */
     @SuppressWarnings("PMD.SystemPrintln")
-    protected void executeBuildMainSources() throws ExitStatusException {
+    protected void executeBuildMainSources() throws ExitStatusException, IOException, InterruptedException {
         if (!silent()) {
             System.out.println("Compiling Kotlin main sources.");
         }
@@ -262,47 +250,62 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     protected void executeBuildSources(Collection<String> classpath, Collection<File> sources, File destination,
                                        File friendPaths)
-            throws ExitStatusException {
+            throws ExitStatusException, InterruptedException, IOException {
         if (sources.isEmpty() || destination == null) {
             return;
         }
 
-        var k2 = new K2JVMCompiler();
-        var args = new ArrayList<String>();
+        var kotlinc = Path.of(kotlinHome_.getAbsolutePath(), "bin", "kotlinc").toFile();
 
-        // classpath
-        args.add("-cp");
-        args.add(FileUtils.joinPaths(classpath.stream().toList()));
+        if (kotlinc.exists() && kotlinc.canExecute()) {
+            var args = new ArrayList<String>();
 
-        // destination
-        args.add("-d");
-        args.add(destination.getAbsolutePath());
+            // kotlinc
+            args.add(kotlinc.getAbsolutePath());
 
-        // friend-path
-        if (friendPaths != null && friendPaths.exists()) {
-            args.add("-Xfriend-paths=" + friendPaths.getAbsolutePath());
-        }
+            // classpath
+            args.add("-cp");
+            args.add(FileUtils.joinPaths(classpath.stream().toList()));
 
-        // options
-        if (compileOptions_ != null) {
-            args.addAll(compileOptions_.args());
-        }
+            // destination
+            args.add("-d");
+            args.add(destination.getAbsolutePath());
 
-        // plugins
-        if (!plugins_.isEmpty()) {
-            plugins_.forEach(p -> args.add("-Xplugin=" + p));
-        }
+            // friend-path
+            if (friendPaths != null && friendPaths.exists()) {
+                args.add("-Xfriend-paths=" + friendPaths.getAbsolutePath());
+            }
 
-        // sources
-        sources.forEach(f -> args.add(f.getAbsolutePath()));
+            // options
+            if (compileOptions_ != null) {
+                args.addAll(compileOptions_.args());
+            }
 
-        if (LOGGER.isLoggable(Level.FINE) && !silent()) {
-            LOGGER.fine("kotlinc " + String.join(" ", args));
-        }
+            // plugins
+            if (!plugins_.isEmpty()) {
+                plugins_.forEach(p -> args.add("-Xplugin=" + p));
+            }
 
-        var exitCode = k2.exec(System.err, args.toArray(String[]::new));
-        if (exitCode.getCode() != 0) {
-            throw new ExitStatusException(exitCode.getCode());
+            // sources
+            sources.forEach(f -> args.add(f.getAbsolutePath()));
+
+            if (LOGGER.isLoggable(Level.FINE) && !silent()) {
+                LOGGER.fine(String.join(" ", args));
+            }
+
+            var pb = new ProcessBuilder();
+            pb.inheritIO();
+            pb.command(args);
+            pb.directory(workDir_);
+
+            var proc = pb.start();
+            proc.waitFor();
+            ExitStatusException.throwOnFailure(proc.exitValue());
+        } else {
+            if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
+                LOGGER.severe("The Kotlin compiler could not be found or executed: " + kotlinc.getAbsolutePath());
+            }
+            throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
         }
     }
 
@@ -312,7 +315,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @throws ExitStatusException if an error occurs
      */
     @SuppressWarnings("PMD.SystemPrintln")
-    protected void executeBuildTestSources() throws ExitStatusException {
+    protected void executeBuildTestSources() throws ExitStatusException, IOException, InterruptedException {
         if (!silent()) {
             System.out.println("Compiling Kotlin test sources.");
         }
@@ -342,6 +345,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * <p>
      * Sets the following from the project:
      * <ul>
+     *     <li>{@link #kotlinHome()} to the {@code KOTLIN_HOME} environment variable, if set.</li>
+     *     <li>{@link #workDir()} to the project's directory.</li>
      *     <li>{@link #buildMainDirectory() buildMainDirectory}</li>
      *     <li>{@link #buildTestDirectory() buildTestDirectory}</li>
      *     <li>{@link #compileMainClasspath() compileMainClassPath}</li>
@@ -359,6 +364,14 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     public CompileKotlinOperation fromProject(BaseProject project) {
         project_ = project;
+
+        var env = System.getenv("KOTLIN_HOME");
+        if (env != null) {
+            kotlinHome_ = new File(env);
+        }
+
+        workDir_ = new File(project.workDirectory().getAbsolutePath());
+
         var op = buildMainDirectory(project.buildMainDirectory())
                 .buildTestDirectory(project.buildTestDirectory())
                 .compileMainClasspath(project.compileMainClasspath())
@@ -371,6 +384,36 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         compileOptions_.noStdLib(true);
 
         return op;
+    }
+
+    /**
+     * Provides the Kotlin home directory, if it differs from the default {@code KOTLIN_HOME}.
+     *
+     * @param dir the directory
+     * @return this operation instance
+     */
+    public CompileKotlinOperation kotlinHome(File dir) {
+        kotlinHome_ = dir;
+        return this;
+    }
+
+    /**
+     * Provides the Kotlin home directory, if it differs from the default {@code KOTLIN_HOME}.
+     *
+     * @param dir the directory path
+     * @return this operation instance
+     */
+    public CompileKotlinOperation kotlinHome(String dir) {
+        return kotlinHome(new File(dir));
+    }
+
+    /**
+     * Returns the Kotlin home directory.
+     *
+     * @return the directory
+     */
+    public File kotlinHome() {
+        return kotlinHome_;
     }
 
     /**
@@ -497,20 +540,29 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     public CompileKotlinOperation plugins(File directory, CompilerPlugin... plugins) {
         for (var plugin : plugins) {
-            plugins_.addAll(getJarList(directory, plugin.regex));
+            plugins_.add(new File(directory, plugin.jar).getAbsolutePath());
         }
         return this;
     }
 
     /**
      * Provides compiler plugins.
+     * <p>
+     * The {@link #kotlinHome()} should be set first.
      *
      * @param plugins one or more plugins
      * @return this class instance
      */
     public CompileKotlinOperation plugins(CompilerPlugin... plugins) {
-        for (var plugin : plugins) {
-            plugins_.addAll(getJarList(project_.libBldDirectory(), plugin.regex));
+        if (kotlinHome_ != null) {
+            var kotlinLib = new File(kotlinHome_, "lib");
+            for (var plugin : plugins) {
+                plugins(kotlinLib, plugin);
+            }
+        } else {
+            if (LOGGER.isLoggable(Level.WARNING) && !silent()) {
+                LOGGER.warning("The Kotlin home must be set to specify compiler plugins directly.");
+            }
         }
         return this;
     }
@@ -525,7 +577,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     public CompileKotlinOperation plugins(Collection<File> jars, CompilerPlugin... plugins) {
         jars.forEach(jar -> {
             for (var plugin : plugins) {
-                if (jar.getName().matches(plugin.regex)) {
+                if (jar.getName().matches(plugin.jar)) {
                     plugins_.add(jar.getAbsolutePath());
                     break;
                 }
@@ -624,5 +676,35 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     public Collection<File> testSourceFiles() {
         return testSourceFiles_;
+    }
+
+    /**
+     * Retrieves the working directory.
+     *
+     * @return the directory
+     */
+    public File workDir() {
+        return workDir_;
+    }
+
+    /**
+     * Provides the working directory, if it differs from the project's directory.
+     *
+     * @param dir the directory
+     * @return this operation instance
+     */
+    public CompileKotlinOperation workDir(File dir) {
+        workDir_ = dir;
+        return this;
+    }
+
+    /**
+     * Provides the working directory, if it differs from the project's directory.
+     *
+     * @param dir the directory path
+     * @return this operation instance
+     */
+    public CompileKotlinOperation workDir(String dir) {
+        return workDir(new File(dir));
     }
 }

@@ -42,23 +42,7 @@ public class CompileKotlinOperationBuild extends Project {
 
         repositories = List.of(MAVEN_LOCAL, MAVEN_CENTRAL, RIFE2_RELEASES, RIFE2_SNAPSHOTS);
 
-        var kotlin = version(2, 0, 0);
         scope(compile)
-                .include(dependency("org.jetbrains.kotlin", "kotlin-compiler", kotlin))
-                .include(dependency("org.jetbrains.kotlin", "kotlin-annotation-processing", kotlin))
-                .include(dependency("org.jetbrains.kotlin", "kotlin-scripting-compiler", kotlin))
-                .include(dependency("org.jetbrains.kotlin", "kotlin-reflect", kotlin))
-                .include(dependency("org.jetbrains.kotlin", "kotlin-stdlib-common", kotlin))
-                .include(dependency("org.jetbrains.kotlinx", "kotlinx-coroutines-core-jvm", version(1, 9, 0, "RC")))
-                // Compiler Plugins
-                .include(dependency("org.jetbrains.kotlin", "kotlin-allopen-compiler-plugin", kotlin))
-                .include(dependency("org.jetbrains.kotlin", "kotlin-assignment-compiler-plugin", kotlin))
-                .include(dependency("org.jetbrains.kotlin", "kotlin-serialization-compiler-plugin", kotlin))
-                .include(dependency("org.jetbrains.kotlin", "kotlin-lombok-compiler-plugin", kotlin))
-                .include(dependency("org.jetbrains.kotlin", "kotlin-allopen-compiler-plugin", kotlin))
-                .include(dependency("org.jetbrains.kotlin", "kotlin-noarg-compiler-plugin", kotlin))
-                .include(dependency("org.jetbrains.kotlin", "kotlin-power-assert-compiler-plugin", kotlin))
-                .include(dependency("org.jetbrains.kotlin", "kotlin-sam-with-receiver-compiler-plugin", kotlin))
                 .include(dependency("com.uwyn.rife2", "bld", version(2, 0, 0, "SNAPSHOT")));
         scope(test)
                 .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 10, 3)))
