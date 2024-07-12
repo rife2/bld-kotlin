@@ -2,6 +2,9 @@ name: bld-ci
 
 on: [push, pull_request, workflow_dispatch]
 
+env:
+    KOTLIN_HOME: /usr/share/kotlinc
+
 jobs:
   build-bld-project:
     runs-on: ubuntu-latest
