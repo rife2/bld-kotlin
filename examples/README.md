@@ -1,4 +1,3 @@
-
 ## Compile the Kotlin Example
 
 ```console
@@ -16,3 +15,8 @@
 ```console
 ./bld test
 ```
+
+## Requirements
+
+- Kotlin installed
+- `KOTLIN_HOME` environment variable set
