@@ -40,7 +40,7 @@ public class CompileKotlinOperationBuild extends Project {
         downloadSources = true;
         autoDownloadPurge = true;
 
-        repositories = List.of(MAVEN_LOCAL, MAVEN_CENTRAL, RIFE2_RELEASES);
+        repositories = List.of(MAVEN_LOCAL, MAVEN_CENTRAL, RIFE2_RELEASES, RIFE2_SNAPSHOTS);
 
         var kotlin = version(2, 0, 0);
         scope(compile)
@@ -59,7 +59,7 @@ public class CompileKotlinOperationBuild extends Project {
                 .include(dependency("org.jetbrains.kotlin", "kotlin-noarg-compiler-plugin", kotlin))
                 .include(dependency("org.jetbrains.kotlin", "kotlin-power-assert-compiler-plugin", kotlin))
                 .include(dependency("org.jetbrains.kotlin", "kotlin-sam-with-receiver-compiler-plugin", kotlin))
-                .include(dependency("com.uwyn.rife2", "bld", version(1, 9, 1)));
+                .include(dependency("com.uwyn.rife2", "bld", version(2, 0, 0, "SNAPSHOT")));
         scope(test)
                 .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 10, 3)))
                 .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 10, 3)))
