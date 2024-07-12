@@ -5,7 +5,6 @@ import rife.bld.Project;
 import rife.bld.extension.CompileKotlinOperation;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.List;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
@@ -43,14 +42,14 @@ public class ExampleBuild extends Project {
 
     public static void main(String[] args) {
         // Enable detailed logging for the Kotlin extension
-       var level = Level.ALL;
-       var logger = Logger.getLogger("rife.bld.extension");
-       var consoleHandler = new ConsoleHandler();
+        var level = Level.ALL;
+        var logger = Logger.getLogger("rife.bld.extension");
+        var consoleHandler = new ConsoleHandler();
 
-       consoleHandler.setLevel(level);
-       logger.addHandler(consoleHandler);
-       logger.setLevel(level);
-       logger.setUseParentHandlers(false);
+        consoleHandler.setLevel(level);
+        logger.addHandler(consoleHandler);
+        logger.setLevel(level);
+        logger.setUseParentHandlers(false);
 
         new ExampleBuild().start(args);
     }
@@ -61,6 +60,8 @@ public class ExampleBuild extends Project {
         // The source code located in src/main/kotlin and src/test/kotlin will be compiled
         new CompileKotlinOperation()
                 .fromProject(this)
+//                .kotlinHome("path/to/kotlin")
+//                .kotlinc("path/to/kotlinc")
                 .execute();
 
 //        var op = new CompileKotlinOperation().fromProject(this);

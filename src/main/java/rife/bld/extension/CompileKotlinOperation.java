@@ -52,6 +52,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     private File buildTestDirectory_;
     private CompileOptions compileOptions_ = new CompileOptions();
     private File kotlinHome_;
+    private File kotlinc_;
     private BaseProject project_;
     private File workDir_;
 
@@ -205,13 +206,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
         }
 
-        if (kotlinHome_ == null) {
-            if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
-                LOGGER.severe("The KOTLIN_HOME environment variable is not set.");
-            }
-            throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
-        }
-
         executeCreateBuildDirectories();
         executeBuildMainSources();
         executeBuildTestSources();
@@ -227,7 +221,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @throws ExitStatusException if an error occurs
      */
     @SuppressWarnings("PMD.SystemPrintln")
-    protected void executeBuildMainSources() throws ExitStatusException, IOException, InterruptedException {
+    protected void executeBuildMainSources() throws ExitStatusException {
         if (!silent()) {
             System.out.println("Compiling Kotlin main sources.");
         }
@@ -248,62 +242,61 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param friendPaths the output directory for friendly modules
      * @throws ExitStatusException if an error occurs
      */
+    @SuppressWarnings("PMD.PreserveStackTrace")
     protected void executeBuildSources(Collection<String> classpath, Collection<File> sources, File destination,
                                        File friendPaths)
-            throws ExitStatusException, InterruptedException, IOException {
+            throws ExitStatusException {
         if (sources.isEmpty() || destination == null) {
             return;
         }
 
-        var kotlinc = Path.of(kotlinHome_.getAbsolutePath(), "bin", "kotlinc").toFile();
+        var args = new ArrayList<String>();
 
-        if (kotlinc.exists() && kotlinc.canExecute()) {
-            var args = new ArrayList<String>();
+        // kotlinc
+        args.add(kotlinCompiler());
 
-            // kotlinc
-            args.add(kotlinc.getAbsolutePath());
+        // classpath
+        args.add("-cp");
+        args.add(FileUtils.joinPaths(classpath.stream().toList()));
 
-            // classpath
-            args.add("-cp");
-            args.add(FileUtils.joinPaths(classpath.stream().toList()));
+        // destination
+        args.add("-d");
+        args.add(destination.getAbsolutePath());
 
-            // destination
-            args.add("-d");
-            args.add(destination.getAbsolutePath());
+        // friend-path
+        if (friendPaths != null && friendPaths.exists()) {
+            args.add("-Xfriend-paths=" + friendPaths.getAbsolutePath());
+        }
 
-            // friend-path
-            if (friendPaths != null && friendPaths.exists()) {
-                args.add("-Xfriend-paths=" + friendPaths.getAbsolutePath());
-            }
+        // options
+        if (compileOptions_ != null) {
+            args.addAll(compileOptions_.args());
+        }
 
-            // options
-            if (compileOptions_ != null) {
-                args.addAll(compileOptions_.args());
-            }
+        // plugins
+        if (!plugins_.isEmpty()) {
+            plugins_.forEach(p -> args.add("-Xplugin=" + p));
+        }
 
-            // plugins
-            if (!plugins_.isEmpty()) {
-                plugins_.forEach(p -> args.add("-Xplugin=" + p));
-            }
+        // sources
+        sources.forEach(f -> args.add(f.getAbsolutePath()));
 
-            // sources
-            sources.forEach(f -> args.add(f.getAbsolutePath()));
+        if (LOGGER.isLoggable(Level.FINE) && !silent()) {
+            LOGGER.fine(String.join(" ", args));
+        }
 
-            if (LOGGER.isLoggable(Level.FINE) && !silent()) {
-                LOGGER.fine(String.join(" ", args));
-            }
+        var pb = new ProcessBuilder();
+        pb.inheritIO();
+        pb.command(args);
+        pb.directory(workDir_);
 
-            var pb = new ProcessBuilder();
-            pb.inheritIO();
-            pb.command(args);
-            pb.directory(workDir_);
-
+        try {
             var proc = pb.start();
             proc.waitFor();
             ExitStatusException.throwOnFailure(proc.exitValue());
-        } else {
+        } catch (IOException | InterruptedException e) {
             if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
-                LOGGER.severe("The Kotlin compiler could not be found or executed: " + kotlinc.getAbsolutePath());
+                LOGGER.severe(e.getLocalizedMessage());
             }
             throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
         }
@@ -315,7 +308,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @throws ExitStatusException if an error occurs
      */
     @SuppressWarnings("PMD.SystemPrintln")
-    protected void executeBuildTestSources() throws ExitStatusException, IOException, InterruptedException {
+    protected void executeBuildTestSources() throws ExitStatusException {
         if (!silent()) {
             System.out.println("Compiling Kotlin test sources.");
         }
@@ -386,6 +379,18 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         return op;
     }
 
+    private String kotlinCompiler() {
+        if (kotlinc_ != null) {
+            return kotlinc_.getAbsolutePath();
+        } else if (kotlinHome_ != null) {
+            var kotlinc = Path.of(kotlinHome_.getAbsolutePath(), "bin", "kotlinc").toFile();
+            if (kotlinc.exists() && kotlinc.canExecute()) {
+                return kotlinc.getAbsolutePath();
+            }
+        }
+        return "kotlinc";
+    }
+
     /**
      * Provides the Kotlin home directory, if it differs from the default {@code KOTLIN_HOME}.
      *
@@ -414,6 +419,36 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     public File kotlinHome() {
         return kotlinHome_;
+    }
+
+    /**
+     * Retrieves the path to the Kotlin compiler ({@code kotlinc}) executable, if not in {@link #kotlinHome()}.
+     *
+     * @return the executable path
+     */
+    public File kotlinc() {
+        return kotlinc_;
+    }
+
+    /**
+     * Provides the path to the Kotlin compiler ({@code kotlinc}) executable, if not in {@link #kotlinHome()}.
+     *
+     * @param executable the executable path
+     * @return this operation instance
+     */
+    public CompileKotlinOperation kotlinc(File executable) {
+        kotlinc_ = executable;
+        return this;
+    }
+
+    /**
+     * Provides the path to the Kotlin compiler ({@code kotlinc}) executable, if not in {@link #kotlinHome()}.
+     *
+     * @param executable the executable path
+     * @return this operation instance
+     */
+    public CompileKotlinOperation kotlinc(String executable) {
+        return kotlinc(new File(executable));
     }
 
     /**
@@ -546,9 +581,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Provides compiler plugins.
-     * <p>
-     * The {@link #kotlinHome()} should be set first.
+     * Provides compiler plugins located in the {@link #kotlinHome()} lib directory.
      *
      * @param plugins one or more plugins
      * @return this class instance

@@ -18,5 +18,4 @@
 
 ## Requirements
 
-- Kotlin installed
-- `KOTLIN_HOME` environment variable set
+- A Kotlin compiler must be [installed](https://kotlinlang.org/docs/command-line.html#install-the-compiler).

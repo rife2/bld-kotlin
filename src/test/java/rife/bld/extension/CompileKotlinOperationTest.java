@@ -54,6 +54,7 @@ class CompileKotlinOperationTest {
         var op = new CompileKotlinOperation()
                 .fromProject(new Project())
                 .kotlinHome("/kotlin_home")
+                .kotlinc("kotlinc")
                 .workDir("work_dir")
                 .compileMainClasspath("path1", "path2")
                 .compileOptions(new CompileOptions().jdkRelease("17").verbose(true))
@@ -75,6 +76,7 @@ class CompileKotlinOperationTest {
                         CompilerPlugin.ALL_OPEN, CompilerPlugin.SAM_WITH_RECEIVER);
 
         assertThat(op.kotlinHome().getName()).as("kotlin_home").isEqualTo("kotlin_home");
+        assertThat(op.kotlinc().getName()).as("kotlinc").isEqualTo("kotlinc");
         assertThat(op.workDir().getName()).as("work_dir").isEqualTo("work_dir");
 
         assertThat(op.compileMainClasspath()).as("compileMainClassPath")
