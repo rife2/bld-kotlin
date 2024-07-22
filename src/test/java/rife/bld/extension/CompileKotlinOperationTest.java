@@ -93,8 +93,9 @@ class CompileKotlinOperationTest {
         assertThat(op.testSourceFiles()).as("testSourceFiles").containsOnly(
                 new File("tfile1"), new File("tfile2"), new File("tfile3"),
                 new File("tfile4"), new File("tfile5"), new File("tfile6"));
-        assertThat(op.plugins()).as("plugins").contains("/kotlin_home/lib/kotlin-serialization-compiler-plugin.jar",
-                "/kotlin_home/lib/kotlin-assignment-compiler-plugin.jar", "plugin2", "plugin3", "plugin4");
+        assertThat(op.plugins()).as("plugins").contains("plugin2", "plugin3", "plugin4",
+                "/kotlin_home/lib/kotlin-serialization-compiler-plugin.jar",
+                "/kotlin_home/lib/assignment-compiler-plugin.jar");
         assertThat(op.plugins()).as("plugins size").hasSize(8);
     }
 
