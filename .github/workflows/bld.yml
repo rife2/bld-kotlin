@@ -1,9 +1,9 @@
 name: bld-ci
 
-on: [push, pull_request, workflow_dispatch]
+on: [ push, pull_request, workflow_dispatch ]
 
 env:
-    KOTLIN_HOME: /usr/share/kotlinc
+  KOTLIN_HOME: /usr/share/kotlinc
 
 jobs:
   build-bld-project:
@@ -11,8 +11,8 @@ jobs:
 
     strategy:
       matrix:
-        java-version: [17, 21, 22]
-        kotlin-version: [1.9.24, 2.0.0]
+        java-version: [ 17, 21, 22 ]
+        kotlin-version: [ 1.9.24, 2.0.0 ]
 
     steps:
       - name: Checkout source repository
@@ -26,20 +26,15 @@ jobs:
           distribution: "zulu"
           java-version: ${{ matrix.java-version }}
 
-      - name: Download the examples dependencies
+      - name: Download dependencies [examples]
         working-directory: examples
-        run: |
-          chmod +x bld
-          ./bld download
+        run: ./bld download
 
-      - name: Run examples tests
+      - name: Run tests [examples]
         working-directory: examples
         run: ./bld compile test
 
-      - name: Grant execute permission for bld
-        run: chmod +x bld
-
-      - name: Download the dependencies
+      - name: Download dependencies
         run: ./bld download
 
       - name: Run tests

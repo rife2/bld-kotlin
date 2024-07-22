@@ -12,7 +12,8 @@
                 "--disable-banner",
                 "--disable-ansi-colors",
                 "--exclude-engine=junit-platform-suite",
-                "--exclude-engine=junit-vintage"]
+                "--exclude-engine=junit-vintage"
+            ]
         }
     ]
 }
