@@ -585,6 +585,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *
      * @param plugins one or more plugins
      * @return this class instance
+     * @see #plugins(File, CompilerPlugin...)
      */
     public CompileKotlinOperation plugins(CompilerPlugin... plugins) {
         if (kotlinHome_ != null) {
@@ -597,26 +598,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                 LOGGER.warning("The Kotlin home must be set to specify compiler plugins directly.");
             }
         }
-        return this;
-    }
-
-    /**
-     * Provides compiler plugins.
-     *
-     * @param jars    the plugins Java archives
-     * @param plugins one or more plugins
-     * @return this class instance
-     */
-    public CompileKotlinOperation plugins(Collection<File> jars, CompilerPlugin... plugins) {
-        jars.forEach(jar -> {
-            for (var plugin : plugins) {
-                if (jar.getName().matches(plugin.jar)) {
-                    plugins_.add(jar.getAbsolutePath());
-                    break;
-                }
-            }
-        });
-
         return this;
     }
 

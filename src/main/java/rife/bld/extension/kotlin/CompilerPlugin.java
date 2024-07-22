@@ -23,14 +23,14 @@ package rife.bld.extension.kotlin;
  * @since 1.0
  */
 public enum CompilerPlugin {
-    ALL_OPEN("kotlin-allopen-compiler-plugin.jar"),
-    ASSIGNMENT("kotlin-assignment-compiler-plugin.jar"),
+    ALL_OPEN("allopen-compiler-plugin.jar"),
+    ASSIGNMENT("assignment-compiler-plugin.jar"),
     KOTLINX_SERIALIZATION("kotlinx-serialization-compiler-plugin.jar"),
     KOTLIN_SERIALIZATION("kotlin-serialization-compiler-plugin.jar"),
-    LOMBOK("kotlin-lombok-compiler-plugin.jar"),
-    NOARG("kotlin-noarg-compiler-plugin.jar"),
-    POWER_ASSERT("kotlin-power-assert-compiler-plugin.jar"),
-    SAM_WITH_RECEIVER("kotlin-sam-with-receiver-compiler-plugin.jar");
+    LOMBOK("lombok-compiler-plugin.jar"),
+    NOARG("noarg-compiler-plugin.jar"),
+    POWER_ASSERT("power-assert-compiler-plugin.jar"),
+    SAM_WITH_RECEIVER("sam-with-receiver-compiler-plugin.jar");
 
     public final String jar;
 

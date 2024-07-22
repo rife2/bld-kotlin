@@ -18,6 +18,7 @@ package rife.bld.extension;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import rife.bld.BaseProject;
 import rife.bld.Project;
 import rife.bld.blueprints.BaseProjectBlueprint;
 import rife.bld.extension.kotlin.CompileOptions;
@@ -28,7 +29,6 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.ConsoleHandler;
@@ -71,9 +71,7 @@ class CompileKotlinOperationTest {
                 .plugins("plugin1", "plugin2")
                 .plugins(CompilerPlugin.KOTLIN_SERIALIZATION, CompilerPlugin.ASSIGNMENT)
                 .plugins(new File("lib/compile"), CompilerPlugin.LOMBOK, CompilerPlugin.POWER_ASSERT)
-                .plugins(List.of("plugin3", "plugin4"))
-                .plugins(Arrays.stream(Objects.requireNonNull(new File("lib/compile").listFiles())).toList(),
-                        CompilerPlugin.ALL_OPEN, CompilerPlugin.SAM_WITH_RECEIVER);
+                .plugins(List.of("plugin3", "plugin4"));
 
         assertThat(op.kotlinHome().getName()).as("kotlin_home").isEqualTo("kotlin_home");
         assertThat(op.kotlinc().getName()).as("kotlinc").isEqualTo("kotlinc");
@@ -153,6 +151,25 @@ class CompileKotlinOperationTest {
             assertThat(new File(testOut, "ExampleTest.class")).exists();
         } finally {
             FileUtils.deleteDirectory(tmpDir);
+        }
+    }
+
+    @Test
+    @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
+    void testPlugins() {
+        var op = new CompileKotlinOperation()
+                .fromProject(new BaseProject())
+                .plugins(CompilerPlugin.ALL_OPEN,
+                        CompilerPlugin.ASSIGNMENT,
+                        CompilerPlugin.KOTLINX_SERIALIZATION,
+                        CompilerPlugin.KOTLIN_SERIALIZATION,
+                        CompilerPlugin.LOMBOK,
+                        CompilerPlugin.NOARG,
+                        CompilerPlugin.POWER_ASSERT,
+                        CompilerPlugin.SAM_WITH_RECEIVER);
+
+        for (var p : op.plugins()) {
+            assertThat(new File(p)).as(p).exists();
         }
     }
 }
