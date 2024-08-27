@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -42,6 +43,7 @@ class CompileOptionsTest {
         return Arrays.stream(fileNames).map(it -> new File(it).getAbsolutePath())
                 .collect(Collectors.joining(File.pathSeparator));
     }
+
 
     @Test
     @SuppressWarnings("PMD.JUnitTestsShouldIncludeAssert")
@@ -101,7 +103,8 @@ class CompileOptionsTest {
         args.add(options.apiVersion(11).jvmTarget(11).args());
 
         for (var a : args) {
-            IntStream.range(0, a.size()).forEach(i -> assertThat(a.get(i)).isEqualTo(matches.get(i)));
+            IntStream.range(0, a.size()).forEach(i -> assertThat(a.get(i))
+                    .as(a.get(i) + " == " + matches.get(i)).isEqualTo(matches.get(i)));
         }
     }
 
@@ -170,8 +173,27 @@ class CompileOptionsTest {
                     break;
                 }
             }
-            assertThat(found).as(arg).isTrue();
+            assertThat(found).as(arg + " not found.").isTrue();
         }
+    }
+
+    @Test
+    void testArgsFile() {
+        var foo = new File("foo.txt");
+        var bar = new File("bar.txt");
+        var options = new CompileOptions();
+
+        options.argFile(foo, bar);
+        assertThat(options.argFile()).contains(foo, bar);
+        options.argFile().clear();
+
+        options = options.argFile(foo.toPath(), bar.toPath());
+        assertThat(options.argFile()).contains(foo, bar);
+        options.argFile().clear();
+
+        options.argFile(foo.getAbsolutePath(), bar.getAbsolutePath());
+        assertThat(options.argFile()).contains(new File(foo.getAbsolutePath()), new File(bar.getAbsolutePath()));
+        options.argFile().clear();
     }
 
     @Test
@@ -182,6 +204,7 @@ class CompileOptionsTest {
 
         var params = new CompileOptions()
                 .advancedOptions("Xoption")
+                .apiVersion("11")
                 .argFile("file")
                 .classpath("classpath")
                 .expression("expression")
@@ -191,6 +214,7 @@ class CompileOptionsTest {
                 .jdkHome("jdkhome")
                 .jvmTarget(12)
                 .kotlinHome("kotlin")
+                .languageVersion("1.0")
                 .moduleName("moduleName")
                 .noJdk(true)
                 .noReflect(true)
@@ -215,5 +239,110 @@ class CompileOptionsTest {
             }
             assertThat(found).as(p + " not found.").isTrue();
         }
+    }
+
+    @Test
+    void testClasspath() {
+        var foo = new File("foo.txt");
+        var bar = new File("bar.txt");
+        var options = new CompileOptions();
+
+        options.classpath(foo, bar);
+        assertThat(options.classpath()).contains(foo, bar);
+        options.classpath().clear();
+
+        options = options.classpath(foo.toPath(), bar.toPath());
+        assertThat(options.classpath()).contains(foo, bar);
+        options.classpath().clear();
+
+        options.classpath(foo.getAbsolutePath(), bar.getAbsolutePath());
+        assertThat(options.classpath()).contains(new File(foo.getAbsolutePath()), new File(bar.getAbsolutePath()));
+        options.classpath().clear();
+    }
+
+    @Test
+    void testJdkHome() {
+        var foo = new File("foo.txt");
+        var options = new CompileOptions();
+
+        options.jdkHome(foo);
+        assertThat(options.jdkHome()).isEqualTo(foo);
+
+        options = options.jdkHome(foo.toPath());
+        assertThat(options.jdkHome()).isEqualTo(foo);
+
+        options.jdkHome(foo.getAbsolutePath());
+        assertThat(options.jdkHome().getAbsolutePath()).isEqualTo(foo.getAbsolutePath());
+    }
+
+    @Test
+    void testKotlinHome() {
+        var foo = new File("foo.txt");
+        var options = new CompileOptions();
+
+        options.kotlinHome(foo);
+        assertThat(options.kotlinHome()).isEqualTo(foo);
+
+        options = options.kotlinHome(foo.toPath());
+        assertThat(options.kotlinHome()).isEqualTo(foo);
+
+        options.kotlinHome(foo.getAbsolutePath());
+        assertThat(options.kotlinHome().getAbsolutePath()).isEqualTo(foo.getAbsolutePath());
+    }
+
+    @Test
+    void testOptions() {
+        var options = new CompileOptions()
+                .advancedOptions("xopt1", "xopt2")
+                .apiVersion("11")
+                .argFile(Path.of("args.txt"))
+                .classpath("classpath")
+                .expression("expression")
+                .includeRuntime(true)
+                .javaParameters(true)
+                .jdkHome("jdk-home")
+                .jdkRelease("22")
+                .jvmTarget("9")
+                .kotlinHome("kotlin-home")
+                .languageVersion("1.0")
+                .moduleName("module")
+                .noJdk(true)
+                .noReflect(true)
+                .noStdLib(true)
+                .noWarn(true)
+                .optIn("opt1", "opt2")
+                .options("-foo", "-bar")
+                .path(Path.of("path"))
+                .plugin("id", "name", "value")
+                .progressive(true)
+                .scriptTemplates("name", "name2")
+                .verbose(true)
+                .wError(true);
+
+        assertThat(options.advancedOptions()).containsExactly("xopt1", "xopt2");
+        assertThat(options.apiVersion()).isEqualTo("11");
+        assertThat(options.argFile()).containsExactly(new File("args.txt"));
+        assertThat(options.classpath()).containsExactly(new File("classpath"));
+        assertThat(options.expression()).isEqualTo("expression");
+        assertThat(options.isIncludeRuntime()).isTrue();
+        assertThat(options.isJavaParameters()).isTrue();
+        assertThat(options.isNoJdk()).isTrue();
+        assertThat(options.isNoReflect()).isTrue();
+        assertThat(options.isNoStdLib()).isTrue();
+        assertThat(options.isNoWarn()).isTrue();
+        assertThat(options.isProgressive()).isTrue();
+        assertThat(options.isVerbose()).isTrue();
+        assertThat(options.jdkHome()).isEqualTo(new File("jdk-home"));
+        assertThat(options.jdkRelease()).isEqualTo("22");
+        assertThat(options.jvmTarget()).isEqualTo("9");
+        assertThat(options.kotlinHome()).isEqualTo(new File("kotlin-home"));
+        assertThat(options.languageVersion()).isEqualTo("1.0");
+        assertThat(options.moduleName()).isEqualTo("module");
+        assertThat(options.optIn()).containsExactly("opt1", "opt2");
+        assertThat(options.options()).containsExactly("-foo", "-bar");
+        assertThat(options.path()).isEqualTo(new File("path"));
+        assertThat(options.plugin()).containsExactly("id:name:value");
+        assertThat(options.scriptTemplates()).containsExactly("name", "name2");
+        assertThat(options.isWError()).isTrue();
     }
 }

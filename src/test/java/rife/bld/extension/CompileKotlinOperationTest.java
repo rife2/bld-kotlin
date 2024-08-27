@@ -108,8 +108,8 @@ class CompileKotlinOperationTest {
             var mainDir = new File(buildDir, "main");
             var testDir = new File(buildDir, "test");
 
-            assertThat(mainDir.mkdirs()).isTrue();
-            assertThat(testDir.mkdirs()).isTrue();
+            assertThat(mainDir.mkdirs()).as("make mainDir").isTrue();
+            assertThat(testDir.mkdirs()).as("make testDir").isTrue();
 
             var compileJars = new ArrayList<String>();
             for (var f : Objects.requireNonNull(new File("examples/lib/compile").listFiles())) {
@@ -136,20 +136,20 @@ class CompileKotlinOperationTest {
 
             var args = op.compileOptions().args();
             var matches = List.of("-Xjdk-release=17", "-no-stdlib", "-verbose");
-            assertThat(args).isEqualTo(matches);
+            assertThat(args).as(args + " == " + matches).isEqualTo(matches);
 
             op.execute();
 
-            assertThat(tmpDir).isNotEmptyDirectory();
-            assertThat(mainDir).isNotEmptyDirectory();
-            assertThat(testDir).isNotEmptyDirectory();
+            assertThat(tmpDir).as("tmpDir").isNotEmptyDirectory();
+            assertThat(mainDir).as("mainDir").isNotEmptyDirectory();
+            assertThat(testDir).as("testDir").isNotEmptyDirectory();
 
             var mainOut = Path.of(mainDir.getAbsolutePath(), "com", "example").toFile();
-            assertThat(new File(mainOut, "Example.class")).exists();
-            assertThat(new File(mainOut, "Example$Companion.class")).exists();
+            assertThat(new File(mainOut, "Example.class")).as("Example.class").exists();
+            assertThat(new File(mainOut, "Example$Companion.class")).as("ExampleCompanion.class").exists();
 
             var testOut = Path.of(testDir.getAbsolutePath(), "com", "example").toFile();
-            assertThat(new File(testOut, "ExampleTest.class")).exists();
+            assertThat(new File(testOut, "ExampleTest.class")).as("ExampleTest.class").exists();
         } finally {
             FileUtils.deleteDirectory(tmpDir);
         }

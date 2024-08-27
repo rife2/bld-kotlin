@@ -19,8 +19,8 @@ package rife.bld.extension.kotlin;
 import rife.bld.extension.CompileKotlinOperation;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -93,9 +93,18 @@ public class CompileOptions {
     }
 
     /**
+     * Retrieves the version of Kotlin bundled libraries.
+     *
+     * @return the API version
+     */
+    public String apiVersion() {
+        return apiVersion_;
+    }
+
+    /**
      * Allow using declarations only from the specified version of Kotlin bundled libraries.
      *
-     * @param version the api version
+     * @param version the API version
      * @return this operation instance
      */
     public CompileOptions apiVersion(String version) {
@@ -103,10 +112,11 @@ public class CompileOptions {
         return this;
     }
 
+
     /**
      * Allow using declarations only from the specified version of Kotlin bundled libraries.
      *
-     * @param version the api version
+     * @param version the API version
      * @return this operation instance
      */
     public CompileOptions apiVersion(int version) {
@@ -133,7 +143,18 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions argFile(String... files) {
-        argFile_.addAll(Arrays.stream(files).map(File::new).toList());
+        return argFileStrings(List.of(files));
+    }
+
+    /**
+     * Read the compiler options from the given files.
+     *
+     * @param files the compiler options files
+     * @return this operation instance
+     * @see #argFile(String...)
+     */
+    public CompileOptions argFile(Collection<File> files) {
+        argFile_.addAll(files);
         return this;
     }
 
@@ -156,21 +177,29 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions argFile(File... files) {
-        argFile_.addAll(List.of(files));
-        return this;
+        return argFile(List.of(files));
     }
-
 
     /**
      * Read the compiler options from the given files.
+     * <p>
+     * Such a file can contain compiler options with values and paths to the source files.
+     * Options and paths should be separated by whitespaces. For example:
+     * <ul>
+     * <li>{@code -include-runtime -d hello.jar hello.kt}</li>
+     * </ul>
+     * To pass values that contain whitespaces, surround them with single ({@code '}) or double ({@code "}) quotes.
+     * If a value contains quotation marks in it, escape them with a backslash (\).
+     * <ul>
+     * <li>{@code -include-runtime -d 'My folder'}</li>
+     * </ul>
+     * If the files reside in locations different from the current directory, use relative paths.
      *
-     * @param files the compiler options files
+     * @param files one or more files
      * @return this operation instance
-     * @see #argFile(String...)
      */
-    public CompileOptions argFile(Collection<File> files) {
-        argFile_.addAll(files);
-        return this;
+    public CompileOptions argFile(Path... files) {
+        return argFilePaths(List.of(files));
     }
 
     /**
@@ -180,6 +209,28 @@ public class CompileOptions {
      */
     public Collection<File> argFile() {
         return argFile_;
+    }
+
+    /**
+     * Read the compiler options from the given files.
+     *
+     * @param files the compiler options files
+     * @return this operation instance
+     * @see #argFile(String...)
+     */
+    public CompileOptions argFilePaths(Collection<Path> files) {
+        return argFile(files.stream().map(Path::toFile).toList());
+    }
+
+    /**
+     * Read the compiler options from the given files.
+     *
+     * @param files the compiler options files
+     * @return this operation instance
+     * @see #argFile(String...)
+     */
+    public CompileOptions argFileStrings(Collection<String> files) {
+        return argFile(files.stream().map(File::new).toList());
     }
 
     /**
@@ -344,8 +395,7 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions classpath(String... paths) {
-        classpath_.addAll(Arrays.stream(paths).map(File::new).toList());
-        return this;
+        return classpathStrings(List.of(paths));
     }
 
     /**
@@ -357,8 +407,19 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions classpath(File... paths) {
-        classpath_.addAll(List.of(paths));
-        return this;
+        return classpath(List.of(paths));
+    }
+
+    /**
+     * Search for class files in the specified paths.
+     * <p>
+     * The classpath can contain file and directory paths, ZIP, or JAR files.
+     *
+     * @param paths one or more path
+     * @return this operation instance
+     */
+    public CompileOptions classpath(Path... paths) {
+        return classpathPaths(List.of(paths));
     }
 
     /**
@@ -381,6 +442,39 @@ public class CompileOptions {
      */
     public Collection<File> classpath() {
         return classpath_;
+    }
+
+    /**
+     * Search for class files in the specified paths.
+     * <p>
+     * The classpath can contain file and directory paths, ZIP, or JAR files.
+     *
+     * @param paths one pr more paths
+     * @return this operation instance
+     */
+    public CompileOptions classpathPaths(Collection<Path> paths) {
+        return classpath(paths.stream().map(Path::toFile).toList());
+    }
+
+    /**
+     * Search for class files in the specified paths.
+     * <p>
+     * The classpath can contain file and directory paths, ZIP, or JAR files.
+     *
+     * @param paths one pr more paths
+     * @return this operation instance
+     */
+    public CompileOptions classpathStrings(Collection<String> paths) {
+        return classpath(paths.stream().map(File::new).toList());
+    }
+
+    /**
+     * Retrieves the string to evaluate as a Kotlin script.
+     *
+     * @return the expression
+     */
+    public String expression() {
+        return expression_;
     }
 
     /**
@@ -416,12 +510,84 @@ public class CompileOptions {
     }
 
     /**
+     * Indicates whether the {@link #includeRuntime(boolean)} was set.
+     *
+     * @return {@code true} or {@code false}
+     */
+    public boolean isIncludeRuntime() {
+        return includeRuntime_;
+    }
+
+    /**
+     * Indicates whether {@link #javaParameters(boolean)} was set.
+     *
+     * @return {@code true} or {@code false}
+     */
+    public boolean isJavaParameters() {
+        return javaParameters_;
+    }
+
+    /**
+     * Indicates whether {@link #noJdk(boolean) noJdk} was set.
+     *
+     * @return {@code true} or {@code false}
+     */
+    public boolean isNoJdk() {
+        return noJdk_;
+    }
+
+    /**
+     * Indicates whether {@link #noReflect(boolean) noRflect} was set.
+     *
+     * @return {@code true} or {@code false}
+     */
+    public boolean isNoReflect() {
+        return noReflect_;
+    }
+
+    /**
+     * Indicates whether {@link #noStdLib(boolean) noStdLib} +was set.
+     *
+     * @return {@code true} or {@code false}
+     */
+    public boolean isNoStdLib() {
+        return noStdLib_;
+    }
+
+    /**
+     * Indicates whether {@link #noWarn(boolean) noWarn} was set.
+     *
+     * @return {@code true} or {@code false}
+     */
+    public boolean isNoWarn() {
+        return noWarn_;
+    }
+
+    /**
+     * Indicates whether {@link #progressive(boolean) progressive} was set.
+     *
+     * @return {@code true} or {@code false}
+     */
+    public boolean isProgressive() {
+        return progressive_;
+    }
+
+    /**
      * Indicates whether {@link #verbose(boolean)} was set.
      *
      * @return {@code true} if verbose was set; or {@code false} otherwise
      */
     public boolean isVerbose() {
         return verbose_;
+    }
+
+    /**
+     * Indicates whether warnings are turned into a compilation error.
+     *
+     * @return {@code true} or {@code false}
+     */
+    public boolean isWError() {
+        return wError_;
     }
 
     /**
@@ -441,8 +607,8 @@ public class CompileOptions {
      * @param jdkHome the JDK home path
      * @return this operation instance
      */
-    public CompileOptions jdkHome(String jdkHome) {
-        jdkHome_ = new File(jdkHome);
+    public CompileOptions jdkHome(File jdkHome) {
+        jdkHome_ = jdkHome;
         return this;
     }
 
@@ -452,18 +618,45 @@ public class CompileOptions {
      * @param jdkHome the JDK home path
      * @return this operation instance
      */
-    public CompileOptions jdkHome(File jdkHome) {
-        jdkHome_ = jdkHome;
-        return this;
+    public CompileOptions jdkHome(String jdkHome) {
+        return jdkHome(new File(jdkHome));
     }
 
     /**
-     * Specify the target version of the generated JVM bytecode.
+     * Use a custom JDK home directory to include into the classpath if it differs from the default {@code JAVA_HOME}.
+     *
+     * @param jdkHome the JDK home path
+     * @return this operation instance
+     */
+    public CompileOptions jdkHome(Path jdkHome) {
+        return jdkHome(jdkHome.toFile());
+    }
+
+    /**
+     * Retrieves the custom JDK home directory.
+     *
+     * @return the JDK home path.
+     */
+    public File jdkHome() {
+        return jdkHome_;
+    }
+
+    /**
+     * Return the specified JDK API version.
+     *
+     * @return the API version
+     */
+    public String jdkRelease() {
+        return jdkRelease_;
+    }
+
+    /**
+     * Compile against the specified JDK API version.
      * <p>
      * Limit the API of the JDK in the classpath to the specified Java version. Automatically sets
      * {@link #jvmTarget(String) JVM target} version.
      * <p>
-     * Possible values are 1.8, 9, 10, ..., 21. The default value is 1.8.
+     * Possible values are 1.8, 9, 10, ..., 22. The default value is 1.8.
      *
      * @param version the target version
      * @return this operation instance
@@ -474,7 +667,12 @@ public class CompileOptions {
     }
 
     /**
-     * Specify the target version of the generated JVM bytecode.
+     * Compile against the specified JDK API version.
+     * <p>
+     * Limit the API of the JDK in the classpath to the specified Java version. Automatically sets
+     * {@link #jvmTarget(String) JVM target} version.
+     * <p>
+     * Possible values are 1.8, 9, 10, ..., 22. The default value is 1.8.
      *
      * @param version the target version
      * @return this operation instance
@@ -482,17 +680,6 @@ public class CompileOptions {
      */
     public CompileOptions jdkRelease(int version) {
         jdkRelease_ = String.valueOf(version);
-        return this;
-    }
-
-    /**
-     * Pass an option directly to JVM
-     *
-     * @param jvmOptions one or more JVM option
-     * @return this operation instance
-     */
-    public CompileOptions jvmOptions(String... jvmOptions) {
-        jvmOptions_.addAll(List.of(jvmOptions));
         return this;
     }
 
@@ -517,16 +704,13 @@ public class CompileOptions {
     }
 
     /**
-     * Specify the target version of the generated JVM bytecode.
-     * <p>
-     * Possible values are 1.8, 9, 10, ..., 21. The default value is 1.8.
+     * Pass an option directly to JVM
      *
-     * @param target the target version
+     * @param jvmOptions one or more JVM option
      * @return this operation instance
      */
-    public CompileOptions jvmTarget(String target) {
-        jvmTarget_ = target;
-        return this;
+    public CompileOptions jvmOptions(String... jvmOptions) {
+        return jvmOptions(List.of(jvmOptions));
     }
 
     /**
@@ -542,6 +726,28 @@ public class CompileOptions {
     }
 
     /**
+     * Specify the target version of the generated JVM bytecode.
+     * <p>
+     * Possible values are 1.8, 9, 10, ..., 22. The default value is 1.8.
+     *
+     * @param target the target version
+     * @return this operation instance
+     */
+    public CompileOptions jvmTarget(String target) {
+        jvmTarget_ = target;
+        return this;
+    }
+
+    /**
+     * Retrieves the target version of the generated JVM bytecode.
+     *
+     * @return the target version
+     */
+    public String jvmTarget() {
+        return jvmTarget_;
+    }
+
+    /**
      * Specify a custom path to the Kotlin compiler used for the discovery of runtime libraries.
      *
      * @param path the Kotlin home path
@@ -553,14 +759,32 @@ public class CompileOptions {
     }
 
     /**
+     * Retrieves the custom path of the Kotlin compiler.
+     *
+     * @return the Kotlin home path
+     */
+    public File kotlinHome() {
+        return kotlinHome_;
+    }
+
+    /**
+     * Specify a custom path to the Kotlin compiler used for the discovery of runtime libraries.
+     *
+     * @param path the Kotlin home path
+     * @return this operation instance
+     */
+    public CompileOptions kotlinHome(Path path) {
+        return kotlinHome(path.toFile());
+    }
+
+    /**
      * Specify a custom path to the Kotlin compiler used for the discovery of runtime libraries.
      *
      * @param path the Kotlin home path
      * @return this operation instance
      */
     public CompileOptions kotlinHome(String path) {
-        kotlinHome_ = new File(path);
-        return this;
+        return kotlinHome(new File(path));
     }
 
     /**
@@ -575,6 +799,15 @@ public class CompileOptions {
     }
 
     /**
+     * Retrieves the {@link #languageVersion(String) language version}.
+     *
+     * @return the language version
+     */
+    public String languageVersion() {
+        return languageVersion_;
+    }
+
+    /**
      * Set a custom name for the generated {@code .kotlin_module} file.
      *
      * @param name the module name
@@ -583,6 +816,15 @@ public class CompileOptions {
     public CompileOptions moduleName(String name) {
         moduleName_ = name;
         return this;
+    }
+
+    /**
+     * Retrieves the {@link #moduleName(String) module name}.
+     *
+     * @return the module name
+     */
+    public String moduleName() {
+        return moduleName_;
     }
 
     /**
@@ -706,6 +948,27 @@ public class CompileOptions {
     }
 
     /**
+     * Retrieves the location to place generated class files into.
+     *
+     * @return the location path.
+     */
+    public File path() {
+        return path_;
+    }
+
+    /**
+     * Place the generated class files into the specified location.
+     * <p>
+     * The location can be a directory, a ZIP, or a JAR file.
+     *
+     * @param path the location path
+     * @return this operation instance
+     */
+    public CompileOptions path(Path path) {
+        return path(path.toFile());
+    }
+
+    /**
      * Place the generated class files into the specified location.
      * <p>
      * The location can be a directory, a ZIP, or a JAR file.
@@ -714,8 +977,7 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions path(String path) {
-        path_ = new File(path);
-        return this;
+        return path(new File(path));
     }
 
     /**
@@ -734,7 +996,7 @@ public class CompileOptions {
     /**
      * Retrieves the plugin options.
      *
-     * @return the plugin ofoptions.
+     * @return the plugin options.
      */
     public Collection<String> plugin() {
         return plugin_;

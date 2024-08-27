@@ -33,7 +33,7 @@ public class CompileKotlinOperationBuild extends Project {
     public CompileKotlinOperationBuild() {
         pkg = "rife.bld.extension";
         name = "bld-kotlin";
-        version = version(1, 0, 0);
+        version = version(1, 0, 1, "SNAPSHOT");
 
         javaRelease = 17;
 

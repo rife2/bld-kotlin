@@ -1,4 +1,5 @@
 @
+-api-version
 -classpath
 -d
 -expression
@@ -8,6 +9,7 @@
 -jdk-home
 -jvm-target
 -kotlin-home
+-language-version
 -module-name
 -no-jdk
 -no-reflect

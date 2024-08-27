@@ -413,7 +413,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Returns the Kotlin home directory.
+     * Retrieves the Kotlin home directory.
      *
      * @return the directory
      */
