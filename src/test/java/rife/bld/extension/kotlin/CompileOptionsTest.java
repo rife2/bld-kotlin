@@ -248,15 +248,29 @@ class CompileOptionsTest {
         var options = new CompileOptions();
 
         options.classpath(foo, bar);
-        assertThat(options.classpath()).contains(foo, bar);
+        assertThat(options.classpath()).as("File...").containsExactly(foo, bar);
+        options.classpath().clear();
+
+        options.classpath(List.of(foo, bar));
+        assertThat(options.classpath()).as("List(File...)").containsExactly(foo, bar);
         options.classpath().clear();
 
         options = options.classpath(foo.toPath(), bar.toPath());
-        assertThat(options.classpath()).contains(foo, bar);
+        assertThat(options.classpath()).as("Path...").containsExactly(foo, bar);
+        options.classpath().clear();
+
+        options = options.classpathPaths(List.of(foo.toPath(), bar.toPath()));
+        assertThat(options.classpath()).as("List(Path...)").containsExactly(foo, bar);
         options.classpath().clear();
 
         options.classpath(foo.getAbsolutePath(), bar.getAbsolutePath());
-        assertThat(options.classpath()).contains(new File(foo.getAbsolutePath()), new File(bar.getAbsolutePath()));
+        assertThat(options.classpath()).as("String...")
+                .containsExactly(new File(foo.getAbsolutePath()), new File(bar.getAbsolutePath()));
+        options.classpath().clear();
+
+        options.classpathStrings(List.of(foo.getAbsolutePath(), bar.getAbsolutePath()));
+        assertThat(options.classpath()).as("List(String...)")
+                .containsExactly(new File(foo.getAbsolutePath()), new File(bar.getAbsolutePath()));
         options.classpath().clear();
     }
 
@@ -301,7 +315,7 @@ class CompileOptionsTest {
                 .includeRuntime(true)
                 .javaParameters(true)
                 .jdkHome("jdk-home")
-                .jdkRelease("22")
+                .jdkRelease(22)
                 .jvmTarget("9")
                 .kotlinHome("kotlin-home")
                 .languageVersion("1.0")

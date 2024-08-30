@@ -68,8 +68,7 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions advancedOptions(String... options) {
-        advancedOptions_.addAll(List.of(options));
-        return this;
+        return advancedOptions(List.of(options));
     }
 
     /**
@@ -120,8 +119,7 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions apiVersion(int version) {
-        apiVersion_ = String.valueOf(version);
-        return this;
+        return apiVersion(String.valueOf(version));
     }
 
     /**
@@ -141,6 +139,7 @@ public class CompileOptions {
      *
      * @param files one or more files
      * @return this operation instance
+     * @see #argFileStrings(Collection)
      */
     public CompileOptions argFile(String... files) {
         return argFileStrings(List.of(files));
@@ -151,7 +150,7 @@ public class CompileOptions {
      *
      * @param files the compiler options files
      * @return this operation instance
-     * @see #argFile(String...)
+     * @see #argFile(File...)
      */
     public CompileOptions argFile(Collection<File> files) {
         argFile_.addAll(files);
@@ -175,6 +174,7 @@ public class CompileOptions {
      *
      * @param files one or more files
      * @return this operation instance
+     * @see #argFile(Collection)
      */
     public CompileOptions argFile(File... files) {
         return argFile(List.of(files));
@@ -197,6 +197,7 @@ public class CompileOptions {
      *
      * @param files one or more files
      * @return this operation instance
+     * @see #argFilePaths(Collection)
      */
     public CompileOptions argFile(Path... files) {
         return argFilePaths(List.of(files));
@@ -216,7 +217,7 @@ public class CompileOptions {
      *
      * @param files the compiler options files
      * @return this operation instance
-     * @see #argFile(String...)
+     * @see #argFile(Path...)
      */
     public CompileOptions argFilePaths(Collection<Path> files) {
         return argFile(files.stream().map(Path::toFile).toList());
@@ -393,6 +394,7 @@ public class CompileOptions {
      *
      * @param paths one pr more paths
      * @return this operation instance
+     * @see #classpathStrings(Collection)
      */
     public CompileOptions classpath(String... paths) {
         return classpathStrings(List.of(paths));
@@ -405,6 +407,7 @@ public class CompileOptions {
      *
      * @param paths one or more path
      * @return this operation instance
+     * @see #classpath(Collection)
      */
     public CompileOptions classpath(File... paths) {
         return classpath(List.of(paths));
@@ -417,6 +420,7 @@ public class CompileOptions {
      *
      * @param paths one or more path
      * @return this operation instance
+     * @see #classpathPaths(Collection)
      */
     public CompileOptions classpath(Path... paths) {
         return classpathPaths(List.of(paths));
@@ -429,6 +433,7 @@ public class CompileOptions {
      *
      * @param paths the search paths
      * @return this operation instance
+     * @see #classpath(File...)
      */
     public CompileOptions classpath(Collection<File> paths) {
         classpath_.addAll(paths);
@@ -451,6 +456,7 @@ public class CompileOptions {
      *
      * @param paths one pr more paths
      * @return this operation instance
+     * @see #classpath(Path...)
      */
     public CompileOptions classpathPaths(Collection<Path> paths) {
         return classpath(paths.stream().map(Path::toFile).toList());
@@ -463,6 +469,7 @@ public class CompileOptions {
      *
      * @param paths one pr more paths
      * @return this operation instance
+     * @see #classpath(String...)
      */
     public CompileOptions classpathStrings(Collection<String> paths) {
         return classpath(paths.stream().map(File::new).toList());
@@ -679,8 +686,7 @@ public class CompileOptions {
      * @see #jdkRelease(String)
      */
     public CompileOptions jdkRelease(int version) {
-        jdkRelease_ = String.valueOf(version);
-        return this;
+        return jdkRelease(String.valueOf(version));
     }
 
     /**
@@ -721,8 +727,7 @@ public class CompileOptions {
      * @see #jvmTarget(String)
      */
     public CompileOptions jvmTarget(int target) {
-        jvmTarget_ = String.valueOf(target);
-        return this;
+        return jvmTarget(String.valueOf(target));
     }
 
     /**
@@ -879,8 +884,7 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions optIn(String... annotations) {
-        optIn_.addAll(List.of(annotations));
-        return this;
+        return optIn(List.of(annotations));
     }
 
     /**
@@ -910,8 +914,7 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions options(String... options) {
-        options_.addAll(List.of(options));
-        return this;
+        return options(List.of(options));
     }
 
     /**
@@ -1022,8 +1025,7 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions scriptTemplates(String... classNames) {
-        scriptTemplates_.addAll(List.of(classNames));
-        return this;
+        return scriptTemplates(List.of(classNames));
     }
 
     /**

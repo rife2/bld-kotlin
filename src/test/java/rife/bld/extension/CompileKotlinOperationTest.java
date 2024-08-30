@@ -37,7 +37,11 @@ import java.util.logging.Logger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class CompileKotlinOperationTest {
+    private static final String FILE_1 = "file1";
+    private static final String FILE_2 = "file2";
+
     @BeforeAll
     static void beforeAll() {
         var level = Level.ALL;
@@ -47,6 +51,36 @@ class CompileKotlinOperationTest {
         logger.addHandler(consoleHandler);
         logger.setLevel(level);
         logger.setUseParentHandlers(false);
+    }
+
+    @Test
+    void testBuildMainDirectory() {
+        var foo = new File("foo");
+        var bar = new File("bar");
+
+        var op = new CompileKotlinOperation().buildMainDirectory(foo);
+        assertThat(op.buildMainDirectory()).as("as file").isEqualTo(foo);
+
+        op = op.buildMainDirectory(bar.toPath());
+        assertThat(op.buildMainDirectory()).as("as path").isEqualTo(bar);
+
+        op = new CompileKotlinOperation().buildMainDirectory("foo");
+        assertThat(op.buildMainDirectory()).as("as string").isEqualTo(foo);
+    }
+
+    @Test
+    void testBuildTestDirectory() {
+        var foo = new File("foo");
+        var bar = new File("bar");
+
+        var op = new CompileKotlinOperation().buildTestDirectory(foo);
+        assertThat(op.buildTestDirectory()).as("as file").isEqualTo(foo);
+
+        op = op.buildTestDirectory(bar.toPath());
+        assertThat(op.buildTestDirectory()).as("as path").isEqualTo(bar);
+
+        op = new CompileKotlinOperation().buildTestDirectory("foo");
+        assertThat(op.buildTestDirectory()).as("as string").isEqualTo(foo);
     }
 
     @Test
@@ -71,6 +105,9 @@ class CompileKotlinOperationTest {
                 .plugins("plugin1", "plugin2")
                 .plugins(CompilerPlugin.KOTLIN_SERIALIZATION, CompilerPlugin.ASSIGNMENT)
                 .plugins(new File("lib/compile"), CompilerPlugin.LOMBOK, CompilerPlugin.POWER_ASSERT)
+                .plugins(Path.of("lib/compile"), CompilerPlugin.NOARG, CompilerPlugin.ALL_OPEN)
+                .plugins("lib/compile", CompilerPlugin.KOTLINX_SERIALIZATION, CompilerPlugin.SAM_WITH_RECEIVER)
+
                 .plugins(List.of("plugin3", "plugin4"));
 
         assertThat(op.kotlinHome().getName()).as("kotlin_home").isEqualTo("kotlin_home");
@@ -93,10 +130,15 @@ class CompileKotlinOperationTest {
         assertThat(op.testSourceFiles()).as("testSourceFiles").containsOnly(
                 new File("tfile1"), new File("tfile2"), new File("tfile3"),
                 new File("tfile4"), new File("tfile5"), new File("tfile6"));
-        assertThat(op.plugins()).as("plugins").contains("plugin2", "plugin3", "plugin4",
+        assertThat(op.plugins()).as("plugins").contains("plugin1", "plugin2", "plugin3", "plugin4",
                 "/kotlin_home/lib/kotlin-serialization-compiler-plugin.jar",
-                "/kotlin_home/lib/assignment-compiler-plugin.jar");
-        assertThat(op.plugins()).as("plugins size").hasSize(8);
+                "/kotlin_home/lib/assignment-compiler-plugin.jar",
+                new File("lib/compile", "lombok-compiler-plugin.jar").getAbsolutePath(),
+                new File("lib/compile", "power-assert-compiler-plugin.jar").getAbsolutePath(),
+                new File("lib/compile", "noarg-compiler-plugin.jar").getAbsolutePath(),
+                new File("lib/compile", "allopen-compiler-plugin.jar").getAbsolutePath(),
+                new File("lib/compile", "kotlinx-serialization-compiler-plugin.jar").getAbsolutePath(),
+                new File("lib/compile", "sam-with-receiver-compiler-plugin.jar").getAbsolutePath());
     }
 
     @Test
@@ -156,6 +198,98 @@ class CompileKotlinOperationTest {
     }
 
     @Test
+    void testKotlinHome() {
+        var foo = new File("foo");
+        var bar = new File("bar");
+
+        var op = new CompileKotlinOperation().kotlinHome(foo);
+        assertThat(op.kotlinHome()).as("as file").isEqualTo(foo);
+
+        op = op.kotlinHome(bar.toPath());
+        assertThat(op.kotlinHome()).as("as path").isEqualTo(bar);
+
+        op = new CompileKotlinOperation().kotlinHome("foo");
+        assertThat(op.kotlinHome()).as("as string").isEqualTo(foo);
+    }
+
+    @Test
+    void testKotlinc() {
+        var foo = new File("foo");
+        var bar = new File("bar");
+
+        var op = new CompileKotlinOperation().kotlinc(foo);
+        assertThat(op.kotlinc()).as("as file").isEqualTo(foo);
+
+        op = op.kotlinc(bar.toPath());
+        assertThat(op.kotlinc()).as("as path").isEqualTo(bar);
+
+        op = new CompileKotlinOperation().kotlinc("foo");
+        assertThat(op.kotlinc()).as("as string").isEqualTo(foo);
+    }
+
+    @Test
+    void testMainSourceDirectories() {
+        var op = new CompileKotlinOperation();
+
+        op.mainSourceDirectories(List.of(new File(FILE_1), new File(FILE_2)));
+        assertThat(op.mainSourceDirectories()).as("List(File...)").containsExactly(new File(FILE_1), new File(FILE_2));
+        op.mainSourceDirectories().clear();
+
+        op.mainSourceDirectories(new File(FILE_1), new File(FILE_2));
+        assertThat(op.mainSourceDirectories()).as("File...").containsExactly(new File(FILE_1), new File(FILE_2));
+        op.mainSourceDirectories().clear();
+
+        op.mainSourceDirectories(FILE_1, FILE_2);
+        assertThat(op.mainSourceDirectories()).as("String...")
+                .containsExactly(new File(FILE_1), new File(FILE_2));
+        op.mainSourceDirectories().clear();
+
+        op = op.mainSourceDirectories(Path.of(FILE_1), Path.of(FILE_2));
+        assertThat(op.mainSourceDirectories()).as("Path...")
+                .containsExactly(new File(FILE_1), new File(FILE_2));
+        op.mainSourceDirectories().clear();
+
+        op.mainSourceDirectoriesPaths(List.of(new File(FILE_1).toPath(), new File(FILE_2).toPath()));
+        assertThat(op.mainSourceDirectories()).as("List(Path...)").containsExactly(new File(FILE_1), new File(FILE_2));
+        op.mainSourceDirectories().clear();
+
+        op.mainSourceDirectoriesStrings(List.of(FILE_1, FILE_2));
+        assertThat(op.mainSourceDirectories()).as("List(String...)").containsExactly(new File(FILE_1), new File(FILE_2));
+        op.mainSourceDirectories().clear();
+    }
+
+    @Test
+    void testMainSourceFiles() {
+        var op = new CompileKotlinOperation();
+
+        op.mainSourceFiles(List.of(new File(FILE_1), new File(FILE_2)));
+        assertThat(op.mainSourceFiles()).as("List(File...)").containsExactly(new File(FILE_1), new File(FILE_2));
+        op.mainSourceFiles().clear();
+
+        op.mainSourceFiles(new File(FILE_1), new File(FILE_2));
+        assertThat(op.mainSourceFiles()).as("File...").containsExactly(new File(FILE_1), new File(FILE_2));
+        op.mainSourceFiles().clear();
+
+        op.mainSourceFiles(FILE_1, FILE_2);
+        assertThat(op.mainSourceFiles()).as("String...")
+                .containsExactly(new File(FILE_1), new File(FILE_2));
+        op.mainSourceFiles().clear();
+
+        op = op.mainSourceFiles(Path.of(FILE_1), Path.of(FILE_2));
+        assertThat(op.mainSourceFiles()).as("Path...")
+                .containsExactly(new File(FILE_1), new File(FILE_2));
+        op.mainSourceFiles().clear();
+
+        op.mainSourceFilesPaths(List.of(new File(FILE_1).toPath(), new File(FILE_2).toPath()));
+        assertThat(op.mainSourceFiles()).as("List(Path...)").containsExactly(new File(FILE_1), new File(FILE_2));
+        op.mainSourceFiles().clear();
+
+        op.mainSourceFilesStrings(List.of(FILE_1, FILE_2));
+        assertThat(op.mainSourceFiles()).as("List(String...)").containsExactly(new File(FILE_1), new File(FILE_2));
+        op.mainSourceFiles().clear();
+    }
+
+    @Test
     @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
     void testPlugins() {
         var op = new CompileKotlinOperation()
@@ -172,5 +306,82 @@ class CompileKotlinOperationTest {
         for (var p : op.plugins()) {
             assertThat(new File(p)).as(p).exists();
         }
+    }
+
+    @Test
+    void testTestSourceDirectories() {
+        var op = new CompileKotlinOperation();
+
+        op.testSourceDirectories(List.of(new File(FILE_1), new File(FILE_2)));
+        assertThat(op.testSourceDirectories()).as("List(File...)").containsExactly(new File(FILE_1), new File(FILE_2));
+        op.testSourceDirectories().clear();
+
+        op.testSourceDirectories(new File(FILE_1), new File(FILE_2));
+        assertThat(op.testSourceDirectories()).as("File...").containsExactly(new File(FILE_1), new File(FILE_2));
+        op.testSourceDirectories().clear();
+
+        op.testSourceDirectories(FILE_1, FILE_2);
+        assertThat(op.testSourceDirectories()).as("String...")
+                .containsExactly(new File(FILE_1), new File(FILE_2));
+        op.testSourceDirectories().clear();
+
+        op = op.testSourceDirectories(Path.of(FILE_1), Path.of(FILE_2));
+        assertThat(op.testSourceDirectories()).as("Path...")
+                .containsExactly(new File(FILE_1), new File(FILE_2));
+        op.testSourceDirectories().clear();
+
+        op.testSourceDirectoriesPaths(List.of(new File(FILE_1).toPath(), new File(FILE_2).toPath()));
+        assertThat(op.testSourceDirectories()).as("List(Path...)").containsExactly(new File(FILE_1), new File(FILE_2));
+        op.testSourceDirectories().clear();
+
+        op.testSourceDirectoriesStrings(List.of(FILE_1, FILE_2));
+        assertThat(op.testSourceDirectories()).as("List(String...)").containsExactly(new File(FILE_1), new File(FILE_2));
+        op.testSourceDirectories().clear();
+    }
+
+    @Test
+    void testTestSourceFiles() {
+        var op = new CompileKotlinOperation();
+
+        op.testSourceFiles(List.of(new File(FILE_1), new File(FILE_2)));
+        assertThat(op.testSourceFiles()).as("List(File...)").containsExactly(new File(FILE_1), new File(FILE_2));
+        op.testSourceFiles().clear();
+
+        op.testSourceFiles(new File(FILE_1), new File(FILE_2));
+        assertThat(op.testSourceFiles()).as("File...").containsExactly(new File(FILE_1), new File(FILE_2));
+        op.testSourceFiles().clear();
+
+        op.testSourceFiles(FILE_1, FILE_2);
+        assertThat(op.testSourceFiles()).as("String...")
+                .containsExactly(new File(FILE_1), new File(FILE_2));
+        op.testSourceFiles().clear();
+
+        op = op.testSourceFiles(Path.of(FILE_1), Path.of(FILE_2));
+        assertThat(op.testSourceFiles()).as("Path...")
+                .containsExactly(new File(FILE_1), new File(FILE_2));
+        op.testSourceFiles().clear();
+
+        op.testSourceFilesPaths(List.of(new File(FILE_1).toPath(), new File(FILE_2).toPath()));
+        assertThat(op.testSourceFiles()).as("List(Path...)").containsExactly(new File(FILE_1), new File(FILE_2));
+        op.testSourceFiles().clear();
+
+        op.testSourceFilesStrings(List.of(FILE_1, FILE_2));
+        assertThat(op.testSourceFiles()).as("List(String...)").containsExactly(new File(FILE_1), new File(FILE_2));
+        op.testSourceFiles().clear();
+    }
+
+    @Test
+    void testWorkDir() {
+        var foo = new File("foo");
+        var bar = new File("bar");
+
+        var op = new CompileKotlinOperation().workDir(foo);
+        assertThat(op.workDir()).as("as file").isEqualTo(foo);
+
+        op = op.workDir(bar.toPath());
+        assertThat(op.workDir()).as("as path").isEqualTo(bar);
+
+        op = new CompileKotlinOperation().workDir("foo");
+        assertThat(op.workDir()).as("as string").isEqualTo(foo);
     }
 }
