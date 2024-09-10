@@ -16,6 +16,7 @@
 
 package rife.bld.extension.kotlin;
 
+import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -102,9 +103,11 @@ class CompileOptionsTest {
         args.add(options.args());
         args.add(options.apiVersion(11).jvmTarget(11).args());
 
-        for (var a : args) {
-            IntStream.range(0, a.size()).forEach(i -> assertThat(a.get(i))
-                    .as(a.get(i) + " == " + matches.get(i)).isEqualTo(matches.get(i)));
+        try (var softly = new AutoCloseableSoftAssertions()) {
+            for (var a : args) {
+                IntStream.range(0, a.size()).forEach(i -> softly.assertThat(a.get(i))
+                        .as(a.get(i) + " == " + matches.get(i)).isEqualTo(matches.get(i)));
+            }
         }
     }
 
@@ -134,22 +137,24 @@ class CompileOptionsTest {
             op.plugin(p[0], p[1], p[2]);
         });
 
-        assertThat(op.advancedOptions()).as("advancedOptions")
-                .hasSize(advanceOptions.size()).containsAll(advanceOptions);
-        assertThat(op.argFile()).as("argFile")
-                .hasSize(argFile.size()).containsAll(argFile);
-        assertThat(op.classpath()).as("classpath")
-                .hasSize(classpath.size()).containsAll(classpath);
-        assertThat(op.jvmOptions()).as("jvmOptions")
-                .hasSize(jvmOptions.size()).containsAll(jvmOptions);
-        assertThat(op.optIn()).as("optIn")
-                .hasSize(optIn.size()).containsAll(optIn);
-        assertThat(op.options()).as("options")
-                .hasSize(options.size()).containsAll(options);
-        assertThat(op.plugin()).as("plugin")
-                .hasSize(plugin.size()).containsAll(plugin);
-        assertThat(op.scriptTemplates()).as("scriptTemplates")
-                .hasSize(scriptTemplates.size()).containsAll(scriptTemplates);
+        try (var softly = new AutoCloseableSoftAssertions()) {
+            softly.assertThat(op.advancedOptions()).as("advancedOptions")
+                    .hasSize(advanceOptions.size()).containsAll(advanceOptions);
+            softly.assertThat(op.argFile()).as("argFile")
+                    .hasSize(argFile.size()).containsAll(argFile);
+            softly.assertThat(op.classpath()).as("classpath")
+                    .hasSize(classpath.size()).containsAll(classpath);
+            softly.assertThat(op.jvmOptions()).as("jvmOptions")
+                    .hasSize(jvmOptions.size()).containsAll(jvmOptions);
+            softly.assertThat(op.optIn()).as("optIn")
+                    .hasSize(optIn.size()).containsAll(optIn);
+            softly.assertThat(op.options()).as("options")
+                    .hasSize(options.size()).containsAll(options);
+            softly.assertThat(op.plugin()).as("plugin")
+                    .hasSize(plugin.size()).containsAll(plugin);
+            softly.assertThat(op.scriptTemplates()).as("scriptTemplates")
+                    .hasSize(scriptTemplates.size()).containsAll(scriptTemplates);
+        }
 
         var matches = List.of(
                 '@' + localPath("arg1.txt"), '@' + localPath("arg2.txt"),
@@ -164,16 +169,18 @@ class CompileOptionsTest {
                 "-P", "plugin:id:name:value",
                 "-P", "plugin:id2:name2:value2");
 
-        var args = op.args();
-        for (var arg : args) {
-            var found = false;
-            for (var match : matches) {
-                if (match.equals(arg)) {
-                    found = true;
-                    break;
+        try (var softly = new AutoCloseableSoftAssertions()) {
+            var args = op.args();
+            for (var arg : args) {
+                var found = false;
+                for (var match : matches) {
+                    if (match.equals(arg)) {
+                        found = true;
+                        break;
+                    }
                 }
+                softly.assertThat(found).as(arg + " not found.").isTrue();
             }
-            assertThat(found).as(arg + " not found.").isTrue();
         }
     }
 
@@ -229,15 +236,17 @@ class CompileOptionsTest {
                 .verbose(true)
                 .wError(true);
 
-        for (var p : args) {
-            var found = false;
-            for (var a : params.args()) {
-                if (a.startsWith(p)) {
-                    found = true;
-                    break;
+        try (var softly = new AutoCloseableSoftAssertions()) {
+            for (var p : args) {
+                var found = false;
+                for (var a : params.args()) {
+                    if (a.startsWith(p)) {
+                        found = true;
+                        break;
+                    }
                 }
+                softly.assertThat(found).as(p + " not found.").isTrue();
             }
-            assertThat(found).as(p + " not found.").isTrue();
         }
     }
 
@@ -333,30 +342,32 @@ class CompileOptionsTest {
                 .verbose(true)
                 .wError(true);
 
-        assertThat(options.advancedOptions()).containsExactly("xopt1", "xopt2");
-        assertThat(options.apiVersion()).isEqualTo("11");
-        assertThat(options.argFile()).containsExactly(new File("args.txt"));
-        assertThat(options.classpath()).containsExactly(new File("classpath"));
-        assertThat(options.expression()).isEqualTo("expression");
-        assertThat(options.isIncludeRuntime()).isTrue();
-        assertThat(options.isJavaParameters()).isTrue();
-        assertThat(options.isNoJdk()).isTrue();
-        assertThat(options.isNoReflect()).isTrue();
-        assertThat(options.isNoStdLib()).isTrue();
-        assertThat(options.isNoWarn()).isTrue();
-        assertThat(options.isProgressive()).isTrue();
-        assertThat(options.isVerbose()).isTrue();
-        assertThat(options.jdkHome()).isEqualTo(new File("jdk-home"));
-        assertThat(options.jdkRelease()).isEqualTo("22");
-        assertThat(options.jvmTarget()).isEqualTo("9");
-        assertThat(options.kotlinHome()).isEqualTo(new File("kotlin-home"));
-        assertThat(options.languageVersion()).isEqualTo("1.0");
-        assertThat(options.moduleName()).isEqualTo("module");
-        assertThat(options.optIn()).containsExactly("opt1", "opt2");
-        assertThat(options.options()).containsExactly("-foo", "-bar");
-        assertThat(options.path()).isEqualTo(new File("path"));
-        assertThat(options.plugin()).containsExactly("id:name:value");
-        assertThat(options.scriptTemplates()).containsExactly("name", "name2");
-        assertThat(options.isWError()).isTrue();
+        try (var softly = new AutoCloseableSoftAssertions()) {
+            softly.assertThat(options.advancedOptions()).containsExactly("xopt1", "xopt2");
+            softly.assertThat(options.apiVersion()).isEqualTo("11");
+            softly.assertThat(options.argFile()).containsExactly(new File("args.txt"));
+            softly.assertThat(options.classpath()).containsExactly(new File("classpath"));
+            softly.assertThat(options.expression()).isEqualTo("expression");
+            softly.assertThat(options.isIncludeRuntime()).isTrue();
+            softly.assertThat(options.isJavaParameters()).isTrue();
+            softly.assertThat(options.isNoJdk()).isTrue();
+            softly.assertThat(options.isNoReflect()).isTrue();
+            softly.assertThat(options.isNoStdLib()).isTrue();
+            softly.assertThat(options.isNoWarn()).isTrue();
+            softly.assertThat(options.isProgressive()).isTrue();
+            softly.assertThat(options.isVerbose()).isTrue();
+            softly.assertThat(options.jdkHome()).isEqualTo(new File("jdk-home"));
+            softly.assertThat(options.jdkRelease()).isEqualTo("22");
+            softly.assertThat(options.jvmTarget()).isEqualTo("9");
+            softly.assertThat(options.kotlinHome()).isEqualTo(new File("kotlin-home"));
+            softly.assertThat(options.languageVersion()).isEqualTo("1.0");
+            softly.assertThat(options.moduleName()).isEqualTo("module");
+            softly.assertThat(options.optIn()).containsExactly("opt1", "opt2");
+            softly.assertThat(options.options()).containsExactly("-foo", "-bar");
+            softly.assertThat(options.path()).isEqualTo(new File("path"));
+            softly.assertThat(options.plugin()).containsExactly("id:name:value");
+            softly.assertThat(options.scriptTemplates()).containsExactly("name", "name2");
+            softly.assertThat(options.isWError()).isTrue();
+        }
     }
 }

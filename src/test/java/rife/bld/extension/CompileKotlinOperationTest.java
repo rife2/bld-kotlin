@@ -16,6 +16,7 @@
 
 package rife.bld.extension;
 
+import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import rife.bld.BaseProject;
@@ -110,35 +111,36 @@ class CompileKotlinOperationTest {
 
                 .plugins(List.of("plugin3", "plugin4"));
 
-        assertThat(op.kotlinHome().getName()).as("kotlin_home").isEqualTo("kotlin_home");
-        assertThat(op.kotlinc().getName()).as("kotlinc").isEqualTo("kotlinc");
-        assertThat(op.workDir().getName()).as("work_dir").isEqualTo("work_dir");
-
-        assertThat(op.compileMainClasspath()).as("compileMainClassPath")
-                .containsAll(List.of("path1", "path2"));
-        assertThat(op.compileOptions().hasRelease()).as("hasRelease").isTrue();
-        assertThat(op.compileOptions().isVerbose()).as("isVerbose").isTrue();
-        assertThat(op.mainSourceDirectories()).as("mainSourceDirectories").containsExactly(
-                Path.of("src", "main", "kotlin").toFile().getAbsoluteFile(), new File("dir1"),
-                new File("dir2"), new File("dir3"), new File("dir4"));
-        assertThat(op.testSourceDirectories()).as("testSourceDirectories").containsOnly(
-                Path.of("src", "test", "kotlin").toFile().getAbsoluteFile(), new File("tdir1"),
-                new File("tdir2"), new File("tdir3"), new File("tdir4"));
-        assertThat(op.mainSourceFiles()).as("mainSourceFiles").containsOnly(
-                new File("file1"), new File("file2"), new File("file3"),
-                new File("file4"), new File("file5"), new File("file6"));
-        assertThat(op.testSourceFiles()).as("testSourceFiles").containsOnly(
-                new File("tfile1"), new File("tfile2"), new File("tfile3"),
-                new File("tfile4"), new File("tfile5"), new File("tfile6"));
-        assertThat(op.plugins()).as("plugins").contains("plugin1", "plugin2", "plugin3", "plugin4",
-                "/kotlin_home/lib/kotlin-serialization-compiler-plugin.jar",
-                "/kotlin_home/lib/assignment-compiler-plugin.jar",
-                new File("lib/compile", "lombok-compiler-plugin.jar").getAbsolutePath(),
-                new File("lib/compile", "power-assert-compiler-plugin.jar").getAbsolutePath(),
-                new File("lib/compile", "noarg-compiler-plugin.jar").getAbsolutePath(),
-                new File("lib/compile", "allopen-compiler-plugin.jar").getAbsolutePath(),
-                new File("lib/compile", "kotlinx-serialization-compiler-plugin.jar").getAbsolutePath(),
-                new File("lib/compile", "sam-with-receiver-compiler-plugin.jar").getAbsolutePath());
+        try (var softly = new AutoCloseableSoftAssertions()) {
+            softly.assertThat(op.kotlinHome().getName()).as("kotlin_home").isEqualTo("kotlin_home");
+            softly.assertThat(op.kotlinc().getName()).as("kotlinc").isEqualTo("kotlinc");
+            softly.assertThat(op.workDir().getName()).as("work_dir").isEqualTo("work_dir");
+            softly.assertThat(op.compileMainClasspath()).as("compileMainClassPath")
+                    .containsAll(List.of("path1", "path2"));
+            softly.assertThat(op.compileOptions().hasRelease()).as("hasRelease").isTrue();
+            softly.assertThat(op.compileOptions().isVerbose()).as("isVerbose").isTrue();
+            softly.assertThat(op.mainSourceDirectories()).as("mainSourceDirectories").containsExactly(
+                    Path.of("examples", "src", "main", "kotlin").toFile(), new File("dir1"),
+                    new File("dir2"), new File("dir3"), new File("dir4"));
+            softly.assertThat(op.testSourceDirectories()).as("testSourceDirectories").containsOnly(
+                    Path.of("examples", "src", "test", "kotlin").toFile(), new File("tdir1"),
+                    new File("tdir2"), new File("tdir3"), new File("tdir4"));
+            softly.assertThat(op.mainSourceFiles()).as("mainSourceFiles").containsOnly(
+                    new File("file1"), new File("file2"), new File("file3"),
+                    new File("file4"), new File("file5"), new File("file6"));
+            softly.assertThat(op.testSourceFiles()).as("testSourceFiles").containsOnly(
+                    new File("tfile1"), new File("tfile2"), new File("tfile3"),
+                    new File("tfile4"), new File("tfile5"), new File("tfile6"));
+            softly.assertThat(op.plugins()).as("plugins").contains("plugin1", "plugin2", "plugin3", "plugin4",
+                    "/kotlin_home/lib/kotlin-serialization-compiler-plugin.jar",
+                    "/kotlin_home/lib/assignment-compiler-plugin.jar",
+                    new File("lib/compile", "lombok-compiler-plugin.jar").getAbsolutePath(),
+                    new File("lib/compile", "power-assert-compiler-plugin.jar").getAbsolutePath(),
+                    new File("lib/compile", "noarg-compiler-plugin.jar").getAbsolutePath(),
+                    new File("lib/compile", "allopen-compiler-plugin.jar").getAbsolutePath(),
+                    new File("lib/compile", "kotlinx-serialization-compiler-plugin.jar").getAbsolutePath(),
+                    new File("lib/compile", "sam-with-receiver-compiler-plugin.jar").getAbsolutePath());
+        }
     }
 
     @Test
@@ -150,8 +152,10 @@ class CompileKotlinOperationTest {
             var mainDir = new File(buildDir, "main");
             var testDir = new File(buildDir, "test");
 
-            assertThat(mainDir.mkdirs()).as("make mainDir").isTrue();
-            assertThat(testDir.mkdirs()).as("make testDir").isTrue();
+            try (var softly = new AutoCloseableSoftAssertions()) {
+                softly.assertThat(mainDir.mkdirs()).as("make mainDir").isTrue();
+                softly.assertThat(testDir.mkdirs()).as("make testDir").isTrue();
+            }
 
             var compileJars = new ArrayList<String>();
             for (var f : Objects.requireNonNull(new File("examples/lib/compile").listFiles())) {
@@ -182,13 +186,18 @@ class CompileKotlinOperationTest {
 
             op.execute();
 
-            assertThat(tmpDir).as("tmpDir").isNotEmptyDirectory();
-            assertThat(mainDir).as("mainDir").isNotEmptyDirectory();
-            assertThat(testDir).as("testDir").isNotEmptyDirectory();
+            try (var softly = new AutoCloseableSoftAssertions()) {
+                softly.assertThat(tmpDir).as("tmpDir").isNotEmptyDirectory();
+                softly.assertThat(mainDir).as("mainDir").isNotEmptyDirectory();
+                softly.assertThat(testDir).as("testDir").isNotEmptyDirectory();
+            }
 
             var mainOut = Path.of(mainDir.getAbsolutePath(), "com", "example").toFile();
-            assertThat(new File(mainOut, "Example.class")).as("Example.class").exists();
-            assertThat(new File(mainOut, "Example$Companion.class")).as("ExampleCompanion.class").exists();
+            try (var softly = new AutoCloseableSoftAssertions()) {
+                softly.assertThat(new File(mainOut, "Example.class")).as("Example.class").exists();
+                softly.assertThat(new File(mainOut, "Example$Companion.class"))
+                        .as("ExampleCompanion.class").exists();
+            }
 
             var testOut = Path.of(testDir.getAbsolutePath(), "com", "example").toFile();
             assertThat(new File(testOut, "ExampleTest.class")).as("ExampleTest.class").exists();
@@ -303,8 +312,10 @@ class CompileKotlinOperationTest {
                         CompilerPlugin.POWER_ASSERT,
                         CompilerPlugin.SAM_WITH_RECEIVER);
 
-        for (var p : op.plugins()) {
-            assertThat(new File(p)).as(p).exists();
+        try (var softly = new AutoCloseableSoftAssertions()) {
+            for (var p : op.plugins()) {
+                softly.assertThat(new File(p)).as(p).exists();
+            }
         }
     }
 
