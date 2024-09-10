@@ -33,7 +33,7 @@ public class CompileKotlinOperationBuild extends Project {
     public CompileKotlinOperationBuild() {
         pkg = "rife.bld.extension";
         name = "bld-kotlin";
-        version = version(1, 0, 1);
+        version = version(1, 0, 2);
 
         javaRelease = 17;
 
@@ -57,28 +57,26 @@ public class CompileKotlinOperationBuild extends Project {
 
         publishOperation()
                 .repository(version.isSnapshot() ? repository("rife2-snapshot") : repository("rife2"))
+                .repository(repository("github"))
                 .info()
                 .groupId("com.uwyn.rife2")
                 .artifactId("bld-kotlin")
                 .description("bld Kotlin Extension")
                 .url("https://github.com/rife2/bld-kotlin")
-                .developer(
-                        new PublishDeveloper()
-                                .id("ethauvin")
-                                .name("Erik C. Thauvin")
-                                .email("erik@thauvin.net")
-                                .url("https://erik.thauvin.net/")
+                .developer(new PublishDeveloper()
+                        .id("ethauvin")
+                        .name("Erik C. Thauvin")
+                        .email("erik@thauvin.net")
+                        .url("https://erik.thauvin.net/")
                 )
-                .license(
-                        new PublishLicense()
-                                .name("The Apache License, Version 2.0")
-                                .url("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                .license(new PublishLicense()
+                        .name("The Apache License, Version 2.0")
+                        .url("https://www.apache.org/licenses/LICENSE-2.0.txt")
                 )
-                .scm(
-                        new PublishScm()
-                                .connection("scm:git:https://github.com/rife2/bld-kotlin.git")
-                                .developerConnection("scm:git:git@github.com:rife2/bld-kotlin.git")
-                                .url("https://github.com/rife2/bld-kotlin")
+                .scm(new PublishScm()
+                        .connection("scm:git:https://github.com/rife2/bld-kotlin.git")
+                        .developerConnection("scm:git:git@github.com:rife2/bld-kotlin.git")
+                        .url("https://github.com/rife2/bld-kotlin")
                 )
                 .signKey(property("sign.key"))
                 .signPassphrase(property("sign.passphrase"));

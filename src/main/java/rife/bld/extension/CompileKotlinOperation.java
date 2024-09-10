@@ -284,8 +284,16 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     protected void executeBuildSources(Collection<String> classpath, Collection<File> sources, File destination,
                                        File friendPaths)
             throws ExitStatusException {
-        if (sources.isEmpty() || destination == null) {
+        if (sources.isEmpty()) {
+            if (!silent() && LOGGER.isLoggable(Level.WARNING)) {
+                LOGGER.warning("Nothing to compile.");
+            }
             return;
+        } else if (destination == null) {
+            if (!silent() && LOGGER.isLoggable(Level.SEVERE)) {
+                LOGGER.severe("No destination specified.");
+            }
+            throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
         }
 
         var args = new ArrayList<String>();
@@ -294,8 +302,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         args.add(kotlinCompiler());
 
         // classpath
-        args.add("-cp");
-        args.add(FileUtils.joinPaths(classpath.stream().toList()));
+        if (classpath != null && !classpath.isEmpty()) {
+            args.add("-cp");
+            args.add(FileUtils.joinPaths(classpath.stream().toList()));
+        }
 
         // destination
         args.add("-d");
@@ -376,16 +386,16 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * <p>
      * Sets the following from the project:
      * <ul>
-     *     <li>{@link #kotlinHome()} to the {@code KOTLIN_HOME} environment variable, if set.</li>
-     *     <li>{@link #workDir()} to the project's directory.</li>
+     *     <li>{@link #kotlinHome() kotlinHome} to the {@code KOTLIN_HOME} environment variable, if set.</li>
+     *     <li>{@link #workDir() workDir} to the project's directory.</li>
      *     <li>{@link #buildMainDirectory() buildMainDirectory}</li>
      *     <li>{@link #buildTestDirectory() buildTestDirectory}</li>
      *     <li>{@link #compileMainClasspath() compileMainClassPath}</li>
      *     <li>{@link #compileTestClasspath() compilesTestClassPath}</li>
-     *     <li>{@link #mainSourceDirectories()} () mainSourceDirectories} to the {@code kotlin} directory in
-     *     {@link BaseProject#srcMainDirectory() srcMainDirectory}</li>
+     *     <li>{@link #mainSourceDirectories() mainSourceDirectories} to the {@code kotlin} directory in
+     *     {@link BaseProject#srcMainDirectory() srcMainDirectory}, if present.</li>
      *     <li>{@link #testSourceDirectories() testSourceDirectories} to the {@code kotlin} directory in
-     *     {@link BaseProject#srcTestDirectory() srcTestDirectory}</li>
+     *     {@link BaseProject#srcTestDirectory() srcTestDirectory}, if present.</li>
      *     <li>{@link CompileOptions#jdkRelease jdkRelease} to {@link BaseProject#javaRelease() javaRelease}</li>
      *     <li>{@link CompileOptions#noStdLib(boolean) noStdLib} to {@code true}</li>
      * </ul>
@@ -406,9 +416,17 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         var op = buildMainDirectory(project.buildMainDirectory())
                 .buildTestDirectory(project.buildTestDirectory())
                 .compileMainClasspath(project.compileMainClasspath())
-                .compileTestClasspath(project.compileTestClasspath())
-                .mainSourceDirectories(new File(project.srcMainDirectory(), "kotlin"))
-                .testSourceDirectories(new File(project.srcTestDirectory(), "kotlin"));
+                .compileTestClasspath(project.compileTestClasspath());
+
+        var mainDir = new File(project.srcMainDirectory(), "kotlin");
+        if (mainDir.exists()) {
+            op = op.mainSourceDirectories(mainDir);
+        }
+        var testDir = new File(project.srcTestDirectory(), "kotlin");
+        if (testDir.exists()) {
+            op = op.testSourceDirectories(testDir);
+        }
+
         if (project.javaRelease() != null && !compileOptions_.hasRelease()) {
             compileOptions_.jdkRelease(project.javaRelease());
         }

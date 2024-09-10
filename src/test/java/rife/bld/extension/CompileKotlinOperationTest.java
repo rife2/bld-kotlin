@@ -20,7 +20,6 @@ import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import rife.bld.BaseProject;
-import rife.bld.Project;
 import rife.bld.blueprints.BaseProjectBlueprint;
 import rife.bld.extension.kotlin.CompileOptions;
 import rife.bld.extension.kotlin.CompilerPlugin;
@@ -87,7 +86,7 @@ class CompileKotlinOperationTest {
     @Test
     void testCollections() {
         var op = new CompileKotlinOperation()
-                .fromProject(new Project())
+                .fromProject(new BaseProjectBlueprint(new File("examples"), "com.example", "Example"))
                 .kotlinHome("/kotlin_home")
                 .kotlinc("kotlinc")
                 .workDir("work_dir")
@@ -207,6 +206,14 @@ class CompileKotlinOperationTest {
     }
 
     @Test
+    void testFromProjectNoKotlin() {
+        var op = new CompileKotlinOperation().fromProject(
+                new BaseProjectBlueprint(new File("foo"), "org.example", "foo"));
+        assertThat(op.mainSourceDirectories()).isEmpty();
+        assertThat(op.testSourceDirectories()).isEmpty();
+    }
+
+    @Test
     void testKotlinHome() {
         var foo = new File("foo");
         var bar = new File("bar");
@@ -259,11 +266,13 @@ class CompileKotlinOperationTest {
         op.mainSourceDirectories().clear();
 
         op.mainSourceDirectoriesPaths(List.of(new File(FILE_1).toPath(), new File(FILE_2).toPath()));
-        assertThat(op.mainSourceDirectories()).as("List(Path...)").containsExactly(new File(FILE_1), new File(FILE_2));
+        assertThat(op.mainSourceDirectories()).as("List(Path...)")
+                .containsExactly(new File(FILE_1), new File(FILE_2));
         op.mainSourceDirectories().clear();
 
         op.mainSourceDirectoriesStrings(List.of(FILE_1, FILE_2));
-        assertThat(op.mainSourceDirectories()).as("List(String...)").containsExactly(new File(FILE_1), new File(FILE_2));
+        assertThat(op.mainSourceDirectories()).as("List(String...)")
+                .containsExactly(new File(FILE_1), new File(FILE_2));
         op.mainSourceDirectories().clear();
     }
 
