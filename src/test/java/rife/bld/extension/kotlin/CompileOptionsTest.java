@@ -47,7 +47,7 @@ class CompileOptionsTest {
 
 
     @Test
-    @SuppressWarnings("PMD.JUnitTestsShouldIncludeAssert")
+    @SuppressWarnings("PMD.UnitTestShouldIncludeAssert")
     void testArgs() {
         var options = new CompileOptions()
                 .apiVersion("11")
