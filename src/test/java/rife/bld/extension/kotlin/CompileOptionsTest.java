@@ -71,7 +71,8 @@ class CompileOptionsTest {
                 .progressive(true)
                 .scriptTemplates("name", "name2")
                 .verbose(true)
-                .wError(true);
+                .wError(true)
+                .wExtra(true);
 
         var matches = List.of(
                 "-api-version", "11",
@@ -97,7 +98,8 @@ class CompileOptionsTest {
                 "-progressive",
                 "-script-templates", "name,name2",
                 "-verbose",
-                "-Werror");
+                "-Werror",
+                "-Wextra");
 
         var args = new ArrayList<List<String>>();
         args.add(options.args());
@@ -234,7 +236,8 @@ class CompileOptionsTest {
                 .progressive(true)
                 .scriptTemplates("template")
                 .verbose(true)
-                .wError(true);
+                .wError(true)
+                .wExtra(true);
 
         try (var softly = new AutoCloseableSoftAssertions()) {
             for (var p : args) {
@@ -340,7 +343,8 @@ class CompileOptionsTest {
                 .progressive(true)
                 .scriptTemplates("name", "name2")
                 .verbose(true)
-                .wError(true);
+                .wError(true)
+                .wExtra(true);
 
         try (var softly = new AutoCloseableSoftAssertions()) {
             softly.assertThat(options.advancedOptions()).containsExactly("xopt1", "xopt2");
@@ -368,6 +372,7 @@ class CompileOptionsTest {
             softly.assertThat(options.plugin()).containsExactly("id:name:value");
             softly.assertThat(options.scriptTemplates()).containsExactly("name", "name2");
             softly.assertThat(options.isWError()).isTrue();
+            softly.assertThat(options.isWExtra()).isTrue();
         }
     }
 }

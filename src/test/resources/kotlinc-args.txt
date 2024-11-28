@@ -22,4 +22,5 @@
 -script-templates
 -verbose
 -Werror
+-Wextra
 -X

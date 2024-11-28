@@ -60,6 +60,7 @@ public class CompileOptions {
     private boolean progressive_;
     private boolean verbose_;
     private boolean wError_;
+    private boolean wExtra_;
 
     /**
      * Specify advanced compiler options.
@@ -374,9 +375,14 @@ public class CompileOptions {
             args.add("-verbose");
         }
 
-        // Werror
+        // Wwrror
         if (wError_) {
             args.add("-Werror");
+        }
+
+        // Wextra
+        if (wExtra_) {
+            args.add("-Wextra");
         }
 
         // advanced option (X)
@@ -595,6 +601,15 @@ public class CompileOptions {
      */
     public boolean isWError() {
         return wError_;
+    }
+
+    /**
+     * Indicates whether additional declaration, expression, and type compiler checks emit warnings.
+     *
+     * @return {@code true} or {@code false}
+     */
+    public boolean isWExtra() {
+        return wExtra_;
     }
 
     /**
@@ -1069,6 +1084,17 @@ public class CompileOptions {
      */
     public CompileOptions wError(boolean wError) {
         wError_ = wError;
+        return this;
+    }
+
+    /**
+     * Enable additional declaration, expression, and type compiler checks that emit warnings if {@code true}.
+     *
+     * @param wExtra {@code true} or {@code false}
+     * @return this operation instance
+     */
+    public CompileOptions wExtra(boolean wExtra) {
+        wExtra_ = wExtra;
         return this;
     }
 }
