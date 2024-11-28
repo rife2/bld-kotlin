@@ -406,9 +406,11 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     public CompileKotlinOperation fromProject(BaseProject project) {
         project_ = project;
 
-        var env = System.getenv("KOTLIN_HOME");
-        if (env != null) {
-            kotlinHome_ = new File(env);
+        if (kotlinHome_ == null) {
+            var env = System.getenv("KOTLIN_HOME");
+            if (env != null) {
+                kotlinHome_ = new File(env);
+            }
         }
 
         workDir_ = new File(project.workDirectory().getAbsolutePath());
