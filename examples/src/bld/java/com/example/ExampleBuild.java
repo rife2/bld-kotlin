@@ -58,14 +58,11 @@ public class ExampleBuild extends Project {
     @Override
     public void compile() throws Exception {
         // The source code located in src/main/kotlin and src/test/kotlin will be compiled
-        new CompileKotlinOperation()
-                .fromProject(this)
+        var op = new CompileKotlinOperation()
 //                .kotlinHome("path/to/kotlin")
 //                .kotlinc("path/to/kotlinc")
-                .execute();
-
-//        var op = new CompileKotlinOperation().fromProject(this);
-//        op.compileOptions().verbose(true);
-//        op.execute();
+                .fromProject(this);
+        op.compileOptions().verbose(true);
+        op.execute();
     }
 }
