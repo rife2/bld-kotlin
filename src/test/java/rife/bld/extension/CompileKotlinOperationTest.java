@@ -86,7 +86,7 @@ class CompileKotlinOperationTest {
     @Test
     void testCollections() {
         var op = new CompileKotlinOperation()
-                .fromProject(new BaseProjectBlueprint(new File("examples"), "com.example", "Example"))
+                .fromProject(new BaseProjectBlueprint(new File("examples"), "com.example", "Example", "Example"))
                 .kotlinHome("/kotlin_home")
                 .kotlinc("kotlinc")
                 .workDir("work_dir")
@@ -167,8 +167,7 @@ class CompileKotlinOperationTest {
             }
 
             var op = new CompileKotlinOperation()
-                    .fromProject(new BaseProjectBlueprint(new File("examples"), "com.example",
-                            "Example"))
+                    .fromProject(new BaseProjectBlueprint(new File("examples"), "com.example", "Example", "Example"))
                     .buildMainDirectory(mainDir)
                     .buildTestDirectory(testDir)
                     .compileMainClasspath(compileJars)
@@ -208,7 +207,7 @@ class CompileKotlinOperationTest {
     @Test
     void testFromProjectNoKotlin() {
         var op = new CompileKotlinOperation().fromProject(
-                new BaseProjectBlueprint(new File("foo"), "org.example", "foo"));
+                new BaseProjectBlueprint(new File("foo"), "org.example", "foo", "foo"));
         assertThat(op.mainSourceDirectories()).isEmpty();
         assertThat(op.testSourceDirectories()).isEmpty();
     }
