@@ -8,13 +8,17 @@
 [![Snapshot](https://flat.badgen.net/maven/v/metadata-url/repo.rife2.com/snapshots/com/uwyn/rife2/bld-kotlin/maven-metadata.xml?label=snapshot)](https://repo.rife2.com/#/snapshots/com/uwyn/rife2/bld-kotlin)
 [![GitHub CI](https://github.com/rife2/bld-kotlin/actions/workflows/bld.yml/badge.svg)](https://github.com/rife2/bld-kotlin/actions/workflows/bld.yml)
 
-To install, please refer to the [extensions](https://github.com/rife2/bld/wiki/Extensions)
-and [support](https://github.com/rife2/bld/wiki/Kotlin-Support)
-documentation.
+To install the latest version, add the following to the `lib/bld/bld-wrapper.properties` file:
+
+```properties
+bld.extension-kotlin=com.uwyn.rife2:bld-kotlin
+```
+
+For more information, please refer to the [extensions](https://github.com/rife2/bld/wiki/Extensions) and [support](https://github.com/rife2/bld/wiki/Kotlin-Support) documentation.
 
 ## Compile Kotlin Source Code
 
-To compile the source code located in `src/main/kotlin` and `src/test/kotlin` from the current project:
+To compile the source code located in `src/main/kotlin` and `src/test/kotlin` from the current project add the following to the build file:
 
 ```java
 
