@@ -17,6 +17,7 @@
 package rife.bld.extension.kotlin;
 
 /**
+ * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
  * Defines the known Kotlin compiler plugin JARs.
  *
  * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
@@ -25,6 +26,8 @@ package rife.bld.extension.kotlin;
 public enum CompilerPlugin {
     ALL_OPEN("allopen-compiler-plugin.jar"),
     ASSIGNMENT("assignment-compiler-plugin.jar"),
+    COMPOSE("compose-compiler-plugin.jar"),
+    KOTLIN_IMPORTS_DUMPER("kotlin-imports-dumper-compiler-plugin.jar"),
     KOTLINX_SERIALIZATION("kotlinx-serialization-compiler-plugin.jar"),
     KOTLIN_SERIALIZATION("kotlin-serialization-compiler-plugin.jar"),
     LOMBOK("lombok-compiler-plugin.jar"),
