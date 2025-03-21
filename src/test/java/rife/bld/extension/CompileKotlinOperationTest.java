@@ -210,6 +210,15 @@ class CompileKotlinOperationTest {
     }
 
     @Test
+    void testFromProject() {
+        var examples = new File("examples");
+        var op = new CompileKotlinOperation().fromProject(
+                new BaseProjectBlueprint(examples, "com.example", "examples", "examples"));
+        assertThat(op.mainSourceDirectories()).contains(new File(examples, "src/main/kotlin"));
+        assertThat(op.testSourceDirectories()).contains(new File(examples, "src/test/kotlin"));
+    }
+
+    @Test
     void testFromProjectNoKotlin() {
         var op = new CompileKotlinOperation().fromProject(
                 new BaseProjectBlueprint(new File("foo"), "org.example", "foo", "foo"));
