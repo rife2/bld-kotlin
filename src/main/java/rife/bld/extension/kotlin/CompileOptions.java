@@ -37,7 +37,7 @@ public class CompileOptions {
     private final Collection<String> advancedOptions_ = new ArrayList<>();
     private final Collection<File> argFile_ = new ArrayList<>();
     private final Collection<File> classpath_ = new ArrayList<>();
-    private final Collection<String> jvmOptions_ = new ArrayList<>();
+    private final JvmOptions jvmOptions_ = new JvmOptions();
     private final Collection<String> optIn_ = new ArrayList<>();
     private final Collection<String> options_ = new ArrayList<>();
     private final Collection<String> plugin_ = new ArrayList<>();
@@ -709,12 +709,12 @@ public class CompileOptions {
      *
      * @return the JVM options
      */
-    public Collection<String> jvmOptions() {
+    public JvmOptions jvmOptions() {
         return jvmOptions_;
     }
 
     /**
-     * Pass an option directly to Java Virtual Machine
+     * Pass an option directly to the Java Virtual Machine
      *
      * @param jvmOptions the JVM options
      * @return this operation instance
@@ -725,7 +725,7 @@ public class CompileOptions {
     }
 
     /**
-     * Pass an option directly to JVM
+     * Pass an option directly to the Java Virtual Machine
      *
      * @param jvmOptions one or more JVM option
      * @return this operation instance

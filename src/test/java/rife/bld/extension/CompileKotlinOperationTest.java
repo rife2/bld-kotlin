@@ -23,6 +23,7 @@ import rife.bld.BaseProject;
 import rife.bld.blueprints.BaseProjectBlueprint;
 import rife.bld.extension.kotlin.CompileOptions;
 import rife.bld.extension.kotlin.CompilerPlugin;
+import rife.bld.extension.kotlin.JvmOptions;
 import rife.tools.FileUtils;
 
 import java.io.File;
@@ -177,9 +178,10 @@ class CompileKotlinOperationTest {
 
             op.compileOptions().verbose(true);
             op.compileOptions().jdkRelease("17");
+            op.compileOptions().jvmOptions().enableNativeAccess(JvmOptions.ALL_UNNAMED);
 
             var args = op.compileOptions().args();
-            var matches = List.of("-Xjdk-release=17", "-no-stdlib", "-verbose");
+            var matches = List.of("-Xjdk-release=17", "-J--enable-native-access=ALL-UNNAMED", "-no-stdlib", "-verbose");
             assertThat(args).as(args + " == " + matches).isEqualTo(matches);
 
             op.execute();

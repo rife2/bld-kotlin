@@ -3,6 +3,8 @@ package com.example;
 import rife.bld.BuildCommand;
 import rife.bld.Project;
 import rife.bld.extension.CompileKotlinOperation;
+import rife.bld.extension.kotlin.CompileOptions;
+import rife.bld.extension.kotlin.JvmOptions;
 
 import java.io.File;
 import java.util.List;
@@ -58,12 +60,14 @@ public class ExampleBuild extends Project {
     @BuildCommand(summary = "Compiles the Kotlin project")
     @Override
     public void compile() throws Exception {
+        var options = new CompileOptions().verbose(true);
+        options.jvmOptions().enableNativeAccess(JvmOptions.ALL_UNNAMED);
         // The source code located in src/main/kotlin and src/test/kotlin will be compiled
-        var op = new CompileKotlinOperation()
+        new CompileKotlinOperation()
 //                .kotlinHome("path/to/kotlin")
 //                .kotlinc("path/to/kotlinc")
-                .fromProject(this);
-        op.compileOptions().verbose(true);
-        op.execute();
+                .compileOptions(options)
+                .fromProject(this)
+                .execute();
     }
 }
