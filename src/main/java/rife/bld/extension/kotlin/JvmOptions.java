@@ -20,6 +20,7 @@ import rife.tools.StringUtils;
 
 import java.io.Serial;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -54,7 +55,7 @@ public class JvmOptions extends ArrayList<String> {
      *
      * @return this list of options
      */
-    public JvmOptions enableNativeAccess(List<String> modules) {
+    public JvmOptions enableNativeAccess(Collection<String> modules) {
         add("--enable-native-access=" + StringUtils.join(modules, ","));
         return this;
     }
