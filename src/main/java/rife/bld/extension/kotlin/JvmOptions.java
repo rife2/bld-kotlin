@@ -31,18 +31,19 @@ import java.util.List;
  */
 @SuppressWarnings("PMD.LooseCoupling")
 public class JvmOptions extends ArrayList<String> {
-    @Serial
-    private static final long serialVersionUID = 1L;
-
     /**
      * Keyword to enable native access for all code on the class path.
      */
     public final static String ALL_UNNAMED = "ALL-UNNAMED";
 
+    @Serial
+    private static final long serialVersionUID = 1L;
+
     /**
      * Modules that are permitted to perform restricted native operations.
      * The module name can also be {@link #ALL_UNNAMED}.
      *
+     * @param modules the module names
      * @return this list of options
      */
     public JvmOptions enableNativeAccess(String... modules) {
@@ -53,10 +54,37 @@ public class JvmOptions extends ArrayList<String> {
      * Modules that are permitted to perform restricted native operations.
      * The module name can also be {@link #ALL_UNNAMED}.
      *
+     * @param modules the module names
      * @return this list of options
      */
     public JvmOptions enableNativeAccess(Collection<String> modules) {
         add("--enable-native-access=" + StringUtils.join(modules, ","));
         return this;
+    }
+
+    /**
+     * Controls what action the Java runtime takes when native access is not enabled for a module.
+     *
+     * @param access the access mode
+     * @return this list of options
+     */
+    public JvmOptions illegalNativeAccess(NativeAccess access) {
+        add("--illegal-native-access=" + access.mode);
+        return this;
+    }
+
+    /**
+     * Illegal native access modes.
+     */
+    public enum NativeAccess {
+        ALLOW("allow"),
+        DENY("deny"),
+        WARN("warn");
+
+        public final String mode;
+
+        NativeAccess(String mode) {
+            this.mode = mode;
+        }
     }
 }

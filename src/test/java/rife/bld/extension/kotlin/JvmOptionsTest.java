@@ -27,7 +27,8 @@ class JvmOptionsTest {
     @Test
     void testCompileOptions() {
         var compileOptions = new CompileOptions().jvmOptions(new JvmOptions().enableNativeAccess(JvmOptions.ALL_UNNAMED));
-        assertThat(compileOptions.jvmOptions()).as(JvmOptions.ALL_UNNAMED).containsExactly("--enable-native-access=ALL-UNNAMED");
+        assertThat(compileOptions.jvmOptions()).as(JvmOptions.ALL_UNNAMED)
+                .containsExactly("--enable-native-access=ALL-UNNAMED");
         assertThat(compileOptions.args()).as("args()").containsExactly("-J--enable-native-access=ALL-UNNAMED");
 
         compileOptions = new CompileOptions().jvmOptions(new JvmOptions().enableNativeAccess("m1", "m2"));
@@ -40,8 +41,23 @@ class JvmOptionsTest {
         var options = new JvmOptions().enableNativeAccess(JvmOptions.ALL_UNNAMED);
         assertThat(options).as(JvmOptions.ALL_UNNAMED).containsExactly("--enable-native-access=ALL-UNNAMED");
 
+        options = new JvmOptions().enableNativeAccess("m1");
+        assertThat(options).as("m1").containsExactly("--enable-native-access=m1");
+
         options = new JvmOptions().enableNativeAccess("m1", "m2");
         assertThat(options).as("m1,m2").containsExactly("--enable-native-access=m1,m2");
+    }
+
+    @Test
+    void testIllegalNativeAccess() {
+        var options = new JvmOptions().illegalNativeAccess(JvmOptions.NativeAccess.ALLOW);
+        assertThat(options).as("ALLOW").containsExactly("--illegal-native-access=allow");
+
+        options = new JvmOptions().illegalNativeAccess(JvmOptions.NativeAccess.DENY);
+        assertThat(options).as("DENY").containsExactly("--illegal-native-access=deny");
+
+        options = new JvmOptions().illegalNativeAccess(JvmOptions.NativeAccess.WARN);
+        assertThat(options).as("WARN").containsExactly("--illegal-native-access=warn");
     }
 
     @Test
@@ -59,5 +75,13 @@ class JvmOptionsTest {
                 .containsExactly("option1", "option2", "--enable-native-access=ALL-UNNAMED");
         assertThat(compileOptions.args()).as("args(option1,option2,ALL_UNNAMED)")
                 .containsExactly("-Joption1", "-Joption2", "-J--enable-native-access=ALL-UNNAMED");
+
+        compileOptions = compileOptions.jvmOptions(new JvmOptions().illegalNativeAccess(JvmOptions.NativeAccess.ALLOW));
+        assertThat(compileOptions.jvmOptions()).as("allow")
+                .containsExactly("option1", "option2", "--enable-native-access=ALL-UNNAMED",
+                        "--illegal-native-access=allow");
+        assertThat(compileOptions.args()).as("args(option1,option2,ALL_UNNAMED,allow)")
+                .containsExactly("-Joption1", "-Joption2", "-J--enable-native-access=ALL-UNNAMED",
+                        "-J--illegal-native-access=allow");
     }
 }
