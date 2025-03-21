@@ -104,9 +104,10 @@ class CompileKotlinOperationTest {
                 .testSourceFiles(List.of(new File("tfile3"), new File("tfile4")))
                 .testSourceFiles(new File("tfile5"), new File("tfile6"))
                 .plugins("plugin1", "plugin2")
-                .plugins(CompilerPlugin.KOTLIN_SERIALIZATION, CompilerPlugin.ASSIGNMENT)
+                .plugins(CompilerPlugin.KOTLIN_SERIALIZATION, CompilerPlugin.ASSIGNMENT, CompilerPlugin.COMPOSE)
                 .plugins(new File("lib/compile"), CompilerPlugin.LOMBOK, CompilerPlugin.POWER_ASSERT)
-                .plugins(Path.of("lib/compile"), CompilerPlugin.NOARG, CompilerPlugin.ALL_OPEN)
+                .plugins(Path.of("lib/compile"), CompilerPlugin.NOARG, CompilerPlugin.ALL_OPEN,
+                        CompilerPlugin.KOTLIN_IMPORTS_DUMPER)
                 .plugins("lib/compile", CompilerPlugin.KOTLINX_SERIALIZATION, CompilerPlugin.SAM_WITH_RECEIVER)
 
                 .plugins(List.of("plugin3", "plugin4"));
@@ -134,10 +135,12 @@ class CompileKotlinOperationTest {
             softly.assertThat(op.plugins()).as("plugins").contains("plugin1", "plugin2", "plugin3", "plugin4",
                     "/kotlin_home/lib/kotlin-serialization-compiler-plugin.jar",
                     "/kotlin_home/lib/assignment-compiler-plugin.jar",
+                    "/kotlin_home/lib/compose-compiler-plugin.jar",
                     new File("lib/compile", "lombok-compiler-plugin.jar").getAbsolutePath(),
                     new File("lib/compile", "power-assert-compiler-plugin.jar").getAbsolutePath(),
                     new File("lib/compile", "noarg-compiler-plugin.jar").getAbsolutePath(),
                     new File("lib/compile", "allopen-compiler-plugin.jar").getAbsolutePath(),
+                    new File("lib/compile", "kotlin-imports-dumper-compiler-plugin.jar").getAbsolutePath(),
                     new File("lib/compile", "kotlinx-serialization-compiler-plugin.jar").getAbsolutePath(),
                     new File("lib/compile", "sam-with-receiver-compiler-plugin.jar").getAbsolutePath());
         }
@@ -315,6 +318,8 @@ class CompileKotlinOperationTest {
                 .fromProject(new BaseProject())
                 .plugins(CompilerPlugin.ALL_OPEN,
                         CompilerPlugin.ASSIGNMENT,
+                        CompilerPlugin.COMPOSE,
+                        CompilerPlugin.KOTLIN_IMPORTS_DUMPER,
                         CompilerPlugin.KOTLINX_SERIALIZATION,
                         CompilerPlugin.KOTLIN_SERIALIZATION,
                         CompilerPlugin.LOMBOK,

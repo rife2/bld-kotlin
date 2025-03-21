@@ -9,6 +9,8 @@
       <entry_point TYPE="field" FQNAME="rife.bld.extension.kotlin.CompilerPlugin NOARG" />
       <entry_point TYPE="field" FQNAME="rife.bld.extension.kotlin.CompilerPlugin POWER_ASSERT" />
       <entry_point TYPE="field" FQNAME="rife.bld.extension.kotlin.CompilerPlugin SAM_WITH_RECEIVER" />
+      <entry_point TYPE="field" FQNAME="rife.bld.extension.kotlin.CompilerPlugin COMPOSE" />
+      <entry_point TYPE="field" FQNAME="rife.bld.extension.kotlin.CompilerPlugin KOTLIN_IMPORTS_DUMPER" />
     </entry_points>
     <pattern value="rife.bld.extension.CompileKotlinOperationBuild" method="pmd" />
     <pattern value="rife.bld.extension.kotlin.CompilerPlugin" />
