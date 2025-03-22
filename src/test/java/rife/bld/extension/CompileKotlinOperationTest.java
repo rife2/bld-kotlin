@@ -31,6 +31,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
@@ -210,6 +211,11 @@ class CompileKotlinOperationTest {
     }
 
     @Test
+    void testFindKotlincPath() {
+        assertThat(CompileKotlinOperation.findKotlincPath()).doesNotStartWith("kotlinc");
+    }
+
+    @Test
     void testFromProject() {
         var examples = new File("examples");
         var op = new CompileKotlinOperation().fromProject(
@@ -224,6 +230,21 @@ class CompileKotlinOperationTest {
                 new BaseProjectBlueprint(new File("foo"), "org.example", "foo", "foo"));
         assertThat(op.mainSourceDirectories()).isEmpty();
         assertThat(op.testSourceDirectories()).isEmpty();
+    }
+
+    @Test
+    void testIsOS() {
+        var osName = System.getProperty("os.name");
+        if (osName != null) {
+            var os = osName.toLowerCase(Locale.US);
+            if (os.contains("win")) {
+                assertThat(CompileKotlinOperation.isWindows()).isTrue();
+            } else if (os.contains("linux") || os.contains("unix")) {
+                assertThat(CompileKotlinOperation.isLinux()).isTrue();
+            } else if (os.contains("mac") || os.contains("darwin")) {
+                assertThat(CompileKotlinOperation.isMacOS()).isTrue();
+            }
+        }
     }
 
     @Test

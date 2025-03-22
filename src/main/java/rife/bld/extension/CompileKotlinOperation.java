@@ -26,9 +26,7 @@ import rife.tools.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -40,6 +38,9 @@ import java.util.logging.Logger;
  */
 public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOperation> {
     private static final Logger LOGGER = Logger.getLogger(CompileKotlinOperation.class.getName());
+    private static final String OS_NAME =
+            System.getProperty("os.name") != null ? System.getProperty("os.name").toLowerCase(Locale.US) : null;
+    private static final String KOTLINC_EXECUTABLE = "kotlinc" + (isWindows() ? ".bat" : "");
     private final Collection<String> compileMainClasspath_ = new ArrayList<>();
     private final Collection<String> compileTestClasspath_ = new ArrayList<>();
     private final Collection<File> mainSourceDirectories_ = new ArrayList<>();
@@ -55,6 +56,145 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     private BaseProject project_;
     private File workDir_;
 
+    private static String findKotlincInDir(String directory) {
+        var kotlinc = new File(directory, KOTLINC_EXECUTABLE);
+
+        if (isExecutable(kotlinc)) {
+            return kotlinc.getAbsolutePath();
+        }
+
+        // Check bin subdirectory if it exists
+        var binDir = new File(directory, "bin");
+        if (binDir.exists() && binDir.isDirectory()) {
+            kotlinc = new File(binDir, KOTLINC_EXECUTABLE);
+            if (isExecutable(kotlinc)) {
+                return kotlinc.getAbsolutePath();
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Locates the Kotlin compiler (kotlinc) executable.
+     *
+     * @return The path to the kotlinc executable, or {@code kotlinc}/{@code kotlinc.bat} if not found.
+     */
+    public static String findKotlincPath() {
+        String kotlincPath;
+
+        // Check KOTLIN_HOME environment variable first
+        var kotlinHome = System.getenv("KOTLIN_HOME");
+        if (kotlinHome != null && !kotlinHome.isEmpty()) {
+            kotlincPath = findKotlincInDir(kotlinHome);
+            if (kotlincPath != null) {
+                return kotlincPath;
+            }
+        }
+
+        // Check PATH environment variable
+        var pathEnv = System.getenv("PATH");
+        if (pathEnv != null && !pathEnv.isEmpty()) {
+            var pathDirs = pathEnv.split(File.pathSeparator);
+            for (var dir : pathDirs) {
+                kotlincPath = findKotlincInDir(dir);
+                if (kotlincPath != null) {
+                    return kotlincPath;
+                }
+            }
+        }
+
+        // Common installation paths (e.g., SDKMAN!, IntelliJ IDEA, etc.)
+        List<String> commonPaths = new ArrayList<>();
+
+        if (isLinux()) {
+            commonPaths.add("/usr/bin");
+            commonPaths.add("/usr/local/bin");
+            commonPaths.add("/usr/local/kotlin/bin");
+            commonPaths.add("/opt/kotlin/bin");
+            var userHome = System.getProperty("user.home");
+            if (userHome != null) {
+                commonPaths.add(userHome + "/.sdkman/candidates/kotlin/current/bin"); // SDKMAN!
+                commonPaths.add(userHome + "/.local/share/JetBrains/Toolbox/apps/intellij-idea-ultimate/plugins/Kotlin/bin"); // Toolbox IDEA Ultimate
+                commonPaths.add(userHome + "/.local/share/JetBrains/Toolbox/apps/intellij-idea-community-edition/plugins/Kotlin/bin"); // Toolbox IDEA CE
+                commonPaths.add(userHome + "/.local/share/JetBrains/Toolbox/apps/android-studio/plugins/Kotlin/bin"); // Toolbox Android Studio
+            }
+        } else if (isWindows()) {
+            var localAppData = System.getenv("LOCALAPPDATA");
+            if (localAppData != null) {
+                commonPaths.add(localAppData + "\\Programs\\IntelliJ IDEA Ultimate\\plugins\\Kotlin\\kotlinc\\bin"); // Toolbox IDEA Ultimate
+                commonPaths.add(localAppData + "\\Programs\\IntelliJ IDEA Community Edition\\plugins\\Kotlin\\kotlinc\\bin"); // Toolbox IDEA CE
+                commonPaths.add(localAppData + "\\Programs\\Android Studio\\plugins\\Kotlin\\kotlinc\\bin"); // Toolbox Android Studio
+            }
+            var programFiles = System.getenv("ProgramFiles");
+            if (programFiles != null) {
+                commonPaths.add(programFiles + File.separator + "Kotlin");
+            }
+        } else if (isMacOS()) {
+            commonPaths.add("/usr/local/bin"); // Homebrew
+            commonPaths.add("/opt/homebrew/bin"); // Homebrew
+            var userHome = System.getProperty("user.home");
+            if (userHome != null) {
+                commonPaths.add(userHome + "/.sdkman/candidates/kotlin/current/bin"); // SDKMAN!
+            }
+            commonPaths.add("/Applications/IntelliJ IDEA Ultimate.app/Contents/plugins/Kotlin/bin"); //IntelliJ IDEA Ultimate
+            commonPaths.add("/Applications/IntelliJ IDEA.app/Contents/plugins/Kotlin/bin"); //IntelliJ IDEA
+            commonPaths.add("/Applications/Android Studio.app/Contents/plugins/Kotlin/bin"); //Android Studio
+        }
+
+        for (var location : commonPaths) {
+            kotlincPath = findKotlincInDir(location);
+            if (kotlincPath != null) {
+                return kotlincPath;
+            }
+        }
+
+        // Try 'which' or 'where' commands (less reliable but sometimes works)
+        try {
+            Process process;
+            if (isWindows()) {
+                process = Runtime.getRuntime().exec("where kotlinc");
+            } else {
+                process = Runtime.getRuntime().exec("which kotlinc");
+            }
+
+            try (var scanner = new Scanner(process.getInputStream())) {
+                if (scanner.hasNextLine()) {
+                    kotlincPath = scanner.nextLine().trim();
+                    if (isExecutable(new File(kotlincPath))) {
+                        return kotlincPath;
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+            // Ignore exceptions from which/where, as they might not be available
+        }
+
+        return KOTLINC_EXECUTABLE;
+    }
+
+    private static boolean isExecutable(File file) {
+        return file != null && file.exists() && file.isFile() && file.canExecute();
+    }
+
+    /**
+     * Determines if the operating system is Linux.
+     *
+     * @return true if the operating system is Linux, false otherwise.
+     */
+    public static boolean isLinux() {
+        return OS_NAME != null && (OS_NAME.contains("linux") || OS_NAME.contains("unix")); // Consider Unix-like systems as well.
+    }
+
+    /**
+     * Determines if the current operating system is macOS.
+     *
+     * @return true if the OS is macOS, false otherwise.
+     */
+    public static boolean isMacOS() {
+        return OS_NAME != null && (OS_NAME.contains("mac") || OS_NAME.contains("darwin"));
+    }
+
     /**
      * Determines if the given string is not blank.
      *
@@ -63,6 +203,15 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     public static boolean isNotBlank(String s) {
         return s != null && !s.isBlank();
+    }
+
+    /**
+     * Determines if the current operating system is Windows.
+     *
+     * @return true if the operating system is Windows, false otherwise.
+     */
+    public static boolean isWindows() {
+        return OS_NAME != null && OS_NAME.contains("win");
     }
 
     /**
@@ -299,7 +448,14 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         var args = new ArrayList<String>();
 
         // kotlinc
-        args.add(kotlinCompiler());
+        if (kotlinc_ != null) {
+            args.add(kotlinc_.getAbsolutePath());
+        } else if (kotlinHome_ != null) {
+            args.add(Objects.requireNonNullElseGet(findKotlincInDir(kotlinHome_.getAbsolutePath()),
+                    CompileKotlinOperation::findKotlincPath));
+        } else {
+            args.add(findKotlincPath());
+        }
 
         // classpath
         if (classpath != null && !classpath.isEmpty()) {
@@ -386,7 +542,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * <p>
      * Sets the following from the project:
      * <ul>
-     *     <li>{@link #kotlinHome() kotlinHome} to the {@code KOTLIN_HOME} environment variable, if set.</li>
      *     <li>{@link #workDir() workDir} to the project's directory.</li>
      *     <li>{@link #buildMainDirectory() buildMainDirectory}</li>
      *     <li>{@link #buildTestDirectory() buildTestDirectory}</li>
@@ -405,14 +560,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     public CompileKotlinOperation fromProject(BaseProject project) {
         project_ = project;
-
-        if (kotlinHome_ == null) {
-            var env = System.getenv("KOTLIN_HOME");
-            if (env != null) {
-                kotlinHome_ = new File(env);
-            }
-        }
-
         workDir_ = new File(project.workDirectory().getAbsolutePath());
 
         var op = buildMainDirectory(project.buildMainDirectory())
@@ -435,18 +582,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         compileOptions_.noStdLib(true);
 
         return op;
-    }
-
-    private String kotlinCompiler() {
-        if (kotlinc_ != null) {
-            return kotlinc_.getAbsolutePath();
-        } else if (kotlinHome_ != null) {
-            var kotlinc = Path.of(kotlinHome_.getAbsolutePath(), "bin", "kotlinc").toFile();
-            if (kotlinc.exists() && kotlinc.canExecute()) {
-                return kotlinc.getAbsolutePath();
-            }
-        }
-        return "kotlinc";
     }
 
     /**

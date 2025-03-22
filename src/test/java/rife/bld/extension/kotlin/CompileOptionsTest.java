@@ -45,7 +45,6 @@ class CompileOptionsTest {
                 .collect(Collectors.joining(File.pathSeparator));
     }
 
-
     @Test
     @SuppressWarnings("PMD.UnitTestShouldIncludeAssert")
     void testArgs() {
