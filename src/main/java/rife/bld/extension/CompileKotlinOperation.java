@@ -79,6 +79,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * Locates the Kotlin compiler (kotlinc) executable.
      *
      * @return The path to the kotlinc executable, or {@code kotlinc}/{@code kotlinc.bat} if not found.
+     * @since 1.0.5
      */
     public static String findKotlincPath() {
         String kotlincPath;
@@ -108,10 +109,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         List<String> commonPaths = new ArrayList<>();
 
         if (isLinux()) {
-            commonPaths.add("/usr/bin");
-            commonPaths.add("/usr/local/bin");
-            commonPaths.add("/usr/local/kotlin/bin");
-            commonPaths.add("/opt/kotlin/bin");
             var userHome = System.getProperty("user.home");
             if (userHome != null) {
                 commonPaths.add(userHome + "/.sdkman/candidates/kotlin/current/bin"); // SDKMAN!
@@ -119,6 +116,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                 commonPaths.add(userHome + "/.local/share/JetBrains/Toolbox/apps/intellij-idea-community-edition/plugins/Kotlin/bin"); // Toolbox IDEA CE
                 commonPaths.add(userHome + "/.local/share/JetBrains/Toolbox/apps/android-studio/plugins/Kotlin/bin"); // Toolbox Android Studio
             }
+            commonPaths.add("/usr/bin");
+            commonPaths.add("/usr/local/bin");
+            commonPaths.add("/usr/local/kotlin/bin");
+            commonPaths.add("/opt/kotlin/bin");
         } else if (isWindows()) {
             var localAppData = System.getenv("LOCALAPPDATA");
             if (localAppData != null) {
@@ -131,8 +132,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                 commonPaths.add(programFiles + File.separator + "Kotlin");
             }
         } else if (isMacOS()) {
-            commonPaths.add("/usr/local/bin"); // Homebrew
-            commonPaths.add("/opt/homebrew/bin"); // Homebrew
             var userHome = System.getProperty("user.home");
             if (userHome != null) {
                 commonPaths.add(userHome + "/.sdkman/candidates/kotlin/current/bin"); // SDKMAN!
@@ -140,6 +139,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             commonPaths.add("/Applications/IntelliJ IDEA Ultimate.app/Contents/plugins/Kotlin/bin"); //IntelliJ IDEA Ultimate
             commonPaths.add("/Applications/IntelliJ IDEA.app/Contents/plugins/Kotlin/bin"); //IntelliJ IDEA
             commonPaths.add("/Applications/Android Studio.app/Contents/plugins/Kotlin/bin"); //Android Studio
+            commonPaths.add("/usr/local/bin"); // Homebrew
+            commonPaths.add("/opt/homebrew/bin"); // Homebrew
         }
 
         for (var location : commonPaths) {
@@ -181,6 +182,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * Determines if the operating system is Linux.
      *
      * @return true if the operating system is Linux, false otherwise.
+     * @since 1.0.5
      */
     public static boolean isLinux() {
         return OS_NAME != null && (OS_NAME.contains("linux") || OS_NAME.contains("unix")); // Consider Unix-like systems as well.
@@ -190,6 +192,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * Determines if the current operating system is macOS.
      *
      * @return true if the OS is macOS, false otherwise.
+     * @since 1.0.5
      */
     public static boolean isMacOS() {
         return OS_NAME != null && (OS_NAME.contains("mac") || OS_NAME.contains("darwin"));
@@ -209,6 +212,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * Determines if the current operating system is Windows.
      *
      * @return true if the operating system is Windows, false otherwise.
+     * @since 1.0.5
      */
     public static boolean isWindows() {
         return OS_NAME != null && OS_NAME.contains("win");

@@ -44,13 +44,14 @@ for all available configuration options.
 
 Please make sure the Kotlin compiler is [installed](https://kotlinlang.org/docs/command-line.html#install-the-compiler).
 
-The plugin will look in common locations such as:
-- `KOTLIN_HOME`
-- `PATH`
-- SDKMAN!
-- Homebrew
-- JetBrains Toolbox (IntelliJ IDEA, Android Studio)
-- etc.
+The extension will look in common locations such as:
+
+ - `KOTLIN_HOME`
+ - `PATH`
+ - [SDKMAN!](https://sdkman.io/)
+ - [Homebrew](https://brew.sh/)
+ - [JetBrains Toolbox](https://www.jetbrains.com/toolbox-app/) (IntelliJ IDEA, Android Studio)
+ - etc.
 
 You can also manually configure the Kotlin home location as follows:
 
