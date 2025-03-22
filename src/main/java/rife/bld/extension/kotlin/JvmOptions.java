@@ -27,7 +27,7 @@ import java.util.List;
  * Java Virtual Machine options.
  *
  * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
- * @since 1.0.5
+ * @since 1.1.0
  */
 @SuppressWarnings("PMD.LooseCoupling")
 public class JvmOptions extends ArrayList<String> {

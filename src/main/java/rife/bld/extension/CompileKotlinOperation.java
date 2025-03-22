@@ -79,7 +79,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * Locates the Kotlin compiler (kotlinc) executable.
      *
      * @return The path to the kotlinc executable, or {@code kotlinc}/{@code kotlinc.bat} if not found.
-     * @since 1.0.5
+     * @since 1.1.0
      */
     public static String findKotlincPath() {
         String kotlincPath;
@@ -182,7 +182,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * Determines if the operating system is Linux.
      *
      * @return true if the operating system is Linux, false otherwise.
-     * @since 1.0.5
+     * @since 1.1.0
      */
     public static boolean isLinux() {
         return OS_NAME != null && (OS_NAME.contains("linux") || OS_NAME.contains("unix")); // Consider Unix-like systems as well.
@@ -192,7 +192,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * Determines if the current operating system is macOS.
      *
      * @return true if the OS is macOS, false otherwise.
-     * @since 1.0.5
+     * @since 1.1.0
      */
     public static boolean isMacOS() {
         return OS_NAME != null && (OS_NAME.contains("mac") || OS_NAME.contains("darwin"));
@@ -212,7 +212,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * Determines if the current operating system is Windows.
      *
      * @return true if the operating system is Windows, false otherwise.
-     * @since 1.0.5
+     * @since 1.1.0
      */
     public static boolean isWindows() {
         return OS_NAME != null && OS_NAME.contains("win");
