@@ -123,13 +123,14 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             var userHome = System.getProperty("user.home");
             if (userHome != null) {
                 commonPaths.add(userHome + "/.sdkman/candidates/kotlin/current/bin"); // SDKMAN!
-                commonPaths.add(userHome + "/.local/share/JetBrains/Toolbox/apps/intellij-idea-ultimate/plugins/Kotlin/bin"); // Toolbox IDEA Ultimate
-                commonPaths.add(userHome + "/.local/share/JetBrains/Toolbox/apps/intellij-idea-community-edition/plugins/Kotlin/bin"); // Toolbox IDEA CE
-                commonPaths.add(userHome + "/.local/share/JetBrains/Toolbox/apps/android-studio/plugins/Kotlin/bin"); // Toolbox Android Studio
+                commonPaths.add(userHome + "/.local/share/JetBrains/Toolbox/apps/intellij-idea-ultimate/plugins/Kotlin/kotlinc/bin"); // Toolbox IDEA Ultimate
+                commonPaths.add(userHome + "/.local/share/JetBrains/Toolbox/apps/intellij-idea-community-edition/plugins/Kotlin/kotlinc/bin"); // Toolbox IDEA CE
+                commonPaths.add(userHome + "/.local/share/JetBrains/Toolbox/apps/android-studio/plugins/Kotlin/kotlinc/bin"); // Toolbox Android Studio
             }
             commonPaths.add("/usr/bin");
             commonPaths.add("/usr/local/bin");
             commonPaths.add("/usr/local/kotlin/bin");
+            commonPaths.add("/usr/share/kotlinc/bin/");
             commonPaths.add("/opt/kotlin/bin");
         } else if (isWindows()) {
             var localAppData = System.getenv("LOCALAPPDATA");
@@ -147,9 +148,9 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             if (userHome != null) {
                 commonPaths.add(userHome + "/.sdkman/candidates/kotlin/current/bin"); // SDKMAN!
             }
-            commonPaths.add("/Applications/IntelliJ IDEA Ultimate.app/Contents/plugins/Kotlin/bin"); //IntelliJ IDEA Ultimate
-            commonPaths.add("/Applications/IntelliJ IDEA.app/Contents/plugins/Kotlin/bin"); //IntelliJ IDEA
-            commonPaths.add("/Applications/Android Studio.app/Contents/plugins/Kotlin/bin"); //Android Studio
+            commonPaths.add("/Applications/IntelliJ IDEA.app/Contents/plugins/Kotlin/kotlinc/bin/"); // IDEA Ultimate
+            commonPaths.add("/Applications/IntelliJ IDEA Community Edition.app/Contents/plugins/Kotlin/kotlinc/bin/"); //IDEA CE
+            commonPaths.add("/Applications/Android Studio.app/Contents/plugins/Kotlin/kotlinc/bin"); //Android Studio
             commonPaths.add("/usr/local/bin"); // Homebrew
             commonPaths.add("/opt/homebrew/bin"); // Homebrew
         }
