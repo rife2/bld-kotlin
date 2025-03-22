@@ -82,6 +82,17 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @since 1.1.0
      */
     public static String findKotlincPath() {
+        return findKotlincPath(false);
+    }
+
+    /**
+     * Locates the Kotlin compiler (kotlinc) executable.
+     *
+     * @param isSilent do not log the path to the kotlinc executable, if {@code true}
+     * @return The path to the kotlinc executable, or {@code kotlinc}/{@code kotlinc.bat} if not found.
+     * @since 1.1.0
+     */
+    public static String findKotlincPath(boolean isSilent) {
         String kotlincPath;
 
         // Check KOTLIN_HOME environment variable first
@@ -89,7 +100,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         if (kotlinHome != null && !kotlinHome.isEmpty()) {
             kotlincPath = findKotlincInDir(kotlinHome);
             if (kotlincPath != null) {
-                return kotlincPath;
+                return logKotlincPath(kotlincPath, isSilent);
             }
         }
 
@@ -100,7 +111,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             for (var dir : pathDirs) {
                 kotlincPath = findKotlincInDir(dir);
                 if (kotlincPath != null) {
-                    return kotlincPath;
+                    return logKotlincPath(kotlincPath, isSilent);
                 }
             }
         }
@@ -146,7 +157,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         for (var location : commonPaths) {
             kotlincPath = findKotlincInDir(location);
             if (kotlincPath != null) {
-                return kotlincPath;
+                return logKotlincPath(kotlincPath, isSilent);
             }
         }
 
@@ -163,7 +174,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                 if (scanner.hasNextLine()) {
                     kotlincPath = scanner.nextLine().trim();
                     if (isExecutable(new File(kotlincPath))) {
-                        return kotlincPath;
+                        return logKotlincPath(kotlincPath, isSilent);
                     }
                 }
             }
@@ -216,6 +227,13 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     public static boolean isWindows() {
         return OS_NAME != null && OS_NAME.contains("win");
+    }
+
+    private static String logKotlincPath(String kotlincPath, boolean isSilent) {
+        if (LOGGER.isLoggable(Level.INFO) && !isSilent) {
+            LOGGER.info("Using Kotlin compiler found at: " + kotlincPath);
+        }
+        return kotlincPath;
     }
 
     /**
@@ -458,7 +476,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             args.add(Objects.requireNonNullElseGet(findKotlincInDir(kotlinHome_.getAbsolutePath()),
                     CompileKotlinOperation::findKotlincPath));
         } else {
-            args.add(findKotlincPath());
+            args.add(findKotlincPath(silent()));
         }
 
         // classpath
