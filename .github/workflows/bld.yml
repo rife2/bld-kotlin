@@ -6,7 +6,7 @@ env:
   KOTLIN_HOME: /usr/share/kotlinc
 
 jobs:
-  build-bld-project:
+  build-bld-linux:
     runs-on: ubuntu-latest
 
     strategy:
@@ -38,4 +38,27 @@ jobs:
         run: ./bld download
 
       - name: Run tests
+        run: ./bld compile test
+
+  build-bld-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout source repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: 17
+
+      - name: Download dependencies [examples]
+        working-directory: examples
+        run: ./bld download
+
+      - name: Run tests [examples]
+        working-directory: examples
         run: ./bld compile test
