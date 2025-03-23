@@ -110,7 +110,6 @@ class CompileKotlinOperationTest {
                 .plugins(Path.of("lib/compile"), CompilerPlugin.NOARG, CompilerPlugin.ALL_OPEN,
                         CompilerPlugin.KOTLIN_IMPORTS_DUMPER)
                 .plugins("lib/compile", CompilerPlugin.KOTLINX_SERIALIZATION, CompilerPlugin.SAM_WITH_RECEIVER)
-
                 .plugins(List.of("plugin3", "plugin4"));
 
         try (var softly = new AutoCloseableSoftAssertions()) {
@@ -134,9 +133,9 @@ class CompileKotlinOperationTest {
                     new File("tfile1"), new File("tfile2"), new File("tfile3"),
                     new File("tfile4"), new File("tfile5"), new File("tfile6"));
             softly.assertThat(op.plugins()).as("plugins").contains("plugin1", "plugin2", "plugin3", "plugin4",
-                    "/kotlin_home/lib/kotlin-serialization-compiler-plugin.jar",
-                    "/kotlin_home/lib/assignment-compiler-plugin.jar",
-                    "/kotlin_home/lib/compose-compiler-plugin.jar",
+                    new File("/kotlin_home/lib/kotlin-serialization-compiler-plugin.jar").getAbsolutePath(),
+                    new File("/kotlin_home/lib/assignment-compiler-plugin.jar").getAbsolutePath(),
+                    new File("/kotlin_home/lib/compose-compiler-plugin.jar").getAbsolutePath(),
                     new File("lib/compile", "lombok-compiler-plugin.jar").getAbsolutePath(),
                     new File("lib/compile", "power-assert-compiler-plugin.jar").getAbsolutePath(),
                     new File("lib/compile", "noarg-compiler-plugin.jar").getAbsolutePath(),
