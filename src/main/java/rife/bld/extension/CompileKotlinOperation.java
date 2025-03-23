@@ -42,7 +42,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     private static final Logger LOGGER = Logger.getLogger(CompileKotlinOperation.class.getName());
     private static final String OS_NAME =
             System.getProperty("os.name") != null ? System.getProperty("os.name").toLowerCase(Locale.US) : null;
-    private static final String KOTLINC_EXECUTABLE = "kotlinc" + (isWindows() ? ".bat" : "");
+    private static final String KOTLINC_EXECUTABLE = "kotlinc" + (isWindows() && !isCygwin() && !isMinGW() ? ".bat" : "");
     private final Collection<String> compileMainClasspath_ = new ArrayList<>();
     private final Collection<String> compileTestClasspath_ = new ArrayList<>();
     private final JvmOptions jvmOptions_ = new JvmOptions();
@@ -191,6 +191,17 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         return KOTLINC_EXECUTABLE;
     }
 
+    /**
+     * Determines if the current runtime environment is Cygwin.
+     *
+     * @return {@code true} if the current runtime environment is Cygwin, {@code false} otherwise.
+     * @since 1.1.0
+     */
+    public static boolean isCygwin() {
+        var path = System.getenv("ORIGINAL_PATH");
+        return path != null && path.contains("/cygdrive/");
+    }
+
     private static boolean isExecutable(File file) {
         return file != null && file.exists() && file.isFile() && file.canExecute();
     }
@@ -213,6 +224,17 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     public static boolean isMacOS() {
         return OS_NAME != null && (OS_NAME.contains("mac") || OS_NAME.contains("darwin"));
+    }
+
+    /**
+     * Determines if the current runtime environment is MinGW.
+     *
+     * @return {@code true} if the current runtime environment is MinGW, {@code false} otherwise.
+     * @since 1.1.0
+     */
+    public static boolean isMinGW() {
+        var msys = System.getenv("MSYSTEM");
+        return msys != null && (msys.startsWith("MINGW") || msys.startsWith("MSYS"));
     }
 
     /**
