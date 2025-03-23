@@ -7,14 +7,13 @@ env:
 
 jobs:
   build-bld-project:
-    runs-on:
-      - ubuntu-latest
-      - windows-latest
-
     strategy:
       matrix:
         java-version: [17, 21, 24]
         kotlin-version: [1.9.25, 2.0.21, 2.1.20]
+        os: [ ubuntu-latest, windows-latest ]
+
+    runs-on: ${{ matrix.os }}
 
     steps:
       - name: Checkout source repository
