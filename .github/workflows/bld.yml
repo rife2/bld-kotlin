@@ -23,6 +23,10 @@ jobs:
           distribution: "zulu"
           java-version: ${{ matrix.java-version }}
 
+      - name: Download dependencies [examples]
+        working-directory: examples
+        run: ./bld download
+
       - name: Download dependencies
         run: ./bld download
 
