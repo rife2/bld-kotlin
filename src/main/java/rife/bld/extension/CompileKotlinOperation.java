@@ -19,6 +19,7 @@ package rife.bld.extension;
 import rife.bld.BaseProject;
 import rife.bld.extension.kotlin.CompileOptions;
 import rife.bld.extension.kotlin.CompilerPlugin;
+import rife.bld.extension.kotlin.JvmOptions;
 import rife.bld.operations.AbstractOperation;
 import rife.bld.operations.exceptions.ExitStatusException;
 import rife.tools.FileUtils;
@@ -43,6 +44,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     private static final String KOTLINC_EXECUTABLE = "kotlinc" + (isWindows() ? ".bat" : "");
     private final Collection<String> compileMainClasspath_ = new ArrayList<>();
     private final Collection<String> compileTestClasspath_ = new ArrayList<>();
+    private final JvmOptions jvmOptions_ = new JvmOptions();
     private final Collection<File> mainSourceDirectories_ = new ArrayList<>();
     private final Collection<File> mainSourceFiles_ = new ArrayList<>();
     private final Collection<String> plugins_ = new ArrayList<>();
@@ -479,6 +481,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         } else {
             args.add(findKotlincPath(silent()));
         }
+        // JVM options
+        if (!jvmOptions_.isEmpty()) {
+            jvmOptions_.forEach(s -> command.add("-J" + s));
+        }
 
         // classpath
         if (classpath != null && !classpath.isEmpty()) {
@@ -605,6 +611,36 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         compileOptions_.noStdLib(true);
 
         return op;
+    }
+
+    /**
+     * Retrieves the Java Virtual Machine options.
+     *
+     * @return the JVM options
+     */
+    public JvmOptions jvmOptions() {
+        return jvmOptions_;
+    }
+
+    /**
+     * Pass an option directly to the Java Virtual Machine
+     *
+     * @param jvmOptions the JVM options
+     * @return this operation instance
+     */
+    public CompileKotlinOperation jvmOptions(Collection<String> jvmOptions) {
+        jvmOptions_.addAll(jvmOptions);
+        return this;
+    }
+
+    /**
+     * Pass an option directly to the Java Virtual Machine
+     *
+     * @param jvmOptions one or more JVM option
+     * @return this operation instance
+     */
+    public CompileKotlinOperation jvmOptions(String... jvmOptions) {
+        return jvmOptions(List.of(jvmOptions));
     }
 
     /**

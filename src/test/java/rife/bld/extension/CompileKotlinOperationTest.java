@@ -182,10 +182,14 @@ class CompileKotlinOperationTest {
 
             op.compileOptions().verbose(true);
             op.compileOptions().jdkRelease("17");
-            op.compileOptions().jvmOptions().enableNativeAccess(JvmOptions.ALL_UNNAMED);
+
+            if (!CompileKotlinOperation.isWindows()) {
+                op.jvmOptions().enableNativeAccess(JvmOptions.ALL_UNNAMED);
+                assertThat(op.jvmOptions()).containsExactly("--enable-native-access=ALL-UNNAMED");
+            }
 
             var args = op.compileOptions().args();
-            var matches = List.of("-Xjdk-release=17", "-J--enable-native-access=ALL-UNNAMED", "-no-stdlib", "-verbose");
+            var matches = List.of("-Xjdk-release=17", "-no-stdlib", "-verbose");
             assertThat(args).as(args + " == " + matches).isEqualTo(matches);
 
             op.execute();

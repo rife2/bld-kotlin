@@ -17,6 +17,7 @@
 package rife.bld.extension.kotlin;
 
 import org.junit.jupiter.api.Test;
+import rife.bld.extension.CompileKotlinOperation;
 
 import java.util.List;
 
@@ -25,15 +26,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class JvmOptionsTest {
     @Test
-    void testCompileOptions() {
-        var compileOptions = new CompileOptions().jvmOptions(new JvmOptions().enableNativeAccess(JvmOptions.ALL_UNNAMED));
-        assertThat(compileOptions.jvmOptions()).as(JvmOptions.ALL_UNNAMED)
-                .containsExactly("--enable-native-access=ALL-UNNAMED");
-        assertThat(compileOptions.args()).as("args()").containsExactly("-J--enable-native-access=ALL-UNNAMED");
+    void testop() {
+        var op = new CompileKotlinOperation().jvmOptions(new JvmOptions().enableNativeAccess(JvmOptions.ALL_UNNAMED));
+        assertThat(op.jvmOptions()).as(JvmOptions.ALL_UNNAMED).containsExactly("--enable-native-access=ALL-UNNAMED");
 
-        compileOptions = new CompileOptions().jvmOptions(new JvmOptions().enableNativeAccess("m1", "m2"));
-        assertThat(compileOptions.jvmOptions()).as("m1,m2").containsExactly("--enable-native-access=m1,m2");
-        assertThat(compileOptions.args()).as("args(m1,m2)").containsExactly("-J--enable-native-access=m1,m2");
+        op = new CompileKotlinOperation().jvmOptions(new JvmOptions().enableNativeAccess("m1", "m2"));
+        assertThat(op.jvmOptions()).as("m1,m2").containsExactly("--enable-native-access=m1,m2");
     }
 
     @Test
@@ -62,26 +60,19 @@ class JvmOptionsTest {
 
     @Test
     void testJvmOptions() {
-        var compileOptions = new CompileOptions().jvmOptions("option1", "option2");
-        assertThat(compileOptions.jvmOptions()).as("option1,option2").containsExactly("option1", "option2");
-        assertThat(compileOptions.args()).as("args()").containsExactly("-Joption1", "-Joption2");
+        var op = new CompileKotlinOperation().jvmOptions("option1", "option2");
+        assertThat(op.jvmOptions()).as("option1,option2").containsExactly("option1", "option2");
 
-        compileOptions = new CompileOptions().jvmOptions(List.of("option1", "option2"));
-        assertThat(compileOptions.jvmOptions()).as("List.of(option1,option2)").containsExactly("option1", "option2");
-        assertThat(compileOptions.args()).as("args(list)").containsExactly("-Joption1", "-Joption2");
+        op = new CompileKotlinOperation().jvmOptions(List.of("option1", "option2"));
+        assertThat(op.jvmOptions()).as("List.of(option1,option2)").containsExactly("option1", "option2");
 
-        compileOptions = compileOptions.jvmOptions(new JvmOptions().enableNativeAccess(JvmOptions.ALL_UNNAMED));
-        assertThat(compileOptions.jvmOptions()).as("List.of(option1,option2,ALL_UNNAMED)")
+        op = op.jvmOptions(new JvmOptions().enableNativeAccess(JvmOptions.ALL_UNNAMED));
+        assertThat(op.jvmOptions()).as("List.of(option1,option2,ALL_UNNAMED)")
                 .containsExactly("option1", "option2", "--enable-native-access=ALL-UNNAMED");
-        assertThat(compileOptions.args()).as("args(option1,option2,ALL_UNNAMED)")
-                .containsExactly("-Joption1", "-Joption2", "-J--enable-native-access=ALL-UNNAMED");
 
-        compileOptions = compileOptions.jvmOptions(new JvmOptions().illegalNativeAccess(JvmOptions.NativeAccess.ALLOW));
-        assertThat(compileOptions.jvmOptions()).as("allow")
+        op = op.jvmOptions(new JvmOptions().illegalNativeAccess(JvmOptions.NativeAccess.ALLOW));
+        assertThat(op.jvmOptions()).as("allow")
                 .containsExactly("option1", "option2", "--enable-native-access=ALL-UNNAMED",
                         "--illegal-native-access=allow");
-        assertThat(compileOptions.args()).as("args(option1,option2,ALL_UNNAMED,allow)")
-                .containsExactly("-Joption1", "-Joption2", "-J--enable-native-access=ALL-UNNAMED",
-                        "-J--illegal-native-access=allow");
     }
 }

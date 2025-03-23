@@ -117,7 +117,6 @@ class CompileOptionsTest {
         var advanceOptions = List.of("Xoption1", "Xoption2");
         var argFile = List.of(new File("arg1.txt"), new File("arg2.txt"));
         var classpath = List.of(new File("path1"), new File("path2"));
-        var jvmOptions = List.of("option1", "option2");
         var optIn = List.of("opt1", "opt2");
         var options = List.of("-foo", "-bar");
         var plugin = List.of("id:name:value", "id2:name2:value2");
@@ -127,7 +126,6 @@ class CompileOptionsTest {
                 .advancedOptions(advanceOptions)
                 .argFile(argFile)
                 .classpath(classpath)
-                .jvmOptions(jvmOptions)
                 .noStdLib(false)
                 .optIn(optIn)
                 .options(options)
@@ -145,8 +143,6 @@ class CompileOptionsTest {
                     .hasSize(argFile.size()).containsAll(argFile);
             softly.assertThat(op.classpath()).as("classpath")
                     .hasSize(classpath.size()).containsAll(classpath);
-            softly.assertThat(op.jvmOptions()).as("jvmOptions")
-                    .hasSize(jvmOptions.size()).containsAll(jvmOptions);
             softly.assertThat(op.optIn()).as("optIn")
                     .hasSize(optIn.size()).containsAll(optIn);
             softly.assertThat(op.options()).as("options")
@@ -216,7 +212,6 @@ class CompileOptionsTest {
                 .argFile("file")
                 .classpath("classpath")
                 .expression("expression")
-                .jvmOptions("option")
                 .includeRuntime(true)
                 .javaParameters(true)
                 .jdkHome("jdkhome")

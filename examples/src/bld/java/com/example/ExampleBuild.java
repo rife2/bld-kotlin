@@ -60,14 +60,17 @@ public class ExampleBuild extends Project {
     @BuildCommand(summary = "Compiles the Kotlin project")
     @Override
     public void compile() throws Exception {
-        var options = new CompileOptions().verbose(true);
-        options.jvmOptions().enableNativeAccess(JvmOptions.ALL_UNNAMED);
         // The source code located in src/main/kotlin and src/test/kotlin will be compiled
-        new CompileKotlinOperation()
+        var op = new CompileKotlinOperation()
 //                .kotlinHome("path/to/kotlin")
 //                .kotlinc("path/to/kotlinc")
-                .compileOptions(options)
-                .fromProject(this)
-                .execute();
+                .compileOptions(new CompileOptions().verbose(true))
+                .fromProject(this);
+
+        if (!CompileKotlinOperation.isWindows()) {
+            op.jvmOptions().enableNativeAccess(JvmOptions.ALL_UNNAMED);
+        }
+
+        op.execute();
     }
 }

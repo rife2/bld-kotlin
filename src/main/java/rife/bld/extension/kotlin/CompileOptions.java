@@ -37,7 +37,6 @@ public class CompileOptions {
     private final Collection<String> advancedOptions_ = new ArrayList<>();
     private final Collection<File> argFile_ = new ArrayList<>();
     private final Collection<File> classpath_ = new ArrayList<>();
-    private final JvmOptions jvmOptions_ = new JvmOptions();
     private final Collection<String> optIn_ = new ArrayList<>();
     private final Collection<String> options_ = new ArrayList<>();
     private final Collection<String> plugin_ = new ArrayList<>();
@@ -291,11 +290,6 @@ public class CompileOptions {
         // jdk-release
         if (isNotBlank(jdkRelease_)) {
             args.add("-Xjdk-release=" + jdkRelease_);
-        }
-
-        // JVM options
-        if (!jvmOptions_.isEmpty()) {
-            jvmOptions_.forEach(s -> args.add("-J" + s));
         }
 
         // kotlin-home
@@ -702,36 +696,6 @@ public class CompileOptions {
      */
     public CompileOptions jdkRelease(int version) {
         return jdkRelease(String.valueOf(version));
-    }
-
-    /**
-     * Retrieves the Java Virtual Machine options.
-     *
-     * @return the JVM options
-     */
-    public JvmOptions jvmOptions() {
-        return jvmOptions_;
-    }
-
-    /**
-     * Pass an option directly to the Java Virtual Machine
-     *
-     * @param jvmOptions the JVM options
-     * @return this operation instance
-     */
-    public CompileOptions jvmOptions(Collection<String> jvmOptions) {
-        jvmOptions_.addAll(jvmOptions);
-        return this;
-    }
-
-    /**
-     * Pass an option directly to the Java Virtual Machine
-     *
-     * @param jvmOptions one or more JVM option
-     * @return this operation instance
-     */
-    public CompileOptions jvmOptions(String... jvmOptions) {
-        return jvmOptions(List.of(jvmOptions));
     }
 
     /**
