@@ -26,6 +26,7 @@ import rife.tools.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.logging.Level;
@@ -319,6 +320,17 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         return buildTestDirectory_;
     }
 
+    private String cleanPath(File path) {
+        return cleanPath(path.getAbsolutePath());
+    }
+
+    private String cleanPath(String path) {
+        if (isWindows()) {
+            return path.replaceAll("\\\\", "\\\\\\\\");
+        }
+        return path;
+    }
+
     /**
      * Provides entries for the main compilation classpath.
      *
@@ -458,6 +470,12 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     protected void executeBuildSources(Collection<String> classpath, Collection<File> sources, File destination,
                                        File friendPaths)
             throws ExitStatusException {
+
+        var cp = new ArrayList<String>();
+        if (classpath != null && !classpath.isEmpty()) {
+            cp.addAll(classpath);
+        }
+
         if (sources.isEmpty()) {
             if (!silent() && LOGGER.isLoggable(Level.WARNING)) {
                 LOGGER.warning("Nothing to compile.");
@@ -470,60 +488,75 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
         }
 
+        var command = new ArrayList<String>();
         var args = new ArrayList<String>();
 
         // kotlinc
         if (kotlinc_ != null) {
-            args.add(kotlinc_.getAbsolutePath());
+            command.add(kotlinc_.getAbsolutePath());
         } else if (kotlinHome_ != null) {
-            args.add(Objects.requireNonNullElseGet(findKotlincInDir(kotlinHome_.getAbsolutePath()),
+            command.add(Objects.requireNonNullElseGet(findKotlincInDir(kotlinHome_.getAbsolutePath()),
                     CompileKotlinOperation::findKotlincPath));
         } else {
-            args.add(findKotlincPath(silent()));
+            command.add(findKotlincPath(silent()));
         }
+
         // JVM options
         if (!jvmOptions_.isEmpty()) {
             jvmOptions_.forEach(s -> command.add("-J" + s));
         }
 
+        // compiler options
+        if (compileOptions_ != null) {
+            args.addAll(compileOptions_.args());
+            cp.addAll(compileOptions_.classpath().stream().map(this::cleanPath).toList());
+        }
+
         // classpath
-        if (classpath != null && !classpath.isEmpty()) {
+        if (!cp.isEmpty()) {
             args.add("-cp");
-            args.add(FileUtils.joinPaths(classpath.stream().toList()));
+            args.add('"' + FileUtils.joinPaths(cp.stream().map(this::cleanPath).toList()) + '"');
         }
 
         // destination
         args.add("-d");
-        args.add(destination.getAbsolutePath());
+        args.add('"' + cleanPath(destination) + '"');
 
         // friend-path
         if (friendPaths != null && friendPaths.exists()) {
-            args.add("-Xfriend-paths=" + friendPaths.getAbsolutePath());
-        }
-
-        // options
-        if (compileOptions_ != null) {
-            args.addAll(compileOptions_.args());
+            args.add("-Xfriend-paths=\"" + cleanPath(friendPaths) + '"');
         }
 
         // plugins
         if (!plugins_.isEmpty()) {
-            plugins_.forEach(p -> args.add("-Xplugin=" + p));
+            plugins_.forEach(p -> args.add("-Xplugin=\"" + cleanPath(p) + '"'));
         }
 
         // sources
-        sources.forEach(f -> args.add(f.getAbsolutePath()));
+        sources.forEach(f -> args.add('"' + cleanPath(f) + '"'));
 
+        var argsLine = String.join(" ", args);
+
+        // log the command line
         if (LOGGER.isLoggable(Level.FINE) && !silent()) {
-            LOGGER.fine(String.join(" ", args));
+            LOGGER.fine(String.join(" ", command) + " " + argsLine);
         }
 
-        var pb = new ProcessBuilder();
-        pb.inheritIO();
-        pb.command(args);
-        pb.directory(workDir_);
-
         try {
+            // create and write the @argfile
+            var argsFile = File.createTempFile("bld-kotlinc-", ".args");
+            argsFile.deleteOnExit();
+
+            Files.write(argsFile.toPath(), argsLine.getBytes());
+
+            command.add("@" + argsFile.getAbsolutePath());
+
+            // run the command
+            var pb = new ProcessBuilder();
+            pb.inheritIO();
+            pb.command(command);
+            pb.directory(workDir_);
+
             var proc = pb.start();
             proc.waitFor();
             ExitStatusException.throwOnFailure(proc.exitValue());

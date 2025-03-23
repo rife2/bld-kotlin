@@ -224,8 +224,8 @@ class CompileKotlinOperationTest {
         var examples = new File("examples");
         var op = new CompileKotlinOperation().fromProject(
                 new BaseProjectBlueprint(examples, "com.example", "examples", "examples"));
-        assertThat(op.mainSourceDirectories()).contains(new File(examples, "src/main/kotlin"));
-        assertThat(op.testSourceDirectories()).contains(new File(examples, "src/test/kotlin"));
+        assertThat(op.mainSourceDirectories()).containsExactly(new File(examples, "src/main/kotlin"));
+        assertThat(op.testSourceDirectories()).containsExactly(new File(examples, "src/test/kotlin"));
     }
 
     @Test

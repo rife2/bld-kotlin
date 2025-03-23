@@ -23,7 +23,6 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static rife.bld.extension.CompileKotlinOperation.isNotBlank;
 
@@ -110,7 +109,6 @@ public class CompileOptions {
         apiVersion_ = version;
         return this;
     }
-
 
     /**
      * Allow using declarations only from the specified version of Kotlin bundled libraries.
@@ -251,12 +249,6 @@ public class CompileOptions {
         // @argfile
         if (!argFile_.isEmpty()) {
             argFile_.forEach(f -> args.add("@" + f.getAbsolutePath()));
-        }
-
-        // classpath
-        if (!classpath_.isEmpty()) {
-            args.add("-classpath");
-            args.add(classpath_.stream().map(File::getAbsolutePath).collect(Collectors.joining(File.pathSeparator)));
         }
 
         // expression

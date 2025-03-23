@@ -51,7 +51,6 @@ class CompileOptionsTest {
         var options = new CompileOptions()
                 .apiVersion("11")
                 .argFile(new File("file.txt"), new File("file2.txt"))
-                .classpath(new File("path1"), new File("path2"))
                 .javaParameters(true)
                 .jvmTarget("11")
                 .includeRuntime(true)
@@ -76,7 +75,6 @@ class CompileOptionsTest {
         var matches = List.of(
                 "-api-version", "11",
                 "@" + localPath("file.txt"), "@" + localPath("file2.txt"),
-                "-classpath", localPath("path1", "path2"),
                 "-java-parameters",
                 "-jvm-target", "11",
                 "-include-runtime",
@@ -210,7 +208,6 @@ class CompileOptionsTest {
                 .advancedOptions("Xoption")
                 .apiVersion("11")
                 .argFile("file")
-                .classpath("classpath")
                 .expression("expression")
                 .includeRuntime(true)
                 .javaParameters(true)
@@ -232,6 +229,10 @@ class CompileOptionsTest {
                 .verbose(true)
                 .wError(true)
                 .wExtra(true);
+
+        var skipArgs = List.of("-J", "-classpath");
+        assertThat(args).as(skipArgs + " not found.").containsAll(skipArgs);
+        args.removeAll(skipArgs);
 
         try (var softly = new AutoCloseableSoftAssertions()) {
             for (var p : args) {
