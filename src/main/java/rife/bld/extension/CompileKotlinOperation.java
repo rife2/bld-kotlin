@@ -131,11 +131,13 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                 commonPaths.add(userHome + "/.local/share/JetBrains/Toolbox/apps/android-studio/plugins/Kotlin/kotlinc/bin"); // Toolbox Android Studio
             }
             commonPaths.add("/usr/bin");
+            commonPaths.add("/usr/share");
             commonPaths.add("/usr/local/bin");
             commonPaths.add("/usr/local/kotlin/bin");
-            commonPaths.add("/usr/share/kotlinc/bin/");
+            commonPaths.add("/usr/share/kotlin/bin/");
             commonPaths.add("/opt/kotlin/bin");
         } else if (isWindows()) {
+            commonPaths.add("C:\\tools\\kotlinc");
             var localAppData = System.getenv("LOCALAPPDATA");
             if (localAppData != null) {
                 commonPaths.add(localAppData + "\\Programs\\IntelliJ IDEA Ultimate\\plugins\\Kotlin\\kotlinc\\bin"); // Toolbox IDEA Ultimate
