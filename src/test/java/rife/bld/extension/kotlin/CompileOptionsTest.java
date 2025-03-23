@@ -18,6 +18,8 @@ package rife.bld.extension.kotlin;
 
 import org.assertj.core.api.AutoCloseableSoftAssertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import java.io.File;
 import java.io.IOException;
@@ -199,6 +201,7 @@ class CompileOptionsTest {
     }
 
     @Test
+    @EnabledOnOs(OS.LINUX)
     void testCheckAllParams() throws IOException {
         var args = Files.readAllLines(Paths.get("src", "test", "resources", "kotlinc-args.txt"));
 

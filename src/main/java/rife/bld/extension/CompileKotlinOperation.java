@@ -223,7 +223,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @since 1.1.0
      */
     public static boolean isMacOS() {
-        return OS_NAME != null && (OS_NAME.contains("mac") || OS_NAME.contains("darwin"));
+        return OS_NAME != null && (OS_NAME.contains("mac") || OS_NAME.contains("darwin") || OS_NAME.contains("osx"));
     }
 
     /**
