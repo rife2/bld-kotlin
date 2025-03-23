@@ -1,43 +1,13 @@
 name: bld-ci
 
-on: [push, pull_request, workflow_dispatch]
+on: [ push, pull_request, workflow_dispatch ]
 
 jobs:
   build-bld-project:
     strategy:
       matrix:
-        java-version: [17, 21, 24]
-        kotlin-version: [1.9.25, 2.0.21, 2.1.20]
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout source repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up JDK ${{ matrix.java-version }}
-        uses: actions/setup-java@v4
-        with:
-          distribution: "zulu"
-          java-version: ${{ matrix.java-version }}
-
-      - name: Download dependencies [examples]
-        working-directory: examples
-        run: ./bld download
-
-      - name: Download dependencies
-        run: ./bld download
-
-      - name: Run tests
-        run: ./bld compile test
-
-  build-bld-examples:
-    strategy:
-      matrix:
-        java-version: [17, 21, 24]
-        kotlin-version: [1.9.25, 2.0.21, 2.1.20]
+        java-version: [ 17, 21, 24 ]
+        kotlin-version: [ 1.9.25, 2.0.21, 2.1.20 ]
         os: [ ubuntu-latest, windows-latest, macos-latest ]
 
     runs-on: ${{ matrix.os }}
@@ -60,4 +30,10 @@ jobs:
 
       - name: Run tests [examples]
         working-directory: examples
+        run: ./bld compile test
+
+      - name: Download dependencies
+        run: ./bld download
+
+      - name: Run tests
         run: ./bld compile test
