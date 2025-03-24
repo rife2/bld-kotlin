@@ -616,10 +616,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     protected void executeCreateBuildDirectories() throws IOException {
         if (buildMainDirectory() != null && !buildMainDirectory().exists() && !buildMainDirectory().mkdirs()) {
-            throw new IOException("Could not created build main directory: " + buildMainDirectory().getAbsolutePath());
+            throw new IOException("Could not create build main directory: " + buildMainDirectory().getAbsolutePath());
         }
         if (buildTestDirectory() != null && !buildTestDirectory().exists() && !buildTestDirectory().mkdirs()) {
-            throw new IOException("Could not created build test directory: " + buildTestDirectory().getAbsolutePath());
+            throw new IOException("Could not create build test directory: " + buildTestDirectory().getAbsolutePath());
         }
     }
 

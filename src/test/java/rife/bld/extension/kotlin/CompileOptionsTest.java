@@ -52,7 +52,6 @@ class CompileOptionsTest {
     void testArgs() {
         var options = new CompileOptions()
                 .apiVersion("11")
-                .argFile(new File("file.txt"), new File("file2.txt"))
                 .javaParameters(true)
                 .jvmTarget("11")
                 .includeRuntime(true)
@@ -76,7 +75,6 @@ class CompileOptionsTest {
 
         var matches = List.of(
                 "-api-version", "11",
-                "@" + localPath("file.txt"), "@" + localPath("file2.txt"),
                 "-java-parameters",
                 "-jvm-target", "11",
                 "-include-runtime",
@@ -210,7 +208,6 @@ class CompileOptionsTest {
         var params = new CompileOptions()
                 .advancedOptions("Xoption")
                 .apiVersion("11")
-                .argFile("file")
                 .expression("expression")
                 .includeRuntime(true)
                 .javaParameters(true)
@@ -233,7 +230,7 @@ class CompileOptionsTest {
                 .wError(true)
                 .wExtra(true);
 
-        var skipArgs = List.of("-J", "-classpath");
+        var skipArgs = List.of("-J", "-classpath", "@");
         assertThat(args).as(skipArgs + " not found.").containsAll(skipArgs);
         args.removeAll(skipArgs);
 

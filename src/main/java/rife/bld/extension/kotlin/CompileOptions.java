@@ -17,12 +17,18 @@
 package rife.bld.extension.kotlin;
 
 import rife.bld.extension.CompileKotlinOperation;
+import rife.bld.operations.AbstractToolProviderOperation;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static rife.bld.extension.CompileKotlinOperation.isNotBlank;
 
@@ -33,6 +39,7 @@ import static rife.bld.extension.CompileKotlinOperation.isNotBlank;
  * @since 1.0
  */
 public class CompileOptions {
+    private static final Logger LOGGER = Logger.getLogger(CompileOptions.class.getName());
     private final Collection<String> advancedOptions_ = new ArrayList<>();
     private final Collection<File> argFile_ = new ArrayList<>();
     private final Collection<File> classpath_ = new ArrayList<>();
@@ -248,7 +255,27 @@ public class CompileOptions {
 
         // @argfile
         if (!argFile_.isEmpty()) {
-            argFile_.forEach(f -> args.add("@" + f.getAbsolutePath()));
+            argFile_.forEach(f -> {
+                if (f.exists()) {
+                    try {
+                        try (var reader = Files.newBufferedReader(f.toPath(), Charset.defaultCharset())) {
+                            var tokenizer = new AbstractToolProviderOperation.CommandLineTokenizer(reader);
+                            String token;
+                            while ((token = tokenizer.nextToken()) != null) {
+                                args.add(token);
+                            }
+                        }
+                    } catch (IOException e) {
+                        if (LOGGER.isLoggable(Level.WARNING)) {
+                            LOGGER.log(Level.WARNING, "Could not read: " + f.getAbsolutePath(), e);
+                        }
+                    }
+                } else {
+                    if (LOGGER.isLoggable(Level.WARNING)) {
+                        LOGGER.warning("File not found: " + f.getAbsolutePath());
+                    }
+                }
+            });
         }
 
         // expression

@@ -180,7 +180,7 @@ class CompileKotlinOperationTest {
                     .compileTestClasspath(mainDir.getAbsolutePath());
 
             op.compileOptions().verbose(true);
-            op.compileOptions().jdkRelease("17");
+            op.compileOptions().argFile("src/test/resources/argfile.txt", "src/test/resources/argfile2.txt");
 
             if (!CompileKotlinOperation.isWindows()) {
                 op.jvmOptions().enableNativeAccess(JvmOptions.ALL_UNNAMED);
@@ -188,7 +188,8 @@ class CompileKotlinOperationTest {
             }
 
             var args = op.compileOptions().args();
-            var matches = List.of("-Xjdk-release=17", "-no-stdlib", "-verbose");
+            var matches = List.of("-Xjdk-release=17", "-no-reflect", "-progressive", "-include-runtime", "-no-stdlib",
+                    "-verbose");
             assertThat(args).as(args + " == " + matches).isEqualTo(matches);
 
             op.execute();
