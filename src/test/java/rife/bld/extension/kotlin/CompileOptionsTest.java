@@ -185,17 +185,23 @@ class CompileOptionsTest {
         var bar = new File("bar.txt");
         var options = new CompileOptions();
 
+        options = options.argFile(foo);
+        assertThat(options.argFile()).contains(foo);
+        options.argFile().clear();
+        assertThat(options.argFile()).isEmpty();
+
         options.argFile(foo, bar);
         assertThat(options.argFile()).contains(foo, bar);
         options.argFile().clear();
+        assertThat(options.argFile()).isEmpty();
 
         options = options.argFile(foo.toPath(), bar.toPath());
         assertThat(options.argFile()).contains(foo, bar);
         options.argFile().clear();
+        assertThat(options.argFile()).isEmpty();
 
-        options.argFile(foo.getAbsolutePath(), bar.getAbsolutePath());
+        options = options.argFile(foo.getAbsolutePath(), bar.getAbsolutePath());
         assertThat(options.argFile()).contains(new File(foo.getAbsolutePath()), new File(bar.getAbsolutePath()));
-        options.argFile().clear();
     }
 
     @Test
@@ -254,31 +260,45 @@ class CompileOptionsTest {
         var bar = new File("bar.txt");
         var options = new CompileOptions();
 
+        options = options.classpath(foo);
+        assertThat(options.classpath()).as("File").containsExactly(foo);
+        options.classpath().clear();
+        assertThat(options.argFile()).isEmpty();
+
+
         options.classpath(foo, bar);
         assertThat(options.classpath()).as("File...").containsExactly(foo, bar);
         options.classpath().clear();
+        assertThat(options.argFile()).isEmpty();
+
 
         options.classpath(List.of(foo, bar));
         assertThat(options.classpath()).as("List(File...)").containsExactly(foo, bar);
         options.classpath().clear();
+        assertThat(options.argFile()).isEmpty();
+
 
         options = options.classpath(foo.toPath(), bar.toPath());
         assertThat(options.classpath()).as("Path...").containsExactly(foo, bar);
         options.classpath().clear();
+        assertThat(options.argFile()).isEmpty();
+
 
         options = options.classpathPaths(List.of(foo.toPath(), bar.toPath()));
         assertThat(options.classpath()).as("List(Path...)").containsExactly(foo, bar);
         options.classpath().clear();
+        assertThat(options.argFile()).isEmpty();
+
 
         options.classpath(foo.getAbsolutePath(), bar.getAbsolutePath());
         assertThat(options.classpath()).as("String...")
                 .containsExactly(new File(foo.getAbsolutePath()), new File(bar.getAbsolutePath()));
         options.classpath().clear();
+        assertThat(options.argFile()).isEmpty();
 
         options.classpathStrings(List.of(foo.getAbsolutePath(), bar.getAbsolutePath()));
         assertThat(options.classpath()).as("List(String...)")
                 .containsExactly(new File(foo.getAbsolutePath()), new File(bar.getAbsolutePath()));
-        options.classpath().clear();
     }
 
     @Test

@@ -508,16 +508,18 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             jvmOptions_.forEach(s -> command.add("-J" + s));
         }
 
-        // compiler options
-        if (compileOptions_ != null) {
-            args.addAll(compileOptions_.args());
+        // classpath
+        if (compileOptions_ != null && !compileOptions_.classpath().isEmpty()) {
             cp.addAll(compileOptions_.classpath().stream().map(this::cleanPath).toList());
         }
-
-        // classpath
         if (!cp.isEmpty()) {
             args.add("-cp");
             args.add('"' + FileUtils.joinPaths(cp.stream().map(this::cleanPath).toList()) + '"');
+        }
+
+        // compile options
+        if (compileOptions_ != null && !compileOptions_.args().isEmpty()) {
+            args.addAll(compileOptions_.args());
         }
 
         // destination

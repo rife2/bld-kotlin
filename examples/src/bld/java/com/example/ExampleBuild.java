@@ -61,17 +61,11 @@ public class ExampleBuild extends Project {
     @Override
     public void compile() throws Exception {
         // The source code located in src/main/kotlin and src/test/kotlin will be compiled
-        var options = new CompileOptions().verbose(true);
-        var op = new CompileKotlinOperation()
+        new CompileKotlinOperation()
 //                .kotlinHome("path/to/kotlin")
 //                .kotlinc("path/to/kotlinc")
-                .compileOptions(options)
-                .fromProject(this);
-
-        if (!CompileKotlinOperation.isWindows()) {
-            op.jvmOptions().enableNativeAccess(JvmOptions.ALL_UNNAMED);
-        }
-
-        op.execute();
+                .compileOptions(new CompileOptions().verbose(true))
+                .fromProject(this)
+                .execute();
     }
 }
