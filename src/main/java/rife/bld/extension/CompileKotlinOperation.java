@@ -122,12 +122,21 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         }
 
         // Common installation paths (e.g., SDKMAN!, IntelliJ IDEA, etc.)
-        var commonPaths = new HashMap<String, String>(); //NOPMD no concurrent access
+        var commonPaths = new LinkedHashMap<String, String>(); //NOPMD no concurrent access
 
         if (isLinux()) {
             var userHome = System.getProperty("user.home");
             if (userHome != null) {
-                commonPaths.put(userHome + "/.sdkman/candidates/kotlin/current/bin", "SDKMAN");
+                commonPaths.put(userHome + "/.sdkman/candidates/kotlin/current/bin", "SDKMAN!");
+            }
+            commonPaths.put("/snap/bin", "Kotlin (Snap)");
+            commonPaths.put("/usr/bin", null);
+            commonPaths.put("/usr/share", null);
+            commonPaths.put("/usr/local/bin", null);
+            commonPaths.put("/usr/local/kotlin/bin", null);
+            commonPaths.put("/usr/share/kotlin/bin/", null);
+            commonPaths.put("/opt/kotlin/bin", null);
+            if (userHome != null) {
                 commonPaths.put(userHome + "/.local/share/JetBrains/Toolbox/apps/intellij-idea-ultimate/plugins/Kotlin/kotlinc/bin",
                         "IntelliJ IDEA Ultimate");
                 commonPaths.put(userHome + "/.local/share/JetBrains/Toolbox/apps/intellij-idea-community-edition/plugins/Kotlin/kotlinc/bin",
@@ -135,14 +144,14 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                 commonPaths.put(userHome + "/.local/share/JetBrains/Toolbox/apps/android-studio/plugins/Kotlin/kotlinc/bin",
                         "Android Studio");
             }
-            commonPaths.put("/usr/bin", null);
-            commonPaths.put("/usr/share", null);
-            commonPaths.put("/usr/local/bin", null);
-            commonPaths.put("/usr/local/kotlin/bin", null);
-            commonPaths.put("/usr/share/kotlin/bin/", null);
-            commonPaths.put("/opt/kotlin/bin", null);
+            commonPaths.put("/snap/intellij-idea-ultimate/current/commons/plugins/Kotlin/kotlinc/bin",
+                    "IntelliJ IDEA Ultimate (Snap)");
+            commonPaths.put("/snap/intellij-idea-community/current/commons/plugins/Kotlin/kotlinc/bin",
+                    "IntelliJ IDEA Community Edition (Snap)");
+            commonPaths.put("/snap/android-studio/current/android-studio/commons/plugins/Kotlin/kotlinc/bin",
+                    "Android Studio (Snap)");
         } else if (isWindows()) {
-            commonPaths.put("C:\\tools\\kotlinc", null);
+            commonPaths.put("C:\\tools\\kotlinc\\bin", null);
             var localAppData = System.getenv("LOCALAPPDATA");
             if (localAppData != null) {
                 commonPaths.put(localAppData + "\\Programs\\IntelliJ IDEA Ultimate\\plugins\\Kotlin\\kotlinc\\bin",
@@ -154,21 +163,21 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             }
             var programFiles = System.getenv("ProgramFiles");
             if (programFiles != null) {
-                commonPaths.put(programFiles + File.separator + "Kotlin", "null");
+                commonPaths.put(programFiles + "\\Kotlin\\bin", null);
             }
         } else if (isMacOS()) {
             var userHome = System.getProperty("user.home");
             if (userHome != null) {
                 commonPaths.put(userHome + "/.sdkman/candidates/kotlin/current/bin", "SDKMAN!");
             }
+            commonPaths.put("/opt/homebrew/bin", "Homebrew");
+            commonPaths.put("/usr/local/bin", null);
             commonPaths.put("/Applications/IntelliJ IDEA.app/Contents/plugins/Kotlin/kotlinc/bin/",
                     "IntelliJ IDEA");
             commonPaths.put("/Applications/IntelliJ IDEA Community Edition.app/Contents/plugins/Kotlin/kotlinc/bin/",
                     "IntelliJ IDEA Community Edition");
             commonPaths.put("/Applications/Android Studio.app/Contents/plugins/Kotlin/kotlinc/bin",
                     "Android Studio");
-            commonPaths.put("/usr/local/bin", null);
-            commonPaths.put("/opt/homebrew/bin", "Homebrew");
         }
 
         for (var path : commonPaths.keySet()) {
@@ -178,9 +187,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                 return kotlincPath;
             }
         }
-        commonPaths.forEach((path, where) -> {
-
-        });
 
         // Try 'which' or 'where' commands (less reliable but sometimes works)
         try {
