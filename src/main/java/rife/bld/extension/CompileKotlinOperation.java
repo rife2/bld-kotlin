@@ -122,7 +122,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         }
 
         // Common installation paths (e.g., SDKMAN!, IntelliJ IDEA, etc.)
-        var commonPaths = new LinkedHashMap<String, String>(); //NOPMD no concurrent access
+        var commonPaths = new LinkedHashMap<String, String>();
 
         if (isLinux()) {
             var userHome = System.getProperty("user.home");
@@ -266,7 +266,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             if (from != null) {
                 LOGGER.info("Using Kotlin compiler inferred from " + from + ": " + kotlincPath);
             } else {
-                LOGGER.info( "Using Kotlin compiler found at: " + kotlincPath);
+                LOGGER.info("Using Kotlin compiler found at: " + kotlincPath);
             }
         }
     }
@@ -526,7 +526,15 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         if (kotlinc_ != null) {
             command.add(kotlinc_.getAbsolutePath());
         } else if (kotlinHome_ != null) {
-            command.add(kotlinHome_.getAbsolutePath());
+            var kotlinc = findKotlincInDir(kotlinHome_.getAbsolutePath());
+            if (kotlinc != null) {
+                command.add(kotlinc);
+            } else {
+                if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
+                    LOGGER.severe("Could not locate Kotlin compiler in: " + kotlinHome_);
+                }
+                throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
+            }
         } else {
             command.add(findKotlincPath(silent()));
         }
