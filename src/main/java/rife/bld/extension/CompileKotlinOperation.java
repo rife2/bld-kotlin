@@ -68,7 +68,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
         // Check bin subdirectory if it exists
         var binDir = new File(directory, "bin");
-        if (binDir.exists() && binDir.isDirectory()) {
+        if (binDir.isDirectory()) {
             kotlinc = new File(binDir, KOTLINC_EXECUTABLE);
             if (isExecutable(kotlinc)) {
                 return kotlinc.getAbsolutePath();
@@ -639,6 +639,29 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         }
     }
 
+    private File findKotlinHome() {
+        // Deduct from kotlinc location if provided
+        if (kotlinc_ != null) {
+            var parent = kotlinc_.getParentFile();
+            if (parent != null && parent.isDirectory()) {
+                if (parent.getPath().endsWith("bin")) {
+                    if (parent.getParentFile() != null && parent.getParentFile().isDirectory()) {
+                        return parent.getParentFile();
+                    }
+                } else {
+                    return parent;
+                }
+            }
+        } else {
+            var kotlinHome = System.getenv("KOTLIN_HOME");
+            if (kotlinHome != null) {
+                return new File(kotlinHome);
+            }
+        }
+
+        return null;
+    }
+
     /**
      * Configures a compile operation from a {@link BaseProject}.
      * <p>
@@ -1022,15 +1045,17 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #plugins(File, CompilerPlugin...)
      */
     public CompileKotlinOperation plugins(CompilerPlugin... plugins) {
-        if (kotlinHome_ != null) {
-            var kotlinLib = new File(kotlinHome_, "lib");
+        var kotlinHome = kotlinHome_;
+        if (kotlinHome == null) {
+            kotlinHome = findKotlinHome();
+        }
+        if (kotlinHome != null) {
+            var kotlinLib = new File(kotlinHome, "lib");
             for (var plugin : plugins) {
                 plugins(kotlinLib, plugin);
             }
-        } else {
-            if (LOGGER.isLoggable(Level.WARNING) && !silent()) {
-                LOGGER.warning("The Kotlin home must be set to specify compiler plugins directly.");
-            }
+        } else if (LOGGER.isLoggable(Level.WARNING) && !silent()) {
+            LOGGER.warning("The Kotlin home must be set (or discovered) to specify compiler plugins directly.");
         }
         return this;
     }
