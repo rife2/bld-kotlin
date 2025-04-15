@@ -112,7 +112,7 @@ class CompileOptionsTest {
 
     @Test
     void testArgsCollections() {
-        var advanceOptions = List.of("Xoption1", "Xoption2");
+        var advanceOptions = List.of("-Xoption1", "option=2");
         var argFile = List.of(new File("arg1.txt"), new File("arg2.txt"));
         var classpath = List.of(new File("path1"), new File("path2"));
         var optIn = List.of("opt1", "opt2");
@@ -160,7 +160,7 @@ class CompileOptionsTest {
                 "-foo", "-bar",
                 "-script-templates",
                 "temp1,temp2",
-                "-XXoption1", "-XXoption2",
+                "-Xoption1", "-Xoption=2",
                 "-P", "plugin:id:name:value",
                 "-P", "plugin:id2:name2:value2");
 

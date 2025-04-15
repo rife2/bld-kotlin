@@ -388,7 +388,7 @@ public class CompileOptions {
             args.add("-verbose");
         }
 
-        // Wwrror
+        // Werror
         if (wError_) {
             args.add("-Werror");
         }
@@ -398,9 +398,15 @@ public class CompileOptions {
             args.add("-Wextra");
         }
 
-        // advanced option (X)
+        // advanced options (X)
         if (!advancedOptions_.isEmpty()) {
-            advancedOptions_.forEach(it -> args.add("-X" + it));
+            advancedOptions_.forEach(it -> {
+                if (it.startsWith("-X")) {
+                    args.add(it);
+                } else {
+                    args.add("-X" + it);
+                }
+            });
         }
 
         return args;
@@ -691,7 +697,7 @@ public class CompileOptions {
      * Limit the API of the JDK in the classpath to the specified Java version. Automatically sets
      * {@link #jvmTarget(String) JVM target} version.
      * <p>
-     * Possible values are 1.8, 9, 10, ..., 22. The default value is 1.8.
+     * Possible values are 1.8, 9, 10, ..., 23. The default value is 1.8.
      *
      * @param version the target version
      * @return this operation instance
@@ -706,8 +712,6 @@ public class CompileOptions {
      * <p>
      * Limit the API of the JDK in the classpath to the specified Java version. Automatically sets
      * {@link #jvmTarget(String) JVM target} version.
-     * <p>
-     * Possible values are 1.8, 9, 10, ..., 22. The default value is 1.8.
      *
      * @param version the target version
      * @return this operation instance
@@ -731,7 +735,7 @@ public class CompileOptions {
     /**
      * Specify the target version of the generated JVM bytecode.
      * <p>
-     * Possible values are 1.8, 9, 10, ..., 22. The default value is 1.8.
+     * Possible values are 1.8, 9, 10, ..., 23. The default value is 1.8.
      *
      * @param target the target version
      * @return this operation instance
