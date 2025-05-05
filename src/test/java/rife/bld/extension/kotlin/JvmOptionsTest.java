@@ -16,6 +16,8 @@
 
 package rife.bld.extension.kotlin;
 
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import rife.bld.extension.CompileKotlinOperation;
 
@@ -26,40 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class JvmOptionsTest {
     @Test
-    void testop() {
-        var op = new CompileKotlinOperation().jvmOptions(new JvmOptions().enableNativeAccess(JvmOptions.ALL_UNNAMED));
-        assertThat(op.jvmOptions()).as(JvmOptions.ALL_UNNAMED).containsExactly("--enable-native-access=ALL-UNNAMED");
-
-        op = new CompileKotlinOperation().jvmOptions(new JvmOptions().enableNativeAccess("m1", "m2"));
-        assertThat(op.jvmOptions()).as("m1,m2").containsExactly("--enable-native-access=m1,m2");
-    }
-
-    @Test
-    void testEnableNativeAccess() {
-        var options = new JvmOptions().enableNativeAccess(JvmOptions.ALL_UNNAMED);
-        assertThat(options).as(JvmOptions.ALL_UNNAMED).containsExactly("--enable-native-access=ALL-UNNAMED");
-
-        options = new JvmOptions().enableNativeAccess("m1");
-        assertThat(options).as("m1").containsExactly("--enable-native-access=m1");
-
-        options = new JvmOptions().enableNativeAccess("m1", "m2");
-        assertThat(options).as("m1,m2").containsExactly("--enable-native-access=m1,m2");
-    }
-
-    @Test
-    void testIllegalNativeAccess() {
-        var options = new JvmOptions().illegalNativeAccess(JvmOptions.NativeAccess.ALLOW);
-        assertThat(options).as("ALLOW").containsExactly("--illegal-native-access=allow");
-
-        options = new JvmOptions().illegalNativeAccess(JvmOptions.NativeAccess.DENY);
-        assertThat(options).as("DENY").containsExactly("--illegal-native-access=deny");
-
-        options = new JvmOptions().illegalNativeAccess(JvmOptions.NativeAccess.WARN);
-        assertThat(options).as("WARN").containsExactly("--illegal-native-access=warn");
-    }
-
-    @Test
-    void testJvmOptions() {
+    void jvmOptions() {
         var op = new CompileKotlinOperation().jvmOptions("option1", "option2");
         assertThat(op.jvmOptions()).as("option1,option2").containsExactly("option1", "option2");
 
@@ -74,5 +43,33 @@ class JvmOptionsTest {
         assertThat(op.jvmOptions()).as("allow")
                 .containsExactly("option1", "option2", "--enable-native-access=ALL-UNNAMED",
                         "--illegal-native-access=allow");
+    }
+
+    @Nested
+    @DisplayName("Enable Native Access Tests")
+    class EnableNativeAccessTests {
+        @Test
+        void enableNativeAccess() {
+            var options = new JvmOptions().enableNativeAccess(JvmOptions.ALL_UNNAMED);
+            assertThat(options).as(JvmOptions.ALL_UNNAMED).containsExactly("--enable-native-access=ALL-UNNAMED");
+
+            options = new JvmOptions().enableNativeAccess("m1");
+            assertThat(options).as("m1").containsExactly("--enable-native-access=m1");
+
+            options = new JvmOptions().enableNativeAccess("m1", "m2");
+            assertThat(options).as("m1,m2").containsExactly("--enable-native-access=m1,m2");
+        }
+
+        @Test
+        void illegalNativeAccess() {
+            var options = new JvmOptions().illegalNativeAccess(JvmOptions.NativeAccess.ALLOW);
+            assertThat(options).as("ALLOW").containsExactly("--illegal-native-access=allow");
+
+            options = new JvmOptions().illegalNativeAccess(JvmOptions.NativeAccess.DENY);
+            assertThat(options).as("DENY").containsExactly("--illegal-native-access=deny");
+
+            options = new JvmOptions().illegalNativeAccess(JvmOptions.NativeAccess.WARN);
+            assertThat(options).as("WARN").containsExactly("--illegal-native-access=warn");
+        }
     }
 }
