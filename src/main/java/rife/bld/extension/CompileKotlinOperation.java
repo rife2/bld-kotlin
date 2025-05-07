@@ -688,18 +688,18 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         project_ = project;
         workDir_ = new File(project.workDirectory().getAbsolutePath());
 
-        var op = buildMainDirectory(project.buildMainDirectory())
-                .buildTestDirectory(project.buildTestDirectory())
-                .compileMainClasspath(project.compileMainClasspath())
-                .compileTestClasspath(project.compileTestClasspath());
+        buildMainDirectory_ = project.buildMainDirectory();
+        buildTestDirectory_ = project.buildTestDirectory();
+        compileMainClasspath_.addAll(project.compileMainClasspath());
+        compileTestClasspath_.addAll(project.compileTestClasspath());
 
         var mainDir = new File(project.srcMainDirectory(), "kotlin");
         if (mainDir.exists()) {
-            op = op.mainSourceDirectories(mainDir);
+            mainSourceDirectories_.add(mainDir);
         }
         var testDir = new File(project.srcTestDirectory(), "kotlin");
         if (testDir.exists()) {
-            op = op.testSourceDirectories(testDir);
+            testSourceDirectories_.add(testDir);
         }
 
         if (project.javaRelease() != null) {
@@ -712,7 +712,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         }
         compileOptions_.noStdLib(true);
 
-        return op;
+        return this;
     }
 
     /**
