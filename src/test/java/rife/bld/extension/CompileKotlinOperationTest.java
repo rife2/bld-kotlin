@@ -158,7 +158,10 @@ class CompileKotlinOperationTest {
                     .kotlinc(KOTLINC)
                     .workDir("work_dir")
                     .compileMainClasspath("path1", "path2")
-                    .compileOptions(new CompileOptions().jdkRelease("17").verbose(true))
+                    .compileOptions(new CompileOptions()
+                            .jdkRelease("17")
+                            .jvmTarget("17")
+                            .verbose(true))
                     .mainSourceDirectories("dir1", "dir2")
                     .mainSourceDirectories(List.of(new File("dir3"), new File("dir4")))
                     .mainSourceFiles("file1", "file2")
@@ -184,6 +187,7 @@ class CompileKotlinOperationTest {
                 softly.assertThat(op.compileMainClasspath()).as("compileMainClassPath")
                         .containsAll(List.of("path1", "path2"));
                 softly.assertThat(op.compileOptions().hasRelease()).as("hasRelease").isTrue();
+                softly.assertThat(op.compileOptions().hasTarget()).as("hasTaget").isTrue();
                 softly.assertThat(op.compileOptions().isVerbose()).as("isVerbose").isTrue();
                 softly.assertThat(op.mainSourceDirectories()).as("mainSourceDirectories").containsExactly(
                         Path.of(PROJECT, "src", "main", "kotlin").toFile(), new File("dir1"),

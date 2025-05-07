@@ -677,6 +677,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *     <li>{@link #testSourceDirectories() testSourceDirectories} to the {@code kotlin} directory in
      *     {@link BaseProject#srcTestDirectory() srcTestDirectory}, if present.</li>
      *     <li>{@link CompileOptions#jdkRelease jdkRelease} to {@link BaseProject#javaRelease() javaRelease}</li>
+     *     <li>{@link CompileOptions#jvmTarget jvmTarget} to {@link BaseProject#javaRelease() javaRelease}</li>
      *     <li>{@link CompileOptions#noStdLib(boolean) noStdLib} to {@code true}</li>
      * </ul>
      *
@@ -701,8 +702,13 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             op = op.testSourceDirectories(testDir);
         }
 
-        if (project.javaRelease() != null && !compileOptions_.hasRelease()) {
-            compileOptions_.jdkRelease(project.javaRelease());
+        if (project.javaRelease() != null) {
+            if (!compileOptions_.hasRelease()) {
+                compileOptions_.jdkRelease(project.javaRelease());
+            }
+            if (!compileOptions_.hasTarget()) {
+                compileOptions_.jvmTarget(project.javaRelease());
+            }
         }
         compileOptions_.noStdLib(true);
 

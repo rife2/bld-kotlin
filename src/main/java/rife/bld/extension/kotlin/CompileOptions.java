@@ -530,6 +530,15 @@ public class CompileOptions {
     }
 
     /**
+     * Indicates whether the {@link #jvmTarget(String) jvmTarget)} was set.
+     *
+     * @return {@code true} if the target was set; or {@code false} otherwise
+     */
+    public boolean hasTarget() {
+        return jvmTarget_ != null;
+    }
+
+    /**
      * Include the Kotlin runtime into the resulting JAR file. Makes the resulting archive runnable on any Java-enabled
      * environment.
      *
