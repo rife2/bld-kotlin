@@ -3,8 +3,6 @@ package com.example;
 import rife.bld.BuildCommand;
 import rife.bld.Project;
 import rife.bld.extension.CompileKotlinOperation;
-import rife.bld.extension.kotlin.CompileOptions;
-import rife.bld.extension.kotlin.JvmOptions;
 
 import java.io.File;
 import java.util.List;
@@ -61,11 +59,11 @@ public class ExampleBuild extends Project {
     @Override
     public void compile() throws Exception {
         // The source code located in src/main/kotlin and src/test/kotlin will be compiled
-        new CompileKotlinOperation()
-//                .kotlinHome("path/to/kotlin")
-//                .kotlinc("path/to/kotlinc")
-                .compileOptions(new CompileOptions().verbose(true))
-                .fromProject(this)
-                .execute();
+        var op = new CompileKotlinOperation().fromProject(this);
+//        op.kotlinHome("path/to/kotlin");
+//        op.kotlinc("path/to/kotlinc");
+        op.compileOptions().verbose(true);
+        op.execute();
+
     }
 }

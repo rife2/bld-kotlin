@@ -1061,6 +1061,38 @@ public class CompileOptions {
         return this;
     }
 
+    @Override
+    public String toString() {
+        return "CompileOptions{" +
+                "advancedOptions_=" + advancedOptions_ +
+                ", argFile_=" + argFile_ +
+                ", classpath_=" + classpath_ +
+                ", optIn_=" + optIn_ +
+                ", options_=" + options_ +
+                ", plugin_=" + plugin_ +
+                ", scriptTemplates_=" + scriptTemplates_ +
+                ", apiVersion_='" + apiVersion_ + '\'' +
+                ", expression_='" + expression_ + '\'' +
+                ", includeRuntime_=" + includeRuntime_ +
+                ", javaParameters_=" + javaParameters_ +
+                ", jdkHome_=" + jdkHome_ +
+                ", jdkRelease_='" + jdkRelease_ + '\'' +
+                ", jvmTarget_='" + jvmTarget_ + '\'' +
+                ", kotlinHome_=" + kotlinHome_ +
+                ", languageVersion_='" + languageVersion_ + '\'' +
+                ", moduleName_='" + moduleName_ + '\'' +
+                ", noJdk_=" + noJdk_ +
+                ", noReflect_=" + noReflect_ +
+                ", noStdLib_=" + noStdLib_ +
+                ", noWarn_=" + noWarn_ +
+                ", path_=" + path_ +
+                ", progressive_=" + progressive_ +
+                ", verbose_=" + verbose_ +
+                ", wError_=" + wError_ +
+                ", wExtra_=" + wExtra_ +
+                '}';
+    }
+
     /**
      * Enable verbose logging output which includes details of the compilation process.
      *

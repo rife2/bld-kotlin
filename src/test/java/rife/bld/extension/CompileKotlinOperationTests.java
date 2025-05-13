@@ -41,7 +41,7 @@ import java.util.logging.Logger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class CompileKotlinOperationTest {
+class CompileKotlinOperationTests {
     private static final String BAR = "bar";
     private static final String FILE_1 = "file1";
     private static final String FILE_2 = "file2";
@@ -105,7 +105,7 @@ class CompileKotlinOperationTest {
             var args = op.compileOptions().args();
             var matches = List.of("-Xjdk-release=17", "-no-reflect", "-progressive", "-include-runtime", "-no-stdlib",
                     "-verbose");
-            assertThat(args).as(args + " == " + matches).isEqualTo(matches);
+            assertThat(args).as("%s == %s", args, matches).isEqualTo(matches);
 
             op.execute();
 
@@ -290,16 +290,32 @@ class CompileKotlinOperationTest {
                 var examples = new File(PROJECT);
                 var op = new CompileKotlinOperation().fromProject(
                         new BaseProjectBlueprint(examples, PROJECT_PACKAGE, PROJECT, PROJECT));
-                assertThat(op.mainSourceDirectories()).containsExactly(new File(examples, "src/main/kotlin"));
-                assertThat(op.testSourceDirectories()).containsExactly(new File(examples, "src/test/kotlin"));
+
+                assertThat(op.workDir().getPath()).as("workDir")
+                        .isEqualTo(new File("examples").getAbsolutePath());
+                assertThat(op.buildMainDirectory()).as("buildMainDirectory").exists();
+                assertThat(op.buildTestDirectory()).as("buildTestDirectory").exists();
+                assertThat(op.mainSourceDirectories()).as("mainSourceDirectories")
+                        .containsExactly(new File(examples, "src/main/kotlin"));
+                assertThat(op.testSourceDirectories()).as("testSourceDirectories")
+                        .containsExactly(new File(examples, "src/test/kotlin"));
+                assertThat(op.compileMainClasspath().size()).as("compileMainClasspath").isGreaterThan(1);
+                assertThat(op.compileTestClasspath().size()).as("compileTestClasspath").isGreaterThan(1);
+                assertThat(op.compileOptions().isNoStdLib()).as("isNoStdLib").isTrue();
+
             }
 
             @Test
-            void fromProjectNoKotlin() {
+            void fromProjectWithoutKotlin() {
                 var op = new CompileKotlinOperation().fromProject(
                         new BaseProjectBlueprint(new File(FOO), "org.example", FOO, FOO));
-                assertThat(op.mainSourceDirectories()).isEmpty();
-                assertThat(op.testSourceDirectories()).isEmpty();
+
+                assertThat(op.workDir()).as("workDir").doesNotExist();
+                assertThat(op.mainSourceDirectories()).as("mainSourceDirectories").isEmpty();
+                assertThat(op.testSourceDirectories()).as("testSourceDirectories").isEmpty();
+                assertThat(op.compileMainClasspath()).as("compileMainClasspath").isEmpty();
+                assertThat(op.compileTestClasspath().size()).as("compileTestClasspath").isEqualTo(1);
+                assertThat(op.compileOptions().isNoStdLib()).as("isNoStdLib").isTrue();
             }
         }
 

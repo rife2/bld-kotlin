@@ -112,7 +112,13 @@ public class CompileKotlinOperationBuild extends Project {
         var testResultsDir = "build/test-results/test/";
         var op = testOperation().fromProject(this);
         op.testToolOptions().reportsDir(new File(testResultsDir));
-        op.execute();
+
+        Exception ex = null;
+        try {
+            op.execute();
+        } catch (Exception e) {
+            ex = e;
+        }
 
         var xunitViewer = new File("/usr/bin/xunit-viewer");
         if (xunitViewer.exists() && xunitViewer.canExecute()) {
@@ -124,6 +130,10 @@ public class CompileKotlinOperationBuild extends Project {
                     .fromProject(this)
                     .command(xunitViewer.getPath(), "-r", testResultsDir, "-o", reportsDir + "index.html")
                     .execute();
+        }
+
+        if (ex != null) {
+            throw ex;
         }
     }
 }

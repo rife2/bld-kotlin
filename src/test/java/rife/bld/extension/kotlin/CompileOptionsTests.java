@@ -37,7 +37,7 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
-class CompileOptionsTest {
+class CompileOptionsTests {
     /**
      * Returns the local path of the given file names.
      *
@@ -159,7 +159,7 @@ class CompileOptionsTest {
             try (var softly = new AutoCloseableSoftAssertions()) {
                 for (var a : args) {
                     IntStream.range(0, a.size()).forEach(i -> softly.assertThat(a.get(i))
-                            .as(a.get(i) + " == " + matches.get(i)).isEqualTo(matches.get(i)));
+                            .as("%s == %s", a.get(i), matches.get(i)).isEqualTo(matches.get(i)));
                 }
             }
         }
@@ -228,7 +228,7 @@ class CompileOptionsTest {
                             break;
                         }
                     }
-                    softly.assertThat(found).as(arg + " not found.").isTrue();
+                    softly.assertThat(found).as("%s not found.", arg).isTrue();
                 }
             }
         }
@@ -323,24 +323,22 @@ class CompileOptionsTest {
     @DisplayName("Kotlin Home Tests")
     class KotlinHomeTests {
         private final File foo = new File("foo.txt");
-        private final CompileOptions options = new CompileOptions();
 
         @Test
         void kotlinHomeAsFile() {
-            options.kotlinHome(foo);
+            var options = new CompileOptions().kotlinHome(foo);
             assertThat(options.kotlinHome()).isEqualTo(foo);
         }
 
         @Test
         void kotlinHomeAsPath() {
-            var options = new CompileOptions();
-            options = options.kotlinHome(foo.toPath());
+            var options = new CompileOptions().kotlinHome(foo.toPath());
             assertThat(options.kotlinHome()).isEqualTo(foo);
         }
 
         @Test
         void kotlinHomeAsString() {
-            options.kotlinHome(foo.getAbsolutePath());
+            var options = new CompileOptions().kotlinHome(foo.getAbsolutePath());
             assertThat(options.kotlinHome().getAbsolutePath()).isEqualTo(foo.getAbsolutePath());
         }
     }
@@ -381,7 +379,7 @@ class CompileOptionsTest {
                     .wExtra(true);
 
             var skipArgs = List.of("-J", "-classpath", "@");
-            assertThat(args).as(skipArgs + " not found.").containsAll(skipArgs);
+            assertThat(args).as("%s not found.", skipArgs).containsAll(skipArgs);
             args.removeAll(skipArgs);
 
             try (var softly = new AutoCloseableSoftAssertions()) {
@@ -393,7 +391,7 @@ class CompileOptionsTest {
                             break;
                         }
                     }
-                    softly.assertThat(found).as(p + " not found.").isTrue();
+                    softly.assertThat(found).as("%s not found.", p).isTrue();
                 }
             }
         }
