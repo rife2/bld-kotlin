@@ -360,6 +360,7 @@ class CompileOptionsTests {
                     .includeRuntime(true)
                     .javaParameters(true)
                     .jdkHome("jdkhome")
+                    .jvmDefault(JvmDefault.ENABLE)
                     .jvmTarget(12)
                     .kotlinHome("kotlin")
                     .languageVersion("1.0")
@@ -408,6 +409,7 @@ class CompileOptionsTests {
                     .javaParameters(true)
                     .jdkHome("jdk-home")
                     .jdkRelease(22)
+                    .jvmDefault(JvmDefault.NO_COMPATIBILITY)
                     .jvmTarget("9")
                     .kotlinHome("kotlin-home")
                     .languageVersion("1.0")
@@ -442,6 +444,7 @@ class CompileOptionsTests {
                 softly.assertThat(options.isVerbose()).isTrue();
                 softly.assertThat(options.jdkHome()).isEqualTo(new File("jdk-home"));
                 softly.assertThat(options.jdkRelease()).isEqualTo("22");
+                softly.assertThat(options.jvmDefault()).isEqualTo(JvmDefault.NO_COMPATIBILITY);
                 softly.assertThat(options.jvmTarget()).isEqualTo("9");
                 softly.assertThat(options.kotlinHome()).isEqualTo(new File("kotlin-home"));
                 softly.assertThat(options.languageVersion()).isEqualTo("1.0");

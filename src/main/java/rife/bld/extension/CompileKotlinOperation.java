@@ -539,7 +539,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             command.add(findKotlincPath(silent()));
         }
 
-        // JVM options
+        // jVM options
         if (!jvmOptions_.isEmpty()) {
             jvmOptions_.forEach(s -> command.add("-J" + s));
         }

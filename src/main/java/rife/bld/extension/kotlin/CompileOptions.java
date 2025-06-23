@@ -53,6 +53,7 @@ public class CompileOptions {
     private boolean javaParameters_;
     private File jdkHome_;
     private String jdkRelease_;
+    private JvmDefault jvmDefault_;
     private String jvmTarget_;
     private File kotlinHome_;
     private String languageVersion_;
@@ -309,6 +310,11 @@ public class CompileOptions {
         // jdk-release
         if (isNotBlank(jdkRelease_)) {
             args.add("-Xjdk-release=" + jdkRelease_);
+        }
+
+        // jvm-default
+        if (jvmDefault_ != null) {
+            args.add("-jvm-default=" + jvmDefault_.value);
         }
 
         // kotlin-home
@@ -728,6 +734,28 @@ public class CompileOptions {
      */
     public CompileOptions jdkRelease(int version) {
         return jdkRelease(String.valueOf(version));
+    }
+
+    /**
+     * Emit JVM default methods for interface declarations with bodies. The default is {@link JvmDefault#ENABLE}.
+     *
+     * @param jvmDefault the default methods option
+     * @return this operation instance
+     * @since 1.1.0
+     */
+    public CompileOptions jvmDefault(JvmDefault jvmDefault) {
+        this.jvmDefault_ = jvmDefault;
+        return this;
+    }
+
+    /**
+     * Retrieves the JVM default methods option.
+     *
+     * @return the default methods option
+     * @since 1.1.0
+     */
+    public JvmDefault jvmDefault() {
+        return jvmDefault_;
     }
 
     /**
