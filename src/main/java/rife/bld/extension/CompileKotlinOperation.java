@@ -569,7 +569,34 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
         // plugins
         if (!plugins_.isEmpty()) {
-            plugins_.forEach(p -> args.add("-Xplugin=\"" + cleanPath(p) + '"'));
+            var kotlinHomePath = findKotlinHome();
+
+            plugins_.forEach(p -> {
+                File pluginJar = null;
+
+                // Try as enum first
+                try {
+                    var pluginValue = CompilerPlugin.valueOf(p);
+                    if (kotlinHomePath != null) {
+                        pluginJar = Path.of(kotlinHomePath.getAbsolutePath(), "lib", pluginValue.jar).toFile();
+                    } else if (LOGGER.isLoggable(Level.WARNING) && !silent()) {
+                        LOGGER.warning("The Kotlin home must be set to specify the '"
+                                + CompilerPlugin.class.getSimpleName() + '.' + pluginValue.name()
+                                + "' compiler plugin.");
+                    }
+                } catch (IllegalArgumentException ignored) {
+                    // Try as a direct file path
+                    pluginJar = new File(p);
+                }
+
+                if (pluginJar != null) {
+                    if (pluginJar.exists()) {
+                        args.add("-Xplugin=\"" + cleanPath(pluginJar) + '"');
+                    } else if (LOGGER.isLoggable(Level.WARNING) && !silent()) {
+                        LOGGER.warning("Could not locate compiler plugin: " + pluginJar.getAbsolutePath());
+                    }
+                }
+            });
         }
 
         // sources
@@ -640,6 +667,16 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     private File findKotlinHome() {
+        if (kotlinHome_ != null) {
+            return kotlinHome_;
+        }
+
+        // Deduct from KOTLIN_HOME environment variable
+        var kotlinHome = System.getenv("KOTLIN_HOME");
+        if (kotlinHome != null) {
+            return new File(kotlinHome);
+        }
+
         // Deduct from kotlinc location if provided
         if (kotlinc_ != null) {
             var parent = kotlinc_.getParentFile();
@@ -651,11 +688,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                 } else {
                     return parent;
                 }
-            }
-        } else {
-            var kotlinHome = System.getenv("KOTLIN_HOME");
-            if (kotlinHome != null) {
-                return new File(kotlinHome);
             }
         }
 
@@ -1026,8 +1058,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @return this class instance
      */
     public CompileKotlinOperation plugins(File directory, CompilerPlugin... plugins) {
-        for (var plugin : plugins) {
-            plugins_.add(new File(directory, plugin.jar).getAbsolutePath());
+        for (var p : plugins) {
+            plugins_.add(new File(directory, p.jar).getAbsolutePath());
         }
         return this;
     }
@@ -1051,17 +1083,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #plugins(File, CompilerPlugin...)
      */
     public CompileKotlinOperation plugins(CompilerPlugin... plugins) {
-        var kotlinHome = kotlinHome_;
-        if (kotlinHome == null) {
-            kotlinHome = findKotlinHome();
-        }
-        if (kotlinHome != null) {
-            var kotlinLib = new File(kotlinHome, "lib");
-            for (var plugin : plugins) {
-                plugins(kotlinLib, plugin);
-            }
-        } else if (LOGGER.isLoggable(Level.WARNING) && !silent()) {
-            LOGGER.warning("The Kotlin home must be set (or discovered) to specify compiler plugins directly.");
+        for (var plugin : plugins) {
+            plugins_.add(plugin.name());
         }
         return this;
     }

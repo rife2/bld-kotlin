@@ -21,7 +21,6 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import rife.bld.BaseProject;
 import rife.bld.blueprints.BaseProjectBlueprint;
 import rife.bld.extension.kotlin.CompileOptions;
 import rife.bld.extension.kotlin.CompilerPlugin;
@@ -41,6 +40,7 @@ import java.util.logging.Logger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class CompileKotlinOperationTests {
     private static final String BAR = "bar";
     private static final String FILE_1 = "file1";
@@ -201,40 +201,17 @@ class CompileKotlinOperationTests {
                 softly.assertThat(op.testSourceFiles()).as("testSourceFiles").containsOnly(
                         new File("tfile1"), new File("tfile2"), new File("tfile3"),
                         new File("tfile4"), new File("tfile5"), new File("tfile6"));
-                softly.assertThat(op.plugins()).as("plugins").contains("plugin1", "plugin2", "plugin3", "plugin4",
-                        new File("/kotlin_home/lib/kotlin-serialization-compiler-plugin.jar").getAbsolutePath(),
-                        new File("/kotlin_home/lib/assignment-compiler-plugin.jar").getAbsolutePath(),
-                        new File("/kotlin_home/lib/compose-compiler-plugin.jar").getAbsolutePath(),
+                softly.assertThat(op.plugins()).as("plugins").contains(
+                        "plugin1", "plugin2", "plugin3", "plugin4",
+                        "KOTLIN_SERIALIZATION", "ASSIGNMENT", "COMPOSE",
                         new File(LIB_COMPILE, "lombok-compiler-plugin.jar").getAbsolutePath(),
                         new File(LIB_COMPILE, "power-assert-compiler-plugin.jar").getAbsolutePath(),
                         new File(LIB_COMPILE, "noarg-compiler-plugin.jar").getAbsolutePath(),
                         new File(LIB_COMPILE, "allopen-compiler-plugin.jar").getAbsolutePath(),
                         new File(LIB_COMPILE, "kotlin-imports-dumper-compiler-plugin.jar").getAbsolutePath(),
                         new File(LIB_COMPILE, "kotlinx-serialization-compiler-plugin.jar").getAbsolutePath(),
-                        new File(LIB_COMPILE, "sam-with-receiver-compiler-plugin.jar").getAbsolutePath());
-            }
-        }
-
-        @Test
-        @SuppressWarnings("PMD.AvoidInstantiatingObjectsInLoops")
-        void plugins() {
-            var op = new CompileKotlinOperation()
-                    .fromProject(new BaseProject())
-                    .plugins(CompilerPlugin.ALL_OPEN,
-                            CompilerPlugin.ASSIGNMENT,
-                            CompilerPlugin.COMPOSE,
-                            CompilerPlugin.KOTLIN_IMPORTS_DUMPER,
-                            CompilerPlugin.KOTLINX_SERIALIZATION,
-                            CompilerPlugin.KOTLIN_SERIALIZATION,
-                            CompilerPlugin.LOMBOK,
-                            CompilerPlugin.NOARG,
-                            CompilerPlugin.POWER_ASSERT,
-                            CompilerPlugin.SAM_WITH_RECEIVER);
-
-            try (var softly = new AutoCloseableSoftAssertions()) {
-                for (var p : op.plugins()) {
-                    softly.assertThat(new File(p)).as(p).exists();
-                }
+                        new File(LIB_COMPILE, "sam-with-receiver-compiler-plugin.jar").getAbsolutePath()
+                );
             }
         }
 
@@ -468,6 +445,58 @@ class CompileKotlinOperationTests {
                     op.mainSourceFilesStrings(List.of(FILE_1, FILE_2));
                     assertThat(op.mainSourceFiles()).containsExactly(new File(FILE_1), new File(FILE_2));
                 }
+            }
+        }
+
+        @Nested
+        @DisplayName("Plugins Tests")
+        class PluginsTests {
+            @Test
+            void pluginsAsCompilerPluginArray() {
+                var op = new CompileKotlinOperation();
+                op.plugins(CompilerPlugin.LOMBOK, CompilerPlugin.ALL_OPEN);
+                assertThat(op.plugins()).containsExactly("LOMBOK", "ALL_OPEN");
+            }
+
+            @Test
+            void pluginsAsCompilerPluginArrayWithDirectory() {
+                var op = new CompileKotlinOperation();
+                op.plugins(new File(LIB_COMPILE), CompilerPlugin.LOMBOK, CompilerPlugin.ALL_OPEN);
+                assertThat(op.plugins()).containsExactly(
+                        new File(LIB_COMPILE, "lombok-compiler-plugin.jar").getAbsolutePath(),
+                        new File(LIB_COMPILE, "allopen-compiler-plugin.jar").getAbsolutePath());
+            }
+
+            @Test
+            void pluginsAsCompilerPluginArrayWithDirectoryPath() {
+                var op = new CompileKotlinOperation();
+                op.plugins(Path.of(LIB_COMPILE), CompilerPlugin.LOMBOK, CompilerPlugin.ALL_OPEN);
+                assertThat(op.plugins()).containsExactly(
+                        new File(LIB_COMPILE, "lombok-compiler-plugin.jar").getAbsolutePath(),
+                        new File(LIB_COMPILE, "allopen-compiler-plugin.jar").getAbsolutePath());
+            }
+
+            @Test
+            void pluginsAsCompilerPluginArrayWithDirectoryString() {
+                var op = new CompileKotlinOperation();
+                op.plugins(LIB_COMPILE, CompilerPlugin.LOMBOK, CompilerPlugin.ALL_OPEN);
+                assertThat(op.plugins()).containsExactly(
+                        new File(LIB_COMPILE, "lombok-compiler-plugin.jar").getAbsolutePath(),
+                        new File(LIB_COMPILE, "allopen-compiler-plugin.jar").getAbsolutePath());
+            }
+
+            @Test
+            void pluginsAsStringArray() {
+                var op = new CompileKotlinOperation();
+                op.plugins("plugin1", "plugin2");
+                assertThat(op.plugins()).containsExactly("plugin1", "plugin2");
+            }
+
+            @Test
+            void pluginsAsStringList() {
+                var op = new CompileKotlinOperation();
+                op.plugins(List.of("plugin1", "plugin2"));
+                assertThat(op.plugins()).containsExactly("plugin1", "plugin2");
             }
         }
 
