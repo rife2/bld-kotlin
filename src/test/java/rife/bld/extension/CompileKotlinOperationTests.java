@@ -356,19 +356,17 @@ class CompileKotlinOperationTests {
         @Nested
         @DisplayName("Main Source Directories Tests")
         class MainSourceDirectoriesTests {
-            private final CompileKotlinOperation op = new CompileKotlinOperation();
 
             @Test
             void mainSourceDirectoriesAsFileArray() {
-                op.mainSourceDirectories().clear();
-                op.mainSourceDirectories(new File(FILE_1), new File(FILE_2));
+                var op = new CompileKotlinOperation();
+                op = op.mainSourceDirectories(new File(FILE_1), new File(FILE_2));
                 assertThat(op.mainSourceDirectories()).containsExactly(new File(FILE_1), new File(FILE_2));
-                op.mainSourceDirectories().clear();
             }
 
             @Test
             void mainSourceDirectoriesAsFileList() {
-                op.mainSourceDirectories().clear();
+                var op = new CompileKotlinOperation();
                 op.mainSourceDirectories(List.of(new File(FILE_1), new File(FILE_2)));
                 assertThat(op.mainSourceDirectories()).containsExactly(new File(FILE_1), new File(FILE_2));
             }
@@ -382,21 +380,21 @@ class CompileKotlinOperationTests {
 
             @Test
             void mainSourceDirectoriesAsPathList() {
-                op.mainSourceDirectories().clear();
+                var op = new CompileKotlinOperation();
                 op.mainSourceDirectoriesPaths(List.of(new File(FILE_1).toPath(), new File(FILE_2).toPath()));
                 assertThat(op.mainSourceDirectories()).containsExactly(new File(FILE_1), new File(FILE_2));
             }
 
             @Test
             void mainSourceDirectoriesAsStringArray() {
-                op.mainSourceDirectories().clear();
+                var op = new CompileKotlinOperation();
                 op.mainSourceDirectories(FILE_1, FILE_2);
                 assertThat(op.mainSourceDirectories()).containsExactly(new File(FILE_1), new File(FILE_2));
             }
 
             @Test
             void mainSourceDirectoriesAsStringList() {
-                op.mainSourceDirectories().clear();
+                var op = new CompileKotlinOperation();
                 op.mainSourceDirectoriesStrings(List.of(FILE_1, FILE_2));
                 assertThat(op.mainSourceDirectories()).containsExactly(new File(FILE_1), new File(FILE_2));
             }
@@ -406,14 +404,14 @@ class CompileKotlinOperationTests {
             class MainSourceFilesTests {
                 @Test
                 void mainSourceFilesAsFileArray() {
-                    op.mainSourceFiles().clear();
+                    var op = new CompileKotlinOperation();
                     op.mainSourceFiles(new File(FILE_1), new File(FILE_2));
                     assertThat(op.mainSourceFiles()).containsExactly(new File(FILE_1), new File(FILE_2));
                 }
 
                 @Test
                 void mainSourceFilesAsFileList() {
-                    op.mainSourceFiles().clear();
+                    var op = new CompileKotlinOperation();
                     op.mainSourceFiles(List.of(new File(FILE_1), new File(FILE_2)));
                     assertThat(op.mainSourceFiles()).containsExactly(new File(FILE_1), new File(FILE_2));
                 }
@@ -427,21 +425,21 @@ class CompileKotlinOperationTests {
 
                 @Test
                 void mainSourceFilesAsPathList() {
-                    op.mainSourceFiles().clear();
+                    var op = new CompileKotlinOperation();
                     op.mainSourceFilesPaths(List.of(new File(FILE_1).toPath(), new File(FILE_2).toPath()));
                     assertThat(op.mainSourceFiles()).containsExactly(new File(FILE_1), new File(FILE_2));
                 }
 
                 @Test
                 void mainSourceFilesAsStringArray() {
-                    op.mainSourceFiles().clear();
+                    var op = new CompileKotlinOperation();
                     op.mainSourceFiles(FILE_1, FILE_2);
                     assertThat(op.mainSourceFiles()).containsExactly(new File(FILE_1), new File(FILE_2));
                 }
 
                 @Test
                 void mainSourceFilesAsStringList() {
-                    op.mainSourceFiles().clear();
+                    var op = new CompileKotlinOperation();
                     op.mainSourceFilesStrings(List.of(FILE_1, FILE_2));
                     assertThat(op.mainSourceFiles()).containsExactly(new File(FILE_1), new File(FILE_2));
                 }
@@ -503,28 +501,25 @@ class CompileKotlinOperationTests {
         @Nested
         @DisplayName("Source Test")
         class SourceDirectoriesTests {
-            private final CompileKotlinOperation op = new CompileKotlinOperation();
-
             @Test
             void testSourceDirectoriesAsFileArray() {
-                op.testSourceDirectories().clear();
-                op.testSourceDirectories(new File(FILE_1), new File(FILE_2));
+                var op = new CompileKotlinOperation();
+                op = op.testSourceDirectories(new File(FILE_1), new File(FILE_2));
                 assertThat(op.testSourceDirectories()).containsExactly(new File(FILE_1), new File(FILE_2));
             }
 
             @Test
             void testSourceDirectoriesAsFileList() {
-                op.testSourceDirectories().clear();
+                var op = new CompileKotlinOperation();
                 op.testSourceDirectories(List.of(new File(FILE_1), new File(FILE_2)));
                 assertThat(op.testSourceDirectories()).containsExactly(new File(FILE_1), new File(FILE_2));
             }
 
             @Test
             void testSourceDirectoriesAsListString() {
-                op.testSourceDirectories().clear();
+                var op = new CompileKotlinOperation();
                 op.testSourceDirectoriesStrings(List.of(FILE_1, FILE_2));
                 assertThat(op.testSourceDirectories()).containsExactly(new File(FILE_1), new File(FILE_2));
-                op.testSourceDirectories().clear();
             }
 
             @Test
@@ -536,14 +531,14 @@ class CompileKotlinOperationTests {
 
             @Test
             void testSourceDirectoriesAsPathList() {
-                op.testSourceDirectories().clear();
+                var op = new CompileKotlinOperation();
                 op.testSourceDirectoriesPaths(List.of(new File(FILE_1).toPath(), new File(FILE_2).toPath()));
                 assertThat(op.testSourceDirectories()).containsExactly(new File(FILE_1), new File(FILE_2));
             }
 
             @Test
             void testSourceDirectoriesAsStringArray() {
-                op.testSourceDirectories().clear();
+                var op = new CompileKotlinOperation();
                 op.testSourceDirectories(FILE_1, FILE_2);
                 assertThat(op.testSourceDirectories()).containsExactly(new File(FILE_1), new File(FILE_2));
             }
@@ -553,14 +548,14 @@ class CompileKotlinOperationTests {
             class SourceFilesTests {
                 @Test
                 void testSourceFilesAsFileArray() {
-                    op.testSourceDirectories().clear();
+                    var op = new CompileKotlinOperation();
                     op.testSourceFiles(new File(FILE_1), new File(FILE_2));
                     assertThat(op.testSourceFiles()).containsExactly(new File(FILE_1), new File(FILE_2));
                 }
 
                 @Test
                 void testSourceFilesAsFileList() {
-                    op.testSourceFiles().clear();
+                    var op = new CompileKotlinOperation();
                     op.testSourceFiles(List.of(new File(FILE_1), new File(FILE_2)));
                     assertThat(op.testSourceFiles()).containsExactly(new File(FILE_1), new File(FILE_2));
                 }
@@ -574,21 +569,21 @@ class CompileKotlinOperationTests {
 
                 @Test
                 void testSourceFilesAsPathList() {
-                    op.testSourceFiles().clear();
+                    var op = new CompileKotlinOperation();
                     op.testSourceFilesPaths(List.of(new File(FILE_1).toPath(), new File(FILE_2).toPath()));
                     assertThat(op.testSourceFiles()).containsExactly(new File(FILE_1), new File(FILE_2));
                 }
 
                 @Test
                 void testSourceFilesAsStringArray() {
-                    op.testSourceFiles().clear();
+                    var op = new CompileKotlinOperation();
                     op.testSourceFiles(FILE_1, FILE_2);
                     assertThat(op.testSourceFiles()).containsExactly(new File(FILE_1), new File(FILE_2));
                 }
 
                 @Test
                 void testSourceFilesAsStringList() {
-                    op.testSourceFiles().clear();
+                    var op = new CompileKotlinOperation();
                     op.testSourceFilesStrings(List.of(FILE_1, FILE_2));
                     assertThat(op.testSourceFiles()).containsExactly(new File(FILE_1), new File(FILE_2));
                 }
