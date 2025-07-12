@@ -33,9 +33,9 @@ public class ExampleBuild extends Project {
                 .include(dependency("org.jetbrains.kotlin", "kotlin-stdlib", kotlin));
         scope(test)
                 .include(dependency("org.jetbrains.kotlin", "kotlin-test-junit5", kotlin))
-                .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 13, 2)))
-                .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 13, 2)))
-                .include(dependency("org.junit.platform", "junit-platform-launcher", version(1, 13, 2)));
+                .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 13, 3)))
+                .include(dependency("org.junit.platform", "junit-platform-console-standalone", version(1, 13, 3)))
+                .include(dependency("org.junit.platform", "junit-platform-launcher", version(1, 13, 3)));
 
         // Include the Kotlin source directory when creating or publishing sources Java Archives
         jarSourcesOperation().sourceDirectories(new File(srcMainDirectory(), "kotlin"));
