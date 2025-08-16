@@ -23,14 +23,14 @@ package rife.bld.extension.kotlin;
  */
 public enum JvmDefault {
     /**
-     * Generate default methods for non-abstract interface declarations, as well as 'DefaultImpls' classes with static
-     * methods for compatibility with code compiled in the 'disable' mode.
+     * Generate default methods for non-abstract interface declarations, as well as {@code DefaultImpls} classes with
+     * static methods for compatibility with code compiled in the {@code disable} mode.
      * <p>
      * This is the default behavior since language version 2.2.
      */
     ENABLE("enable"),
     /**
-     * Generate default methods for non-abstract interface declarations. Do not generate 'DefaultImpls' classes.
+     * Generate default methods for non-abstract interface declarations. Do not generate {@code DefaultImpls} classes.
      */
     NO_COMPATIBILITY("no-compatibility"),
     /**

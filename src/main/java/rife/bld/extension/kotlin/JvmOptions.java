@@ -77,8 +77,28 @@ public class JvmOptions extends ArrayList<String> {
      * Illegal native access modes.
      */
     public enum NativeAccess {
+        /**
+         * Represents the {@code allow} mode for enabling specific native access.
+         * <p>
+         * This mode permits the operation or access that would otherwise be restricted
+         * or managed by native access policies.
+         */
         ALLOW("allow"),
+        /**
+         * Represents the {@code deny} mode which signifies complete prevention of specific
+         * native access.
+         * <p>
+         * This mode ensures that the operation or access is entirely prohibited according to
+         * the native access policies.
+         */
         DENY("deny"),
+        /**
+         * Represents the {@code warn} mode, which logs a warning when specific native access
+         * is attempted.
+         * <p>
+         * This mode allows the operation to proceed while notifying the user about the
+         * potential risks or restrictions associated with native access policies.
+         */
         WARN("warn");
 
         public final String mode;
