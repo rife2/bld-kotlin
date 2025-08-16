@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import rife.bld.extension.CompileKotlinOperation;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -70,6 +71,24 @@ class JvmOptionsTests {
         }
 
         @Test
+        void enableNativeAccessWithCollection() {
+            var options = new JvmOptions().enableNativeAccess(List.of("moduleA", "moduleB"));
+            assertThat(options).containsExactly("--enable-native-access=moduleA,moduleB");
+        }
+
+        @Test
+        void enableNativeAccessWithEmptyCollection() {
+            var options = new JvmOptions().enableNativeAccess(Set.of());
+            assertThat(options).containsExactly("--enable-native-access=");
+        }
+
+        @Test
+        void enableNativeAccessWithEmptyVarargs() {
+            var options = new JvmOptions().enableNativeAccess();
+            assertThat(options).containsExactly("--enable-native-access=");
+        }
+
+        @Test
         void enableNativeAccessWithMultipleNames() {
             var options = new JvmOptions().enableNativeAccess("m1", "m2");
             assertThat(options).as("m1,m2").containsExactly("--enable-native-access=m1,m2");
@@ -81,6 +100,53 @@ class JvmOptionsTests {
             assertThat(options).as("m1").containsExactly("--enable-native-access=m1");
         }
 
+        @Test
+        void enableNativeAccessWithSingleVararg() {
+            var options = new JvmOptions().enableNativeAccess("one.module");
+            assertThat(options).containsExactly("--enable-native-access=one.module");
+        }
+
+        @Test
+        void enableNativeAccessWithVarargs() {
+            var options = new JvmOptions().enableNativeAccess("module1", "module2");
+            assertThat(options).containsExactly("--enable-native-access=module1,module2");
+        }
+    }
+
+    @Nested
+    @DisplayName("Fluent API Tests")
+    class FluentApiTests {
+        @Test
+        void shouldAllowMethodChaining() {
+            var options = new JvmOptions()
+                    .enableNativeAccess("my.module", JvmOptions.ALL_UNNAMED)
+                    .illegalNativeAccess(JvmOptions.NativeAccess.WARN);
+
+            assertThat(options).containsExactly(
+                    "--enable-native-access=my.module,ALL-UNNAMED",
+                    "--illegal-native-access=warn"
+            );
+        }
+
+        @Test
+        void shouldReturnTheSameInstance() {
+            var options = new JvmOptions();
+
+            var returnedFromEnable = options.enableNativeAccess("mod1");
+            assertThat(returnedFromEnable)
+                    .withFailMessage("enableNativeAccess should return the same instance for chaining.")
+                    .isSameAs(options);
+
+            var returnedFromIllegal = options.illegalNativeAccess(JvmOptions.NativeAccess.DENY);
+            assertThat(returnedFromIllegal)
+                    .withFailMessage("illegalNativeAccess should return the same instance for chaining.")
+                    .isSameAs(options);
+        }
+    }
+
+    @Nested
+    @DisplayName("Illegal Native Access Tests")
+    class IllegalNativeAccessTests {
         @Test
         void illegalNativeAccessWithAllow() {
             var options = new JvmOptions().illegalNativeAccess(JvmOptions.NativeAccess.ALLOW);
@@ -97,6 +163,25 @@ class JvmOptionsTests {
         void illegalNativeAccessWithWarn() {
             var options = new JvmOptions().illegalNativeAccess(JvmOptions.NativeAccess.WARN);
             assertThat(options).as("WARN").containsExactly("--illegal-native-access=warn");
+        }
+    }
+
+    @Nested
+    @DisplayName("NativeAccess Enum Tests")
+    class NativeAccessEnumTests {
+        @Test
+        void shouldHaveCorrectAllowMode() {
+            assertThat(JvmOptions.NativeAccess.ALLOW.mode).isEqualTo("allow");
+        }
+
+        @Test
+        void shouldHaveCorrectDenyMode() {
+            assertThat(JvmOptions.NativeAccess.DENY.mode).isEqualTo("deny");
+        }
+
+        @Test
+        void shouldHaveCorrectWarnMode() {
+            assertThat(JvmOptions.NativeAccess.WARN.mode).isEqualTo("warn");
         }
     }
 }

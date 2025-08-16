@@ -21,14 +21,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 import rife.bld.blueprints.BaseProjectBlueprint;
 import rife.bld.extension.kotlin.CompileOptions;
 import rife.bld.extension.kotlin.CompilerPlugin;
 import rife.bld.extension.kotlin.JvmOptions;
-import rife.tools.FileUtils;
 
 import java.io.File;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -49,6 +48,8 @@ class CompileKotlinOperationTests {
     private static final String PROJECT = "examples";
     private static final String PROJECT_NAME = "Example";
     private static final String PROJECT_PACKAGE = "com.example";
+    @TempDir
+    private File tmpDir;
 
     @BeforeAll
     static void beforeAll() {
@@ -63,70 +64,65 @@ class CompileKotlinOperationTests {
 
     @Test
     void execute() throws Exception {
-        var tmpDir = Files.createTempDirectory("bld-kotlin").toFile();
+        var buildDir = new File(tmpDir, "build");
+        var mainDir = new File(buildDir, "main");
+        var testDir = new File(buildDir, "test");
 
-        try {
-            var buildDir = new File(tmpDir, "build");
-            var mainDir = new File(buildDir, "main");
-            var testDir = new File(buildDir, "test");
-
-            try (var softly = new AutoCloseableSoftAssertions()) {
-                softly.assertThat(mainDir.mkdirs()).as("make mainDir").isTrue();
-                softly.assertThat(testDir.mkdirs()).as("make testDir").isTrue();
-            }
-
-            var compileJars = new ArrayList<String>();
-            for (var f : Objects.requireNonNull(new File("examples/lib/compile").listFiles())) {
-                compileJars.add(f.getAbsolutePath());
-            }
-
-            var testJars = new ArrayList<String>();
-            for (var f : Objects.requireNonNull(new File("examples/lib/test").listFiles())) {
-                testJars.add(f.getAbsolutePath());
-            }
-
-            var op = new CompileKotlinOperation()
-                    .fromProject(new BaseProjectBlueprint(new File(PROJECT), PROJECT_PACKAGE, PROJECT_NAME, PROJECT_NAME))
-                    .buildMainDirectory(mainDir)
-                    .buildTestDirectory(testDir)
-                    .compileMainClasspath(compileJars)
-                    .compileTestClasspath(testJars)
-                    .compileTestClasspath(compileJars)
-                    .compileTestClasspath(mainDir.getAbsolutePath());
-
-            op.compileOptions().verbose(true);
-            op.compileOptions().argFile("src/test/resources/argfile.txt", "src/test/resources/argfile2.txt");
-
-            if (!CompileKotlinOperation.isWindows()) {
-                op.jvmOptions().enableNativeAccess(JvmOptions.ALL_UNNAMED);
-                assertThat(op.jvmOptions()).containsExactly("--enable-native-access=ALL-UNNAMED");
-            }
-
-            var args = op.compileOptions().args();
-            var matches = List.of("-Xjdk-release=17", "-no-reflect", "-progressive", "-include-runtime", "-no-stdlib",
-                    "-verbose");
-            assertThat(args).as("%s == %s", args, matches).isEqualTo(matches);
-
-            op.execute();
-
-            try (var softly = new AutoCloseableSoftAssertions()) {
-                softly.assertThat(tmpDir).as("tmpDir").isNotEmptyDirectory();
-                softly.assertThat(mainDir).as("mainDir").isNotEmptyDirectory();
-                softly.assertThat(testDir).as("testDir").isNotEmptyDirectory();
-            }
-
-            var mainOut = Path.of(mainDir.getAbsolutePath(), "com", "example").toFile();
-            try (var softly = new AutoCloseableSoftAssertions()) {
-                softly.assertThat(new File(mainOut, "Example.class")).as("Example.class").exists();
-                softly.assertThat(new File(mainOut, "Example$Companion.class"))
-                        .as("ExampleCompanion.class").exists();
-            }
-
-            var testOut = Path.of(testDir.getAbsolutePath(), "com", "example").toFile();
-            assertThat(new File(testOut, "ExampleTest.class")).as("ExampleTest.class").exists();
-        } finally {
-            FileUtils.deleteDirectory(tmpDir);
+        try (var softly = new AutoCloseableSoftAssertions()) {
+            softly.assertThat(mainDir.mkdirs()).as("make mainDir").isTrue();
+            softly.assertThat(testDir.mkdirs()).as("make testDir").isTrue();
         }
+
+        var compileJars = new ArrayList<String>();
+        for (var f : Objects.requireNonNull(new File("examples/lib/compile").listFiles())) {
+            compileJars.add(f.getAbsolutePath());
+        }
+
+        var testJars = new ArrayList<String>();
+        for (var f : Objects.requireNonNull(new File("examples/lib/test").listFiles())) {
+            testJars.add(f.getAbsolutePath());
+        }
+
+        var op = new CompileKotlinOperation()
+                .fromProject(new BaseProjectBlueprint(new File(PROJECT), PROJECT_PACKAGE, PROJECT_NAME, PROJECT_NAME))
+                .buildMainDirectory(mainDir)
+                .buildTestDirectory(testDir)
+                .compileMainClasspath(compileJars)
+                .compileTestClasspath(testJars)
+                .compileTestClasspath(compileJars)
+                .compileTestClasspath(mainDir.getAbsolutePath());
+
+        op.compileOptions().verbose(true);
+        op.compileOptions().argFile("src/test/resources/argfile.txt", "src/test/resources/argfile2.txt");
+
+        if (!CompileKotlinOperation.isWindows()) {
+            op.jvmOptions().enableNativeAccess(JvmOptions.ALL_UNNAMED);
+            assertThat(op.jvmOptions()).containsExactly("--enable-native-access=ALL-UNNAMED");
+        }
+
+        var args = op.compileOptions().args();
+        var matches = List.of("-Xjdk-release=17", "-no-reflect", "-progressive", "-include-runtime", "-no-stdlib",
+                "-verbose");
+        assertThat(args).as("%s == %s", args, matches).isEqualTo(matches);
+
+        op.execute();
+
+        try (var softly = new AutoCloseableSoftAssertions()) {
+            softly.assertThat(tmpDir).as("tmpDir shouldn't be empty").isNotEmptyDirectory();
+            softly.assertThat(mainDir).as("mainDir shouldn't be empty").isNotEmptyDirectory();
+            softly.assertThat(testDir).as("testDir shouldn't be empty").isNotEmptyDirectory();
+        }
+
+        var mainOut = Path.of(mainDir.getAbsolutePath(), "com", "example").toFile();
+        try (var softly = new AutoCloseableSoftAssertions()) {
+            softly.assertThat(new File(mainOut, "Example.class")).as("Example.class").exists();
+            softly.assertThat(new File(mainOut, "Example$Companion.class"))
+                    .as("ExampleCompanion.class").exists();
+        }
+
+        var testOut = Path.of(testDir.getAbsolutePath(), "com", "example").toFile();
+        assertThat(new File(testOut, "ExampleTest.class")).as("ExampleTest.class").exists();
+
     }
 
     @Test
