@@ -49,10 +49,14 @@ public class CompileKotlinOperationBuild extends Project {
         scope(compile)
                 .include(dependency("com.uwyn.rife2", "bld", version(2, 3, 0)));
         scope(test)
-                .include(dependency("org.junit.jupiter", "junit-jupiter", version(5, 13, 4)))
+                .include(dependency("com.uwyn.rife2", "bld-extensions-testing-helpers",
+                        version(0, 9, 3, "SNAPSHOT")))
+                .include(dependency("org.junit.jupiter", "junit-jupiter",
+                        version(5, 13, 4)))
                 .include(dependency("org.junit.platform", "junit-platform-console-standalone",
                         version(1, 13, 4)))
-                .include(dependency("org.assertj", "assertj-core", version(3, 27, 4)));
+                .include(dependency("org.assertj", "assertj-core",
+                        version(3, 27, 4)));
 
         javadocOperation()
                 .javadocOptions()

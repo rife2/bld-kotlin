@@ -17,15 +17,17 @@
 package rife.bld.extension;
 
 import org.assertj.core.api.AutoCloseableSoftAssertions;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 import rife.bld.blueprints.BaseProjectBlueprint;
 import rife.bld.extension.kotlin.CompileOptions;
 import rife.bld.extension.kotlin.CompilerPlugin;
 import rife.bld.extension.kotlin.JvmOptions;
+import rife.bld.extension.testing.LoggingExtension;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -33,34 +35,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Objects;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@ExtendWith(LoggingExtension.class)
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class CompileKotlinOperationTests {
     private static final String BAR = "bar";
     private static final String FILE_1 = "file1";
     private static final String FILE_2 = "file2";
     private static final String FOO = "foo";
+
+    @RegisterExtension
+    @SuppressWarnings({"unused"})
+    private static final LoggingExtension LOGGING_EXTENSION =
+            new LoggingExtension(CompileKotlinOperation.class.getName());
+
     private static final String PROJECT = "examples";
     private static final String PROJECT_NAME = "Example";
     private static final String PROJECT_PACKAGE = "com.example";
     @TempDir
     private File tmpDir;
-
-    @BeforeAll
-    static void beforeAll() {
-        var level = Level.ALL;
-        var logger = Logger.getLogger("rife.bld.extension");
-        var consoleHandler = new ConsoleHandler();
-        consoleHandler.setLevel(level);
-        logger.addHandler(consoleHandler);
-        logger.setLevel(level);
-        logger.setUseParentHandlers(false);
-    }
 
     @Test
     void execute() throws Exception {
