@@ -2,14 +2,12 @@ name: bld-ci
 
 on: [ push, pull_request, workflow_dispatch ]
 
-env:
-  KOTLIN_VERSION: 2.2.0
-
 jobs:
   build-bld-project:
     strategy:
       matrix:
         java-version: [ 17, 21, 24 ]
+        kotlin-version: [ 1.9.24, 2.1.21, 2.2.20 ]
         os: [ ubuntu-latest, windows-latest, macos-latest ]
 
     runs-on: ${{ matrix.os }}
@@ -26,13 +24,15 @@ jobs:
           distribution: "zulu"
           java-version: ${{ matrix.java-version }}
 
-      - name: Setup Kotlin ${{ env.KOTLIN_VERSION }}
+      - name: Setup Kotlin ${{ matrix.kotlin-version }}
         uses: fwilhe2/setup-kotlin@main
         with:
-          version: ${{ env.KOTLIN_VERSION }}
+          version: ${{ matrix.kotlin-version }}
 
       - name: Download dependencies
+        working-directory: examples
         run: ./bld download
 
       - name: Run tests
+        working-directory: examples
         run: ./bld compile test
