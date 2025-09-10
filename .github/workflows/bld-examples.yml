@@ -7,7 +7,7 @@ jobs:
     strategy:
       matrix:
         java-version: [ 17, 21, 24 ]
-        kotlin-version: [ 1.9.24, 2.1.21, 2.2.20 ]
+        kotlin-version: [ 1.9.25, 2.1.21, 2.2.20 ]
         os: [ ubuntu-latest, windows-latest, macos-latest ]
 
     runs-on: ${{ matrix.os }}
@@ -35,4 +35,6 @@ jobs:
 
       - name: Run tests
         working-directory: examples
+        env:
+          KOTLIN_VERSION: ${{ matrix.kotlin-version }}
         run: ./bld compile test

@@ -28,7 +28,11 @@ public class ExampleBuild extends Project {
 
         repositories = List.of(MAVEN_LOCAL, MAVEN_CENTRAL, RIFE2_RELEASES);
 
-        final var kotlin = version(2, 2, 20);
+        var kotlin = "2.2.20";
+        if (System.getenv("KOTLIN_VERSION") != null) {
+            kotlin = System.getenv("KOTLIN_VERSION");
+        }
+
         scope(compile)
                 .include(dependency("org.jetbrains.kotlin", "kotlin-stdlib", kotlin));
         scope(test)
