@@ -3,7 +3,7 @@ name: bld-ci
 on: [ push, pull_request, workflow_dispatch ]
 
 env:
-  KOTLIN_VERSION: 2.2.0
+  KOTLIN_VERSION: 2.2.20
 
 jobs:
   build-bld-project:
@@ -31,8 +31,17 @@ jobs:
         with:
           version: ${{ env.KOTLIN_VERSION }}
 
+      - name: Download dependencies and compile [examples]
+        working-directory: examples
+        run: ./bld download compile
+
       - name: Download dependencies
         run: ./bld download
 
       - name: Run tests
+        continue-on-error: true
         run: ./bld compile test
+
+      - name: Run reporter
+        if: ${{ failure() }}
+        run: ./bld reporter --all

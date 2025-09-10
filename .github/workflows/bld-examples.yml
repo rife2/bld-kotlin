@@ -1,9 +1,9 @@
-name: bld-ci
+name: bld-examples
 
 on: [ push, pull_request, workflow_dispatch ]
 
 jobs:
-  build-bld-project:
+  run-bld-examples:
     strategy:
       matrix:
         java-version: [ 17, 21, 24 ]
