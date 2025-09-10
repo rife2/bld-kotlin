@@ -104,6 +104,15 @@ public class CompileKotlinOperationBuild extends Project {
                 .execute();
     }
 
+    @BuildCommand(summary = "Runs the JUnit reporter (take option)",
+            description = "Usage: reporter [--all | --i[ndex]=GROUP_INDEX[.FAILURE_INDEX]]")
+    public void reporter() throws Exception {
+        new JUnitReporterOperation()
+                .fromProject(this)
+                .failOnSummary(true)
+                .execute();
+    }
+
     @Override
     public void test() throws Exception {
         var os = System.getProperty("os.name");
