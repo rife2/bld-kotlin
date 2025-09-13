@@ -16,6 +16,7 @@
     <pattern value="rife.bld.extension.kotlin.CompilerPlugin" />
     <pattern value="rife.bld.extension.kotlin.CompilerPlugin" method="CompilerPlugin" />
     <pattern value="rife.bld.extension.CompileKotlinOperationBuild" method="publishGitHub" />
+    <pattern value="rife.bld.extension.CompileKotlinOperationBuild" method="reporter" />
   </component>
   <component name="PDMPlugin">
     <option name="customRuleSets">

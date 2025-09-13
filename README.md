@@ -35,6 +35,7 @@ public void compile() throws Exception {
 ```
 
 - [View Examples Project](https://github.com/rife2/bld-kotlin/tree/main/examples/)
+- [View Template Project](https://github.com/rife2/kotlin-bld-example)
 
 Please check
 the [Compile Operation documentation](https://rife2.github.io/bld-kotlin/rife/bld/extension/CompileKotlinOperation.html#method-summary)

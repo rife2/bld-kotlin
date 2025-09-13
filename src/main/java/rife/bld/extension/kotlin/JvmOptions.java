@@ -34,7 +34,7 @@ public class JvmOptions extends ArrayList<String> {
     /**
      * Keyword to enable native access for all code on the class path.
      */
-    public final static String ALL_UNNAMED = "ALL-UNNAMED";
+    public static final String ALL_UNNAMED = "ALL-UNNAMED";
 
     @Serial
     private static final long serialVersionUID = 1L;
