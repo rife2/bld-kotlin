@@ -23,14 +23,11 @@ import rife.bld.publish.PublishLicense;
 import rife.bld.publish.PublishScm;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Locale;
 
 import static rife.bld.dependencies.Repository.*;
-import static rife.bld.dependencies.Scope.compile;
-import static rife.bld.dependencies.Scope.test;
+import static rife.bld.dependencies.Scope.*;
 import static rife.bld.operations.JavadocOptions.DocLinkOption.NO_MISSING;
 
 public class CompileKotlinOperationBuild extends Project {
@@ -49,6 +46,9 @@ public class CompileKotlinOperationBuild extends Project {
         var junit = version(6, 0, 1);
         scope(compile)
                 .include(dependency("com.uwyn.rife2", "bld", version(2, 3, 0)));
+        scope(provided)
+                .include(dependency("com.github.spotbugs", "spotbugs-annotations",
+                        version(4, 9, 8)));
         scope(test)
                 .include(dependency("com.uwyn.rife2", "bld-extensions-testing-helpers",
                         version(0, 9, 4)))
@@ -125,6 +125,13 @@ public class CompileKotlinOperationBuild extends Project {
         var op = testOperation().fromProject(this);
         op.testToolOptions().reportsDir(new File(testResultsDir));
         op.execute();
+    }
 
+    @BuildCommand(summary = "Runs SpotBugs on this project")
+    public void spotbugs() throws Exception {
+        new SpotBugsOperation()
+                .fromProject(this)
+                .home("/opt/spotbugs")
+                .execute();
     }
 }

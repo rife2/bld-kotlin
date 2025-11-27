@@ -16,6 +16,7 @@
 
 package rife.bld.extension.kotlin;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import rife.bld.extension.CompileKotlinOperation;
 import rife.bld.operations.AbstractToolProviderOperation;
 
@@ -40,13 +41,13 @@ import static rife.bld.extension.CompileKotlinOperation.isNotBlank;
  */
 public class CompileOptions {
     private static final Logger LOGGER = Logger.getLogger(CompileOptions.class.getName());
-    private final Collection<String> advancedOptions_ = new ArrayList<>();
-    private final Collection<File> argFile_ = new ArrayList<>();
-    private final Collection<File> classpath_ = new ArrayList<>();
-    private final Collection<String> optIn_ = new ArrayList<>();
-    private final Collection<String> options_ = new ArrayList<>();
-    private final Collection<String> plugin_ = new ArrayList<>();
-    private final Collection<String> scriptTemplates_ = new ArrayList<>();
+    private final List<String> advancedOptions_ = new ArrayList<>();
+    private final List<File> argFile_ = new ArrayList<>();
+    private final List<File> classpath_ = new ArrayList<>();
+    private final List<String> optIn_ = new ArrayList<>();
+    private final List<String> options_ = new ArrayList<>();
+    private final List<String> plugin_ = new ArrayList<>();
+    private final List<String> scriptTemplates_ = new ArrayList<>();
     private String apiVersion_;
     private String expression_;
     private boolean includeRuntime_;
@@ -94,7 +95,8 @@ public class CompileOptions {
      *
      * @return the advanced compiler options
      */
-    public Collection<String> advancedOptions() {
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public List<String> advancedOptions() {
         return advancedOptions_;
     }
 
@@ -214,7 +216,8 @@ public class CompileOptions {
      *
      * @return the compiler options files
      */
-    public Collection<File> argFile() {
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public List<File> argFile() {
         return argFile_;
     }
 
@@ -476,7 +479,8 @@ public class CompileOptions {
      *
      * @return the class files classpath
      */
-    public Collection<File> classpath() {
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public List<File> classpath() {
         return classpath_;
     }
 
@@ -545,7 +549,7 @@ public class CompileOptions {
     }
 
     /**
-     * Include the Kotlin runtime into the resulting JAR file. Makes the resulting archive runnable on any Java-enabled
+     * Include the Kotlin runtime in the resulting JAR file. Makes the resulting archive runnable on any Java-enabled
      * environment.
      *
      * @param includeRuntime {@code true} or {@code false}
@@ -658,7 +662,7 @@ public class CompileOptions {
     }
 
     /**
-     * Use a custom JDK home directory to include into the classpath if it differs from the default {@code JAVA_HOME}.
+     * Use a custom JDK home directory to include in the classpath if it differs from the default {@code JAVA_HOME}.
      *
      * @param jdkHome the JDK home path
      * @return this operation instance
@@ -669,17 +673,18 @@ public class CompileOptions {
     }
 
     /**
-     * Use a custom JDK home directory to include into the classpath if it differs from the default {@code JAVA_HOME}.
+     * Use a custom JDK home directory to include in the classpath if it differs from the default {@code JAVA_HOME}.
      *
      * @param jdkHome the JDK home path
      * @return this operation instance
      */
+    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
     public CompileOptions jdkHome(String jdkHome) {
         return jdkHome(new File(jdkHome));
     }
 
     /**
-     * Use a custom JDK home directory to include into the classpath if it differs from the default {@code JAVA_HOME}.
+     * Use a custom JDK home directory to include in the classpath if it differs from the default {@code JAVA_HOME}.
      *
      * @param jdkHome the JDK home path
      * @return this operation instance
@@ -827,6 +832,7 @@ public class CompileOptions {
      * @param path the Kotlin home path
      * @return this operation instance
      */
+    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
     public CompileOptions kotlinHome(String path) {
         return kotlinHome(new File(path));
     }
@@ -931,7 +937,8 @@ public class CompileOptions {
      *
      * @return the fully qualified names
      */
-    public Collection<String> optIn() {
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public List<String> optIn() {
         return optIn_;
     }
 
@@ -961,7 +968,8 @@ public class CompileOptions {
      *
      * @return the compiler options
      */
-    public Collection<String> options() {
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public List<String> options() {
         return options_;
     }
 
@@ -1018,6 +1026,7 @@ public class CompileOptions {
      * @param path the location path
      * @return this operation instance
      */
+    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
     public CompileOptions path(String path) {
         return path(new File(path));
     }
@@ -1040,7 +1049,8 @@ public class CompileOptions {
      *
      * @return the plugin options.
      */
-    public Collection<String> plugin() {
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public List<String> plugin() {
         return plugin_;
     }
 
@@ -1072,7 +1082,8 @@ public class CompileOptions {
      *
      * @return the script templates.
      */
-    public Collection<String> scriptTemplates() {
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public List<String> scriptTemplates() {
         return scriptTemplates_;
     }
 

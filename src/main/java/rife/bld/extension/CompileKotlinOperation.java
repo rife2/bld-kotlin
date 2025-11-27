@@ -16,6 +16,7 @@
 
 package rife.bld.extension;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import rife.bld.BaseProject;
 import rife.bld.extension.kotlin.CompileOptions;
 import rife.bld.extension.kotlin.CompilerPlugin;
@@ -38,19 +39,20 @@ import java.util.logging.Logger;
  * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
  * @since 1.0
  */
+@SuppressFBWarnings({"PATH_TRAVERSAL_IN", "FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY"})
 public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOperation> {
     private static final Logger LOGGER = Logger.getLogger(CompileKotlinOperation.class.getName());
     private static final String OS_NAME =
-            System.getProperty("os.name") != null ? System.getProperty("os.name").toLowerCase(Locale.US) : null;
+            System.getProperty("os.name") != null ? System.getProperty("os.name").toLowerCase(Locale.ENGLISH) : null;
     private static final String KOTLINC_EXECUTABLE = "kotlinc" + (isWindows() ? ".bat" : "");
-    private final Collection<String> compileMainClasspath_ = new ArrayList<>();
-    private final Collection<String> compileTestClasspath_ = new ArrayList<>();
+    private final List<String> compileMainClasspath_ = new ArrayList<>();
+    private final List<String> compileTestClasspath_ = new ArrayList<>();
     private final JvmOptions jvmOptions_ = new JvmOptions();
-    private final Collection<File> mainSourceDirectories_ = new ArrayList<>();
-    private final Collection<File> mainSourceFiles_ = new ArrayList<>();
-    private final Collection<String> plugins_ = new ArrayList<>();
-    private final Collection<File> testSourceDirectories_ = new ArrayList<>();
-    private final Collection<File> testSourceFiles_ = new ArrayList<>();
+    private final List<File> mainSourceDirectories_ = new ArrayList<>();
+    private final List<File> mainSourceFiles_ = new ArrayList<>();
+    private final List<String> plugins_ = new ArrayList<>();
+    private final List<File> testSourceDirectories_ = new ArrayList<>();
+    private final List<File> testSourceFiles_ = new ArrayList<>();
     private File buildMainDirectory_;
     private File buildTestDirectory_;
     private CompileOptions compileOptions_ = new CompileOptions();
@@ -66,7 +68,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             return kotlinc.getAbsolutePath();
         }
 
-        // Check bin subdirectory if it exists
+        // Check the bin subdirectory if it exists
         var binDir = new File(directory, "bin");
         if (binDir.isDirectory()) {
             kotlinc = new File(binDir, KOTLINC_EXECUTABLE);
@@ -95,10 +97,12 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @return The path to the kotlinc executable, or {@code kotlinc}/{@code kotlinc.bat} if not found.
      * @since 1.1.0
      */
+    @SuppressWarnings("PMD.AvoidCatchingGenericException")
+    @SuppressFBWarnings("DM_DEFAULT_ENCODING")
     public static String findKotlincPath(boolean isSilent) {
         String kotlincPath;
 
-        // Check KOTLIN_HOME environment variable first
+        // Check the KOTLIN_HOME environment variable first
         var kotlinHome = System.getenv("KOTLIN_HOME");
         if (kotlinHome != null && !kotlinHome.isEmpty()) {
             kotlincPath = findKotlincInDir(kotlinHome);
@@ -180,10 +184,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                     "Android Studio");
         }
 
-        for (var path : commonPaths.keySet()) {
-            kotlincPath = findKotlincInDir(path);
+        for (var path : commonPaths.entrySet()) {
+            kotlincPath = findKotlincInDir(path.getKey());
             if (kotlincPath != null) {
-                logKotlincPath(kotlincPath, isSilent, commonPaths.get(path));
+                logKotlincPath(kotlincPath, isSilent, commonPaths.get(path.getKey()));
                 return kotlincPath;
             }
         }
@@ -389,7 +393,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *
      * @return the classpath entries
      */
-    public Collection<String> compileMainClasspath() {
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public List<String> compileMainClasspath() {
         return compileMainClasspath_;
     }
 
@@ -439,7 +444,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *
      * @return the classpath entries
      */
-    public Collection<String> compileTestClasspath() {
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public List<String> compileTestClasspath() {
         return compileTestClasspath_;
     }
 
@@ -489,6 +495,635 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
+     * Configures a compile operation from a {@link BaseProject}.
+     * <p>
+     * Sets the following from the project:
+     * <ul>
+     *     <li>{@link #workDir() workDir} to the project's directory.</li>
+     *     <li>{@link #buildMainDirectory() buildMainDirectory}</li>
+     *     <li>{@link #buildTestDirectory() buildTestDirectory}</li>
+     *     <li>{@link #compileMainClasspath() compileMainClassPath}</li>
+     *     <li>{@link #compileTestClasspath() compilesTestClassPath}</li>
+     *     <li>{@link #mainSourceDirectories() mainSourceDirectories} to the {@code kotlin} directory in
+     *     {@link BaseProject#srcMainDirectory() srcMainDirectory}, if present.</li>
+     *     <li>{@link #testSourceDirectories() testSourceDirectories} to the {@code kotlin} directory in
+     *     {@link BaseProject#srcTestDirectory() srcTestDirectory}, if present.</li>
+     *     <li>{@link CompileOptions#jdkRelease jdkRelease} to {@link BaseProject#javaRelease() javaRelease}</li>
+     *     <li>{@link CompileOptions#jvmTarget jvmTarget} to {@link BaseProject#javaRelease() javaRelease}</li>
+     *     <li>{@link CompileOptions#noStdLib(boolean) noStdLib} to {@code true}</li>
+     * </ul>
+     *
+     * @param project the project to configure the compile operation from
+     * @return this operation instance
+     */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public CompileKotlinOperation fromProject(BaseProject project) {
+        project_ = project;
+        workDir_ = new File(project.workDirectory().getAbsolutePath());
+
+        buildMainDirectory_ = project.buildMainDirectory();
+        buildTestDirectory_ = project.buildTestDirectory();
+        compileMainClasspath_.addAll(project.compileMainClasspath());
+        compileTestClasspath_.addAll(project.compileTestClasspath());
+
+        var mainDir = new File(project.srcMainDirectory(), "kotlin");
+        if (mainDir.exists()) {
+            mainSourceDirectories_.add(mainDir);
+        }
+        var testDir = new File(project.srcTestDirectory(), "kotlin");
+        if (testDir.exists()) {
+            testSourceDirectories_.add(testDir);
+        }
+
+        if (project.javaRelease() != null) {
+            if (!compileOptions_.hasRelease()) {
+                compileOptions_.jdkRelease(project.javaRelease());
+            }
+            if (!compileOptions_.hasTarget()) {
+                compileOptions_.jvmTarget(project.javaRelease());
+            }
+        }
+        compileOptions_.noStdLib(true);
+
+        return this;
+    }
+
+    /**
+     * Part of the {@link #execute execute} operation, builds the test sources.
+     *
+     * @throws ExitStatusException if an error occurs
+     */
+    @SuppressWarnings("PMD.SystemPrintln")
+    protected void executeBuildTestSources() throws ExitStatusException {
+        if (!silent()) {
+            System.out.println("Compiling Kotlin test sources.");
+        }
+        executeBuildSources(
+                compileTestClasspath(),
+                sources(testSourceFiles(), testSourceDirectories()),
+                buildTestDirectory(),
+                buildMainDirectory());
+    }
+
+    /**
+     * Part of the {@link #execute execute} operation, creates the build directories.
+     *
+     * @throws IOException if an error occurs
+     */
+    protected void executeCreateBuildDirectories() throws IOException {
+        if (buildMainDirectory() != null && !buildMainDirectory().exists() && !buildMainDirectory().mkdirs()) {
+            throw new IOException("Could not create build main directory: " + buildMainDirectory().getAbsolutePath());
+        }
+        if (buildTestDirectory() != null && !buildTestDirectory().exists() && !buildTestDirectory().mkdirs()) {
+            throw new IOException("Could not create build test directory: " + buildTestDirectory().getAbsolutePath());
+        }
+    }
+
+    /**
+     * Retrieves the Java Virtual Machine options.
+     *
+     * @return the JVM options
+     */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public JvmOptions jvmOptions() {
+        return jvmOptions_;
+    }
+
+    /**
+     * Provides the Kotlin home directory, if it differs from the default {@code KOTLIN_HOME}.
+     *
+     * @param dir the directory path
+     * @return this operation instance
+     */
+    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
+    public CompileKotlinOperation kotlinHome(String dir) {
+        return kotlinHome(new File(dir));
+    }
+
+    /**
+     * Provides the path to the Kotlin compiler ({@code kotlinc}) executable, if not in {@link #kotlinHome()}.
+     *
+     * @param executable the executable path
+     * @return this operation instance
+     */
+    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
+    public CompileKotlinOperation kotlinc(String executable) {
+        return kotlinc(new File(executable));
+    }
+
+    /**
+     * Pass an option directly to the Java Virtual Machine
+     *
+     * @param jvmOptions the JVM options
+     * @return this operation instance
+     */
+    public CompileKotlinOperation jvmOptions(Collection<String> jvmOptions) {
+        jvmOptions_.addAll(jvmOptions);
+        return this;
+    }
+
+    /**
+     * Pass an option directly to the Java Virtual Machine
+     *
+     * @param jvmOptions one or more JVM option
+     * @return this operation instance
+     */
+    public CompileKotlinOperation jvmOptions(String... jvmOptions) {
+        return jvmOptions(List.of(jvmOptions));
+    }
+
+    /**
+     * Provides the Kotlin home directory, if it differs from the default {@code KOTLIN_HOME}.
+     *
+     * @param dir the directory
+     * @return this operation instance
+     */
+    public CompileKotlinOperation kotlinHome(File dir) {
+        kotlinHome_ = dir;
+        return this;
+    }
+
+    /**
+     * Retrieves the main source directories that should be compiled.
+     *
+     * @return the main source directories
+     */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public List<File> mainSourceDirectories() {
+        return mainSourceDirectories_;
+    }
+
+    /**
+     * Provides the Kotlin home directory, if it differs from the default {@code KOTLIN_HOME}.
+     *
+     * @param dir the directory path
+     * @return this operation instance
+     */
+    public CompileKotlinOperation kotlinHome(Path dir) {
+        return kotlinHome(dir.toFile());
+    }
+
+    /**
+     * Retrieves the Kotlin home directory.
+     *
+     * @return the directory
+     */
+    public File kotlinHome() {
+        return kotlinHome_;
+    }
+
+    /**
+     * Retrieves the path to the Kotlin compiler ({@code kotlinc}) executable, if not in {@link #kotlinHome()}.
+     *
+     * @return the executable path
+     */
+    public File kotlinc() {
+        return kotlinc_;
+    }
+
+    /**
+     * Provides the path to the Kotlin compiler ({@code kotlinc}) executable, if not in {@link #kotlinHome()}.
+     *
+     * @param executable the executable path
+     * @return this operation instance
+     */
+    public CompileKotlinOperation kotlinc(File executable) {
+        kotlinc_ = executable;
+        return this;
+    }
+
+    /**
+     * Retrieves the main files that should be compiled.
+     *
+     * @return the files
+     */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public List<File> mainSourceFiles() {
+        return mainSourceFiles_;
+    }
+
+    /**
+     * Provides the path to the Kotlin compiler ({@code kotlinc}) executable, if not in {@link #kotlinHome()}.
+     *
+     * @param executable the executable path
+     * @return this operation instance
+     */
+    public CompileKotlinOperation kotlinc(Path executable) {
+        return kotlinc(executable.toFile());
+    }
+
+    /**
+     * Provides main source directories that should be compiled.
+     *
+     * @param directories one or more main source directories
+     * @return this operation instance
+     * @see #mainSourceDirectories(Collection)
+     */
+    public CompileKotlinOperation mainSourceDirectories(File... directories) {
+        return mainSourceDirectories(List.of(directories));
+    }
+
+    /**
+     * Provides main source directories that should be compiled.
+     *
+     * @param directories one or more main source directories
+     * @return this operation instance
+     * @see #mainSourceDirectoriesPaths(Collection)
+     */
+    public CompileKotlinOperation mainSourceDirectories(Path... directories) {
+        return mainSourceDirectoriesPaths(List.of(directories));
+    }
+
+    /**
+     * Provides main source directories that should be compiled.
+     *
+     * @param directories one or more main source directories
+     * @return this operation instance
+     * @see #mainSourceDirectoriesStrings(Collection)
+     */
+    public CompileKotlinOperation mainSourceDirectories(String... directories) {
+        return mainSourceDirectoriesStrings(List.of(directories));
+    }
+
+    /**
+     * Provides the main source directories that should be compiled.
+     *
+     * @param directories the main source directories
+     * @return this operation instance
+     * @see #mainSourceDirectories(File...)
+     */
+    public CompileKotlinOperation mainSourceDirectories(Collection<File> directories) {
+        mainSourceDirectories_.addAll(directories);
+        return this;
+    }
+
+    /**
+     * Provides compiler plugins.
+     *
+     * @param directory the directory containing the plugin JARs
+     * @param plugins   one or more plugins
+     * @return this class instance
+     */
+    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
+    public CompileKotlinOperation plugins(String directory, CompilerPlugin... plugins) {
+        return plugins(new File(directory), plugins);
+    }
+
+    /**
+     * Provides the main source directories that should be compiled.
+     *
+     * @param directories the main source directories
+     * @return this operation instance
+     * @see #mainSourceDirectories(Path...)
+     */
+    public CompileKotlinOperation mainSourceDirectoriesPaths(Collection<Path> directories) {
+        return mainSourceDirectories(directories.stream().map(Path::toFile).toList());
+    }
+
+    /**
+     * Provides the main source directories that should be compiled.
+     *
+     * @param directories the main source directories
+     * @return this operation instance
+     * @see #mainSourceDirectories(String...)
+     */
+    public CompileKotlinOperation mainSourceDirectoriesStrings(Collection<String> directories) {
+        return mainSourceDirectories(directories.stream().map(File::new).toList());
+    }
+
+    /**
+     * Provides main source files that should be compiled.
+     *
+     * @param files one or more main source files
+     * @return this operation instance
+     * @see #mainSourceFiles(Collection)
+     */
+    public CompileKotlinOperation mainSourceFiles(File... files) {
+        return mainSourceFiles(List.of(files));
+    }
+
+    /**
+     * Provides main source files that should be compiled.
+     *
+     * @param files one or more main source files
+     * @return this operation instance
+     * @see #mainSourceFilesStrings(Collection)
+     */
+    public CompileKotlinOperation mainSourceFiles(String... files) {
+        return mainSourceFilesStrings(List.of(files));
+    }
+
+    /**
+     * Provides main source files that should be compiled.
+     *
+     * @param files one or more main source files
+     * @return this operation instance
+     * @see #mainSourceFilesPaths(Collection)
+     */
+    public CompileKotlinOperation mainSourceFiles(Path... files) {
+        return mainSourceFilesPaths(List.of(files));
+    }
+
+    /**
+     * Provides the main source files that should be compiled.
+     *
+     * @param files the main source files
+     * @return this operation instance
+     * @see #mainSourceFiles(File...)
+     */
+    public CompileKotlinOperation mainSourceFiles(Collection<File> files) {
+        mainSourceFiles_.addAll(files);
+        return this;
+    }
+
+    /**
+     * Provides compiler plugins.
+     *
+     * @param directory the directory containing the plugin JARs
+     * @param plugins   one or more plugins
+     * @return this class instance
+     */
+    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
+    public CompileKotlinOperation plugins(File directory, CompilerPlugin... plugins) {
+        for (var p : plugins) {
+            plugins_.add(new File(directory, p.jar).getAbsolutePath());
+        }
+        return this;
+    }
+
+    /**
+     * Provides the main source files that should be compiled.
+     *
+     * @param files the main source files
+     * @return this operation instance
+     * @see #mainSourceFiles(Path...)
+     */
+    public CompileKotlinOperation mainSourceFilesPaths(Collection<Path> files) {
+        return mainSourceFiles(files.stream().map(Path::toFile).toList());
+    }
+
+    /**
+     * Provides the main source files that should be compiled.
+     *
+     * @param files the main source files
+     * @return this operation instance
+     * @see #mainSourceFiles(String...)
+     */
+    public CompileKotlinOperation mainSourceFilesStrings(Collection<String> files) {
+        return mainSourceFiles(files.stream().map(File::new).toList());
+    }
+
+    /**
+     * Retrieves the compiler plugins.
+     *
+     * @return the compiler plugins
+     */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public List<String> plugins() {
+        return plugins_;
+    }
+
+    /**
+     * Provides compiler plugins.
+     *
+     * @param plugins one or more plugins
+     * @return this class instance
+     */
+    public CompileKotlinOperation plugins(String... plugins) {
+        return plugins(List.of(plugins));
+    }
+
+    /**
+     * Retrieves the test source directories that should be compiled.
+     *
+     * @return the test source directories
+     */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public List<File> testSourceDirectories() {
+        return testSourceDirectories_;
+    }
+
+    /**
+     * Provides compiler plugins.
+     *
+     * @param plugins the compiler plugins
+     * @return this class instance
+     */
+    public CompileKotlinOperation plugins(Collection<String> plugins) {
+        plugins_.addAll(plugins);
+        return this;
+    }
+
+    /**
+     * Retrieves the test files that should be compiled.
+     *
+     * @return the test files
+     */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public List<File> testSourceFiles() {
+        return testSourceFiles_;
+    }
+
+    /**
+     * Provides compiler plugins.
+     *
+     * @param directory the directory containing the plugin JARs
+     * @param plugins   one or more plugins
+     * @return this class instance
+     */
+    public CompileKotlinOperation plugins(Path directory, CompilerPlugin... plugins) {
+        return plugins(directory.toFile(), plugins);
+    }
+
+    /**
+     * Provides compiler plugins located in the {@link #kotlinHome()} lib directory.
+     *
+     * @param plugins one or more plugins
+     * @return this class instance
+     * @see #plugins(File, CompilerPlugin...)
+     */
+    public CompileKotlinOperation plugins(CompilerPlugin... plugins) {
+        for (var plugin : plugins) {
+            plugins_.add(plugin.name());
+        }
+        return this;
+    }
+
+    /**
+     * Provides the working directory if it differs from the project's directory.
+     *
+     * @param dir the directory
+     * @return this operation instance
+     */
+    public CompileKotlinOperation workDir(File dir) {
+        workDir_ = dir;
+        return this;
+    }
+
+    /**
+     * Provides test source directories that should be compiled.
+     *
+     * @param directories one or more test source directories
+     * @return this operation instance
+     * @see #testSourceDirectories(Collection)
+     */
+    public CompileKotlinOperation testSourceDirectories(File... directories) {
+        return testSourceDirectories(List.of(directories));
+    }
+
+    /**
+     * Provides test source directories that should be compiled.
+     *
+     * @param directories one or more test source directories
+     * @return this operation instance
+     * @see #testSourceDirectoriesPaths(Collection)
+     */
+    public CompileKotlinOperation testSourceDirectories(Path... directories) {
+        return testSourceDirectoriesPaths(List.of(directories));
+    }
+
+    /**
+     * Provides test source directories that should be compiled.
+     *
+     * @param directories one or more test source directories
+     * @return this operation instance
+     * @see #testSourceDirectoriesStrings(Collection)
+     */
+    public CompileKotlinOperation testSourceDirectories(String... directories) {
+        return testSourceDirectoriesStrings(List.of(directories));
+    }
+
+    /**
+     * Provides the test source directories that should be compiled.
+     *
+     * @param directories the test source directories
+     * @return this operation instance
+     * @see #testSourceDirectories(File...)
+     */
+    public CompileKotlinOperation testSourceDirectories(Collection<File> directories) {
+        testSourceDirectories_.addAll(directories);
+        return this;
+    }
+
+    /**
+     * Provides the working directory if it differs from the project's directory.
+     *
+     * @param dir the directory
+     * @return this operation instance
+     */
+    public CompileKotlinOperation workDir(Path dir) {
+        return workDir(dir.toFile());
+    }
+
+    /**
+     * Provides the test source directories that should be compiled.
+     *
+     * @param directories the test source directories
+     * @return this operation instance
+     * @see #testSourceDirectories(Path...)
+     */
+    public CompileKotlinOperation testSourceDirectoriesPaths(Collection<Path> directories) {
+        return testSourceDirectories(directories.stream().map(Path::toFile).toList());
+    }
+
+    /**
+     * Provides the test source directories that should be compiled.
+     *
+     * @param directories the test source directories
+     * @return this operation instance
+     * @see #testSourceDirectories(String...)
+     */
+    public CompileKotlinOperation testSourceDirectoriesStrings(Collection<String> directories) {
+        return testSourceDirectories(directories.stream().map(File::new).toList());
+    }
+
+    /**
+     * Provides test source files that should be compiled.
+     *
+     * @param files one or more test source files
+     * @return this operation instance
+     * @see #testSourceFiles(Collection)
+     */
+    public CompileKotlinOperation testSourceFiles(File... files) {
+        return testSourceFiles(List.of(files));
+    }
+
+    /**
+     * Provides the test sources files that should be compiled.
+     *
+     * @param files one or more test source files
+     * @return this operation instance
+     * @see #testSourceFilesStrings(Collection)
+     */
+    public CompileKotlinOperation testSourceFiles(String... files) {
+        return testSourceFilesStrings(List.of(files));
+    }
+
+    /**
+     * Provides the test sources files that should be compiled.
+     *
+     * @param files one or more test source files
+     * @return this operation instance
+     * @see #testSourceFilesPaths(Collection)
+     */
+    public CompileKotlinOperation testSourceFiles(Path... files) {
+        return testSourceFilesPaths(List.of(files));
+    }
+
+    /**
+     * Provides the test source files that should be compiled.
+     *
+     * @param files the test source files
+     * @return this operation instance
+     * @see #testSourceFiles(File...)
+     */
+    public CompileKotlinOperation testSourceFiles(Collection<File> files) {
+        testSourceFiles_.addAll(files);
+        return this;
+    }
+
+    /**
+     * Provides the working directory if it differs from the project's directory.
+     *
+     * @param dir the directory path
+     * @return this operation instance
+     */
+    public CompileKotlinOperation workDir(String dir) {
+        return workDir(new File(dir));
+    }
+
+    /**
+     * Provides the test source files that should be compiled.
+     *
+     * @param files the test source files
+     * @return this operation instance
+     * @see #testSourceFiles(Path...)
+     */
+    public CompileKotlinOperation testSourceFilesPaths(Collection<Path> files) {
+        return testSourceFiles(files.stream().map(Path::toFile).toList());
+    }
+
+    /**
+     * Provides the test source files that should be compiled.
+     *
+     * @param files the test source files
+     * @return this operation instance
+     * @see #testSourceFiles(String...)
+     */
+    public CompileKotlinOperation testSourceFilesStrings(Collection<String> files) {
+        return testSourceFiles(files.stream().map(File::new).toList());
+    }
+
+    /**
+     * Retrieves the working directory.
+     *
+     * @return the directory
+     */
+    public File workDir() {
+        return workDir_;
+    }
+
+    /**
      * Part of the {@link #execute execute} operation, build sources to a given destination.
      *
      * @param classpath   the classpath list used for the compilation
@@ -498,6 +1133,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @throws ExitStatusException if an error occurs
      */
     @SuppressWarnings("PMD.PreserveStackTrace")
+    @SuppressFBWarnings({"COMMAND_INJECTION", "LEST_LOST_EXCEPTION_STACK_TRACE", "MDM_STRING_BYTES_ENCODING",
+            "DM_DEFAULT_ENCODING"})
     protected void executeBuildSources(Collection<String> classpath, Collection<File> sources, File destination,
                                        File friendPaths)
             throws ExitStatusException {
@@ -554,7 +1191,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         }
 
         // compile options
-        if (compileOptions_ != null && !compileOptions_.args().isEmpty()) {
+        if (compileOptions_ != null) {
             args.addAll(compileOptions_.args());
         }
 
@@ -635,37 +1272,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         }
     }
 
-    /**
-     * Part of the {@link #execute execute} operation, builds the test sources.
-     *
-     * @throws ExitStatusException if an error occurs
-     */
-    @SuppressWarnings("PMD.SystemPrintln")
-    protected void executeBuildTestSources() throws ExitStatusException {
-        if (!silent()) {
-            System.out.println("Compiling Kotlin test sources.");
-        }
-        executeBuildSources(
-                compileTestClasspath(),
-                sources(testSourceFiles(), testSourceDirectories()),
-                buildTestDirectory(),
-                buildMainDirectory());
-    }
-
-    /**
-     * Part of the {@link #execute execute} operation, creates the build directories.
-     *
-     * @throws IOException if an error occurs
-     */
-    protected void executeCreateBuildDirectories() throws IOException {
-        if (buildMainDirectory() != null && !buildMainDirectory().exists() && !buildMainDirectory().mkdirs()) {
-            throw new IOException("Could not create build main directory: " + buildMainDirectory().getAbsolutePath());
-        }
-        if (buildTestDirectory() != null && !buildTestDirectory().exists() && !buildTestDirectory().mkdirs()) {
-            throw new IOException("Could not create build test directory: " + buildTestDirectory().getAbsolutePath());
-        }
-    }
-
     private File findKotlinHome() {
         if (kotlinHome_ != null) {
             return kotlinHome_;
@@ -682,8 +1288,9 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             var parent = kotlinc_.getParentFile();
             if (parent != null && parent.isDirectory()) {
                 if (parent.getPath().endsWith("bin")) {
-                    if (parent.getParentFile() != null && parent.getParentFile().isDirectory()) {
-                        return parent.getParentFile();
+                    var binParent = parent.getParentFile();
+                    if (binParent != null && binParent.isDirectory()) {
+                        return binParent.getParentFile();
                     }
                 } else {
                     return parent;
@@ -694,597 +1301,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         return null;
     }
 
-    /**
-     * Configures a compile operation from a {@link BaseProject}.
-     * <p>
-     * Sets the following from the project:
-     * <ul>
-     *     <li>{@link #workDir() workDir} to the project's directory.</li>
-     *     <li>{@link #buildMainDirectory() buildMainDirectory}</li>
-     *     <li>{@link #buildTestDirectory() buildTestDirectory}</li>
-     *     <li>{@link #compileMainClasspath() compileMainClassPath}</li>
-     *     <li>{@link #compileTestClasspath() compilesTestClassPath}</li>
-     *     <li>{@link #mainSourceDirectories() mainSourceDirectories} to the {@code kotlin} directory in
-     *     {@link BaseProject#srcMainDirectory() srcMainDirectory}, if present.</li>
-     *     <li>{@link #testSourceDirectories() testSourceDirectories} to the {@code kotlin} directory in
-     *     {@link BaseProject#srcTestDirectory() srcTestDirectory}, if present.</li>
-     *     <li>{@link CompileOptions#jdkRelease jdkRelease} to {@link BaseProject#javaRelease() javaRelease}</li>
-     *     <li>{@link CompileOptions#jvmTarget jvmTarget} to {@link BaseProject#javaRelease() javaRelease}</li>
-     *     <li>{@link CompileOptions#noStdLib(boolean) noStdLib} to {@code true}</li>
-     * </ul>
-     *
-     * @param project the project to configure the compile operation from
-     * @return this operation instance
-     */
-    public CompileKotlinOperation fromProject(BaseProject project) {
-        project_ = project;
-        workDir_ = new File(project.workDirectory().getAbsolutePath());
-
-        buildMainDirectory_ = project.buildMainDirectory();
-        buildTestDirectory_ = project.buildTestDirectory();
-        compileMainClasspath_.addAll(project.compileMainClasspath());
-        compileTestClasspath_.addAll(project.compileTestClasspath());
-
-        var mainDir = new File(project.srcMainDirectory(), "kotlin");
-        if (mainDir.exists()) {
-            mainSourceDirectories_.add(mainDir);
-        }
-        var testDir = new File(project.srcTestDirectory(), "kotlin");
-        if (testDir.exists()) {
-            testSourceDirectories_.add(testDir);
-        }
-
-        if (project.javaRelease() != null) {
-            if (!compileOptions_.hasRelease()) {
-                compileOptions_.jdkRelease(project.javaRelease());
-            }
-            if (!compileOptions_.hasTarget()) {
-                compileOptions_.jvmTarget(project.javaRelease());
-            }
-        }
-        compileOptions_.noStdLib(true);
-
-        return this;
-    }
-
-    /**
-     * Retrieves the Java Virtual Machine options.
-     *
-     * @return the JVM options
-     */
-    public JvmOptions jvmOptions() {
-        return jvmOptions_;
-    }
-
-    /**
-     * Pass an option directly to the Java Virtual Machine
-     *
-     * @param jvmOptions the JVM options
-     * @return this operation instance
-     */
-    public CompileKotlinOperation jvmOptions(Collection<String> jvmOptions) {
-        jvmOptions_.addAll(jvmOptions);
-        return this;
-    }
-
-    /**
-     * Pass an option directly to the Java Virtual Machine
-     *
-     * @param jvmOptions one or more JVM option
-     * @return this operation instance
-     */
-    public CompileKotlinOperation jvmOptions(String... jvmOptions) {
-        return jvmOptions(List.of(jvmOptions));
-    }
-
-    /**
-     * Provides the Kotlin home directory, if it differs from the default {@code KOTLIN_HOME}.
-     *
-     * @param dir the directory
-     * @return this operation instance
-     */
-    public CompileKotlinOperation kotlinHome(File dir) {
-        kotlinHome_ = dir;
-        return this;
-    }
-
-    /**
-     * Provides the Kotlin home directory, if it differs from the default {@code KOTLIN_HOME}.
-     *
-     * @param dir the directory path
-     * @return this operation instance
-     */
-    public CompileKotlinOperation kotlinHome(String dir) {
-        return kotlinHome(new File(dir));
-    }
-
-    /**
-     * Provides the Kotlin home directory, if it differs from the default {@code KOTLIN_HOME}.
-     *
-     * @param dir the directory path
-     * @return this operation instance
-     */
-    public CompileKotlinOperation kotlinHome(Path dir) {
-        return kotlinHome(dir.toFile());
-    }
-
-    /**
-     * Retrieves the Kotlin home directory.
-     *
-     * @return the directory
-     */
-    public File kotlinHome() {
-        return kotlinHome_;
-    }
-
-    /**
-     * Retrieves the path to the Kotlin compiler ({@code kotlinc}) executable, if not in {@link #kotlinHome()}.
-     *
-     * @return the executable path
-     */
-    public File kotlinc() {
-        return kotlinc_;
-    }
-
-    /**
-     * Provides the path to the Kotlin compiler ({@code kotlinc}) executable, if not in {@link #kotlinHome()}.
-     *
-     * @param executable the executable path
-     * @return this operation instance
-     */
-    public CompileKotlinOperation kotlinc(File executable) {
-        kotlinc_ = executable;
-        return this;
-    }
-
-    /**
-     * Provides the path to the Kotlin compiler ({@code kotlinc}) executable, if not in {@link #kotlinHome()}.
-     *
-     * @param executable the executable path
-     * @return this operation instance
-     */
-    public CompileKotlinOperation kotlinc(String executable) {
-        return kotlinc(new File(executable));
-    }
-
-    /**
-     * Provides the path to the Kotlin compiler ({@code kotlinc}) executable, if not in {@link #kotlinHome()}.
-     *
-     * @param executable the executable path
-     * @return this operation instance
-     */
-    public CompileKotlinOperation kotlinc(Path executable) {
-        return kotlinc(executable.toFile());
-    }
-
-    /**
-     * Provides main source directories that should be compiled.
-     *
-     * @param directories one or more main source directories
-     * @return this operation instance
-     * @see #mainSourceDirectories(Collection)
-     */
-    public CompileKotlinOperation mainSourceDirectories(File... directories) {
-        return mainSourceDirectories(List.of(directories));
-    }
-
-    /**
-     * Provides main source directories that should be compiled.
-     *
-     * @param directories one or more main source directories
-     * @return this operation instance
-     * @see #mainSourceDirectoriesPaths(Collection)
-     */
-    public CompileKotlinOperation mainSourceDirectories(Path... directories) {
-        return mainSourceDirectoriesPaths(List.of(directories));
-    }
-
-    /**
-     * Provides main source directories that should be compiled.
-     *
-     * @param directories one or more main source directories
-     * @return this operation instance
-     * @see #mainSourceDirectoriesStrings(Collection)
-     */
-    public CompileKotlinOperation mainSourceDirectories(String... directories) {
-        return mainSourceDirectoriesStrings(List.of(directories));
-    }
-
-    /**
-     * Provides the main source directories that should be compiled.
-     *
-     * @param directories the main source directories
-     * @return this operation instance
-     * @see #mainSourceDirectories(File...)
-     */
-    public CompileKotlinOperation mainSourceDirectories(Collection<File> directories) {
-        mainSourceDirectories_.addAll(directories);
-        return this;
-    }
-
-    /**
-     * Retrieves the main source directories that should be compiled.
-     *
-     * @return the main source directories
-     */
-    public Collection<File> mainSourceDirectories() {
-        return mainSourceDirectories_;
-    }
-
-    /**
-     * Provides the main source directories that should be compiled.
-     *
-     * @param directories the main source directories
-     * @return this operation instance
-     * @see #mainSourceDirectories(Path...)
-     */
-    public CompileKotlinOperation mainSourceDirectoriesPaths(Collection<Path> directories) {
-        return mainSourceDirectories(directories.stream().map(Path::toFile).toList());
-    }
-
-    /**
-     * Provides the main source directories that should be compiled.
-     *
-     * @param directories the main source directories
-     * @return this operation instance
-     * @see #mainSourceDirectories(String...)
-     */
-    public CompileKotlinOperation mainSourceDirectoriesStrings(Collection<String> directories) {
-        return mainSourceDirectories(directories.stream().map(File::new).toList());
-    }
-
-    /**
-     * Provides main source files that should be compiled.
-     *
-     * @param files one or more main source files
-     * @return this operation instance
-     * @see #mainSourceFiles(Collection)
-     */
-    public CompileKotlinOperation mainSourceFiles(File... files) {
-        return mainSourceFiles(List.of(files));
-    }
-
-    /**
-     * Provides main source files that should be compiled.
-     *
-     * @param files one or more main source files
-     * @return this operation instance
-     * @see #mainSourceFilesStrings(Collection)
-     */
-    public CompileKotlinOperation mainSourceFiles(String... files) {
-        return mainSourceFilesStrings(List.of(files));
-    }
-
-    /**
-     * Provides main source files that should be compiled.
-     *
-     * @param files one or more main source files
-     * @return this operation instance
-     * @see #mainSourceFilesPaths(Collection)
-     */
-    public CompileKotlinOperation mainSourceFiles(Path... files) {
-        return mainSourceFilesPaths(List.of(files));
-    }
-
-    /**
-     * Provides the main source files that should be compiled.
-     *
-     * @param files the main source files
-     * @return this operation instance
-     * @see #mainSourceFiles(File...)
-     */
-    public CompileKotlinOperation mainSourceFiles(Collection<File> files) {
-        mainSourceFiles_.addAll(files);
-        return this;
-    }
-
-    /**
-     * Retrieves the main files that should be compiled.
-     *
-     * @return the files
-     */
-    public Collection<File> mainSourceFiles() {
-        return mainSourceFiles_;
-    }
-
-    /**
-     * Provides the main source files that should be compiled.
-     *
-     * @param files the main source files
-     * @return this operation instance
-     * @see #mainSourceFiles(Path...)
-     */
-    public CompileKotlinOperation mainSourceFilesPaths(Collection<Path> files) {
-        return mainSourceFiles(files.stream().map(Path::toFile).toList());
-    }
-
-    /**
-     * Provides the main source files that should be compiled.
-     *
-     * @param files the main source files
-     * @return this operation instance
-     * @see #mainSourceFiles(String...)
-     */
-    public CompileKotlinOperation mainSourceFilesStrings(Collection<String> files) {
-        return mainSourceFiles(files.stream().map(File::new).toList());
-    }
-
-    /**
-     * Provides compiler plugins.
-     *
-     * @param directory the directory containing the plugin JARs
-     * @param plugins   one or more plugins
-     * @return this class instance
-     */
-    public CompileKotlinOperation plugins(String directory, CompilerPlugin... plugins) {
-        return plugins(new File(directory), plugins);
-    }
-
-    /**
-     * Provides compiler plugins.
-     *
-     * @param plugins one or more plugins
-     * @return this class instance
-     */
-    public CompileKotlinOperation plugins(String... plugins) {
-        return plugins(List.of(plugins));
-    }
-
-    /**
-     * Retrieves the compiler plugins.
-     *
-     * @return the compiler plugins
-     */
-    public Collection<String> plugins() {
-        return plugins_;
-    }
-
-    /**
-     * Provides compiler plugins.
-     *
-     * @param plugins the compiler plugins
-     * @return this class instance
-     */
-    public CompileKotlinOperation plugins(Collection<String> plugins) {
-        plugins_.addAll(plugins);
-        return this;
-    }
-
-    /**
-     * Provides compiler plugins.
-     *
-     * @param directory the directory containing the plugin JARs
-     * @param plugins   one or more plugins
-     * @return this class instance
-     */
-    public CompileKotlinOperation plugins(File directory, CompilerPlugin... plugins) {
-        for (var p : plugins) {
-            plugins_.add(new File(directory, p.jar).getAbsolutePath());
-        }
-        return this;
-    }
-
-    /**
-     * Provides compiler plugins.
-     *
-     * @param directory the directory containing the plugin JARs
-     * @param plugins   one or more plugins
-     * @return this class instance
-     */
-    public CompileKotlinOperation plugins(Path directory, CompilerPlugin... plugins) {
-        return plugins(directory.toFile(), plugins);
-    }
-
-    /**
-     * Provides compiler plugins located in the {@link #kotlinHome()} lib directory.
-     *
-     * @param plugins one or more plugins
-     * @return this class instance
-     * @see #plugins(File, CompilerPlugin...)
-     */
-    public CompileKotlinOperation plugins(CompilerPlugin... plugins) {
-        for (var plugin : plugins) {
-            plugins_.add(plugin.name());
-        }
-        return this;
-    }
-
     // Combine Kotlin sources
-    private Collection<File> sources(Collection<File> files, Collection<File> directories) {
+    private List<File> sources(Collection<File> files, Collection<File> directories) {
         var sources = new ArrayList<>(files);
         sources.addAll(directories);
         return sources;
-    }
-
-    /**
-     * Provides test source directories that should be compiled.
-     *
-     * @param directories one or more test source directories
-     * @return this operation instance
-     * @see #testSourceDirectories(Collection)
-     */
-    public CompileKotlinOperation testSourceDirectories(File... directories) {
-        return testSourceDirectories(List.of(directories));
-    }
-
-    /**
-     * Provides test source directories that should be compiled.
-     *
-     * @param directories one or more test source directories
-     * @return this operation instance
-     * @see #testSourceDirectoriesPaths(Collection)
-     */
-    public CompileKotlinOperation testSourceDirectories(Path... directories) {
-        return testSourceDirectoriesPaths(List.of(directories));
-    }
-
-    /**
-     * Provides test source directories that should be compiled.
-     *
-     * @param directories one or more test source directories
-     * @return this operation instance
-     * @see #testSourceDirectoriesStrings(Collection)
-     */
-    public CompileKotlinOperation testSourceDirectories(String... directories) {
-        return testSourceDirectoriesStrings(List.of(directories));
-    }
-
-    /**
-     * Provides the test source directories that should be compiled.
-     *
-     * @param directories the test source directories
-     * @return this operation instance
-     * @see #testSourceDirectories(File...)
-     */
-    public CompileKotlinOperation testSourceDirectories(Collection<File> directories) {
-        testSourceDirectories_.addAll(directories);
-        return this;
-    }
-
-    /**
-     * Retrieves the test source directories that should be compiled.
-     *
-     * @return the test source directories
-     */
-    public Collection<File> testSourceDirectories() {
-        return testSourceDirectories_;
-    }
-
-    /**
-     * Provides the test source directories that should be compiled.
-     *
-     * @param directories the test source directories
-     * @return this operation instance
-     * @see #testSourceDirectories(Path...)
-     */
-    public CompileKotlinOperation testSourceDirectoriesPaths(Collection<Path> directories) {
-        return testSourceDirectories(directories.stream().map(Path::toFile).toList());
-    }
-
-    /**
-     * Provides the test source directories that should be compiled.
-     *
-     * @param directories the test source directories
-     * @return this operation instance
-     * @see #testSourceDirectories(String...)
-     */
-    public CompileKotlinOperation testSourceDirectoriesStrings(Collection<String> directories) {
-        return testSourceDirectories(directories.stream().map(File::new).toList());
-    }
-
-    /**
-     * Provides test source files that should be compiled.
-     *
-     * @param files one or more test source files
-     * @return this operation instance
-     * @see #testSourceFiles(Collection)
-     */
-    public CompileKotlinOperation testSourceFiles(File... files) {
-        return testSourceFiles(List.of(files));
-    }
-
-    /**
-     * Provides the test sources files that should be compiled.
-     *
-     * @param files one or more test source files
-     * @return this operation instance
-     * @see #testSourceFilesStrings(Collection)
-     */
-    public CompileKotlinOperation testSourceFiles(String... files) {
-        return testSourceFilesStrings(List.of(files));
-    }
-
-    /**
-     * Provides the test sources files that should be compiled.
-     *
-     * @param files one or more test source files
-     * @return this operation instance
-     * @see #testSourceFilesPaths(Collection)
-     */
-    public CompileKotlinOperation testSourceFiles(Path... files) {
-        return testSourceFilesPaths(List.of(files));
-    }
-
-    /**
-     * Provides the test source files that should be compiled.
-     *
-     * @param files the test source files
-     * @return this operation instance
-     * @see #testSourceFiles(File...)
-     */
-    public CompileKotlinOperation testSourceFiles(Collection<File> files) {
-        testSourceFiles_.addAll(files);
-        return this;
-    }
-
-    /**
-     * Retrieves the test files that should be compiled.
-     *
-     * @return the test files
-     */
-    public Collection<File> testSourceFiles() {
-        return testSourceFiles_;
-    }
-
-    /**
-     * Provides the test source files that should be compiled.
-     *
-     * @param files the test source files
-     * @return this operation instance
-     * @see #testSourceFiles(Path...)
-     */
-    public CompileKotlinOperation testSourceFilesPaths(Collection<Path> files) {
-        return testSourceFiles(files.stream().map(Path::toFile).toList());
-    }
-
-    /**
-     * Provides the test source files that should be compiled.
-     *
-     * @param files the test source files
-     * @return this operation instance
-     * @see #testSourceFiles(String...)
-     */
-    public CompileKotlinOperation testSourceFilesStrings(Collection<String> files) {
-        return testSourceFiles(files.stream().map(File::new).toList());
-    }
-
-    /**
-     * Retrieves the working directory.
-     *
-     * @return the directory
-     */
-    public File workDir() {
-        return workDir_;
-    }
-
-    /**
-     * Provides the working directory, if it differs from the project's directory.
-     *
-     * @param dir the directory
-     * @return this operation instance
-     */
-    public CompileKotlinOperation workDir(File dir) {
-        workDir_ = dir;
-        return this;
-    }
-
-    /**
-     * Provides the working directory, if it differs from the project's directory.
-     *
-     * @param dir the directory
-     * @return this operation instance
-     */
-    public CompileKotlinOperation workDir(Path dir) {
-        return workDir(dir.toFile());
-    }
-
-    /**
-     * Provides the working directory, if it differs from the project's directory.
-     *
-     * @param dir the directory path
-     * @return this operation instance
-     */
-    public CompileKotlinOperation workDir(String dir) {
-        return workDir(new File(dir));
     }
 }
