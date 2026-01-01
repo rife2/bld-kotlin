@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025 the original author or authors.
+ * Copyright 2023-2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,6 +60,33 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     private File kotlinc_;
     private BaseProject project_;
     private File workDir_;
+
+    /**
+     * Performs the compile operation.
+     */
+    @Override
+    @SuppressWarnings("PMD.SystemPrintln")
+    public void execute() throws Exception {
+        if (project_ == null) {
+            if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
+                LOGGER.severe("A project must be specified.");
+            }
+            throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
+        } else if (!workDir_.isDirectory()) {
+            if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
+                LOGGER.severe("Invalid working directory: " + workDir_.getAbsolutePath());
+            }
+            throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
+        }
+
+        executeCreateBuildDirectories();
+        executeBuildMainSources();
+        executeBuildTestSources();
+
+        if (!silent()) {
+            System.out.println("Kotlin compilation finished successfully.");
+        }
+    }
 
     private static String findKotlincInDir(String directory) {
         var kotlinc = new File(directory, KOTLINC_EXECUTABLE);
@@ -355,17 +382,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         return buildTestDirectory_;
     }
 
-    private String cleanPath(File path) {
-        return cleanPath(path.getAbsolutePath());
-    }
-
-    private String cleanPath(String path) {
-        if (isWindows()) {
-            return path.replaceAll("\\\\", "\\\\\\\\");
-        }
-        return path;
-    }
-
     /**
      * Provides entries for the main compilation classpath.
      *
@@ -450,51 +466,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Performs the compile operation.
-     */
-    @Override
-    @SuppressWarnings("PMD.SystemPrintln")
-    public void execute() throws Exception {
-        if (project_ == null) {
-            if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
-                LOGGER.severe("A project must be specified.");
-            }
-            throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
-        } else if (!workDir_.isDirectory()) {
-            if (LOGGER.isLoggable(Level.SEVERE) && !silent()) {
-                LOGGER.severe("Invalid working directory: " + workDir_.getAbsolutePath());
-            }
-            throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
-        }
-
-        executeCreateBuildDirectories();
-        executeBuildMainSources();
-        executeBuildTestSources();
-
-        if (!silent()) {
-            System.out.println("Kotlin compilation finished successfully.");
-        }
-    }
-
-    /**
-     * Part of the {@link #execute execute} operation, builds the main sources.
-     *
-     * @throws ExitStatusException if an error occurs
-     */
-    @SuppressWarnings("PMD.SystemPrintln")
-    protected void executeBuildMainSources() throws ExitStatusException {
-        if (!silent()) {
-            System.out.println("Compiling Kotlin main sources.");
-        }
-
-        executeBuildSources(
-                compileMainClasspath(),
-                sources(mainSourceFiles(), mainSourceDirectories()),
-                buildMainDirectory(),
-                null);
-    }
-
-    /**
      * Configures a compile operation from a {@link BaseProject}.
      * <p>
      * Sets the following from the project:
@@ -549,37 +520,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Part of the {@link #execute execute} operation, builds the test sources.
-     *
-     * @throws ExitStatusException if an error occurs
-     */
-    @SuppressWarnings("PMD.SystemPrintln")
-    protected void executeBuildTestSources() throws ExitStatusException {
-        if (!silent()) {
-            System.out.println("Compiling Kotlin test sources.");
-        }
-        executeBuildSources(
-                compileTestClasspath(),
-                sources(testSourceFiles(), testSourceDirectories()),
-                buildTestDirectory(),
-                buildMainDirectory());
-    }
-
-    /**
-     * Part of the {@link #execute execute} operation, creates the build directories.
-     *
-     * @throws IOException if an error occurs
-     */
-    protected void executeCreateBuildDirectories() throws IOException {
-        if (buildMainDirectory() != null && !buildMainDirectory().exists() && !buildMainDirectory().mkdirs()) {
-            throw new IOException("Could not create build main directory: " + buildMainDirectory().getAbsolutePath());
-        }
-        if (buildTestDirectory() != null && !buildTestDirectory().exists() && !buildTestDirectory().mkdirs()) {
-            throw new IOException("Could not create build test directory: " + buildTestDirectory().getAbsolutePath());
-        }
-    }
-
-    /**
      * Retrieves the Java Virtual Machine options.
      *
      * @return the JVM options
@@ -587,28 +527,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public JvmOptions jvmOptions() {
         return jvmOptions_;
-    }
-
-    /**
-     * Provides the Kotlin home directory, if it differs from the default {@code KOTLIN_HOME}.
-     *
-     * @param dir the directory path
-     * @return this operation instance
-     */
-    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
-    public CompileKotlinOperation kotlinHome(String dir) {
-        return kotlinHome(new File(dir));
-    }
-
-    /**
-     * Provides the path to the Kotlin compiler ({@code kotlinc}) executable, if not in {@link #kotlinHome()}.
-     *
-     * @param executable the executable path
-     * @return this operation instance
-     */
-    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
-    public CompileKotlinOperation kotlinc(String executable) {
-        return kotlinc(new File(executable));
     }
 
     /**
@@ -635,22 +553,23 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     /**
      * Provides the Kotlin home directory, if it differs from the default {@code KOTLIN_HOME}.
      *
+     * @param dir the directory path
+     * @return this operation instance
+     */
+    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
+    public CompileKotlinOperation kotlinHome(String dir) {
+        return kotlinHome(new File(dir));
+    }
+
+    /**
+     * Provides the Kotlin home directory, if it differs from the default {@code KOTLIN_HOME}.
+     *
      * @param dir the directory
      * @return this operation instance
      */
     public CompileKotlinOperation kotlinHome(File dir) {
         kotlinHome_ = dir;
         return this;
-    }
-
-    /**
-     * Retrieves the main source directories that should be compiled.
-     *
-     * @return the main source directories
-     */
-    @SuppressFBWarnings("EI_EXPOSE_REP")
-    public List<File> mainSourceDirectories() {
-        return mainSourceDirectories_;
     }
 
     /**
@@ -670,6 +589,17 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     public File kotlinHome() {
         return kotlinHome_;
+    }
+
+    /**
+     * Provides the path to the Kotlin compiler ({@code kotlinc}) executable, if not in {@link #kotlinHome()}.
+     *
+     * @param executable the executable path
+     * @return this operation instance
+     */
+    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
+    public CompileKotlinOperation kotlinc(String executable) {
+        return kotlinc(new File(executable));
     }
 
     /**
@@ -693,16 +623,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Retrieves the main files that should be compiled.
-     *
-     * @return the files
-     */
-    @SuppressFBWarnings("EI_EXPOSE_REP")
-    public List<File> mainSourceFiles() {
-        return mainSourceFiles_;
-    }
-
-    /**
      * Provides the path to the Kotlin compiler ({@code kotlinc}) executable, if not in {@link #kotlinHome()}.
      *
      * @param executable the executable path
@@ -710,6 +630,16 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     public CompileKotlinOperation kotlinc(Path executable) {
         return kotlinc(executable.toFile());
+    }
+
+    /**
+     * Retrieves the main source directories that should be compiled.
+     *
+     * @return the main source directories
+     */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public List<File> mainSourceDirectories() {
+        return mainSourceDirectories_;
     }
 
     /**
@@ -758,18 +688,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Provides compiler plugins.
-     *
-     * @param directory the directory containing the plugin JARs
-     * @param plugins   one or more plugins
-     * @return this class instance
-     */
-    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
-    public CompileKotlinOperation plugins(String directory, CompilerPlugin... plugins) {
-        return plugins(new File(directory), plugins);
-    }
-
-    /**
      * Provides the main source directories that should be compiled.
      *
      * @param directories the main source directories
@@ -789,6 +707,16 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     public CompileKotlinOperation mainSourceDirectoriesStrings(Collection<String> directories) {
         return mainSourceDirectories(directories.stream().map(File::new).toList());
+    }
+
+    /**
+     * Retrieves the main files that should be compiled.
+     *
+     * @return the files
+     */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public List<File> mainSourceFiles() {
+        return mainSourceFiles_;
     }
 
     /**
@@ -837,21 +765,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Provides compiler plugins.
-     *
-     * @param directory the directory containing the plugin JARs
-     * @param plugins   one or more plugins
-     * @return this class instance
-     */
-    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
-    public CompileKotlinOperation plugins(File directory, CompilerPlugin... plugins) {
-        for (var p : plugins) {
-            plugins_.add(new File(directory, p.jar).getAbsolutePath());
-        }
-        return this;
-    }
-
-    /**
      * Provides the main source files that should be compiled.
      *
      * @param files the main source files
@@ -871,6 +784,33 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     public CompileKotlinOperation mainSourceFilesStrings(Collection<String> files) {
         return mainSourceFiles(files.stream().map(File::new).toList());
+    }
+
+    /**
+     * Provides compiler plugins.
+     *
+     * @param directory the directory containing the plugin JARs
+     * @param plugins   one or more plugins
+     * @return this class instance
+     */
+    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
+    public CompileKotlinOperation plugins(String directory, CompilerPlugin... plugins) {
+        return plugins(new File(directory), plugins);
+    }
+
+    /**
+     * Provides compiler plugins.
+     *
+     * @param directory the directory containing the plugin JARs
+     * @param plugins   one or more plugins
+     * @return this class instance
+     */
+    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
+    public CompileKotlinOperation plugins(File directory, CompilerPlugin... plugins) {
+        for (var p : plugins) {
+            plugins_.add(new File(directory, p.jar).getAbsolutePath());
+        }
+        return this;
     }
 
     /**
@@ -894,16 +834,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Retrieves the test source directories that should be compiled.
-     *
-     * @return the test source directories
-     */
-    @SuppressFBWarnings("EI_EXPOSE_REP")
-    public List<File> testSourceDirectories() {
-        return testSourceDirectories_;
-    }
-
-    /**
      * Provides compiler plugins.
      *
      * @param plugins the compiler plugins
@@ -912,16 +842,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     public CompileKotlinOperation plugins(Collection<String> plugins) {
         plugins_.addAll(plugins);
         return this;
-    }
-
-    /**
-     * Retrieves the test files that should be compiled.
-     *
-     * @return the test files
-     */
-    @SuppressFBWarnings("EI_EXPOSE_REP")
-    public List<File> testSourceFiles() {
-        return testSourceFiles_;
     }
 
     /**
@@ -950,14 +870,13 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Provides the working directory if it differs from the project's directory.
+     * Retrieves the test source directories that should be compiled.
      *
-     * @param dir the directory
-     * @return this operation instance
+     * @return the test source directories
      */
-    public CompileKotlinOperation workDir(File dir) {
-        workDir_ = dir;
-        return this;
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public List<File> testSourceDirectories() {
+        return testSourceDirectories_;
     }
 
     /**
@@ -1006,16 +925,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Provides the working directory if it differs from the project's directory.
-     *
-     * @param dir the directory
-     * @return this operation instance
-     */
-    public CompileKotlinOperation workDir(Path dir) {
-        return workDir(dir.toFile());
-    }
-
-    /**
      * Provides the test source directories that should be compiled.
      *
      * @param directories the test source directories
@@ -1035,6 +944,16 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     public CompileKotlinOperation testSourceDirectoriesStrings(Collection<String> directories) {
         return testSourceDirectories(directories.stream().map(File::new).toList());
+    }
+
+    /**
+     * Retrieves the test files that should be compiled.
+     *
+     * @return the test files
+     */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public List<File> testSourceFiles() {
+        return testSourceFiles_;
     }
 
     /**
@@ -1083,16 +1002,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Provides the working directory if it differs from the project's directory.
-     *
-     * @param dir the directory path
-     * @return this operation instance
-     */
-    public CompileKotlinOperation workDir(String dir) {
-        return workDir(new File(dir));
-    }
-
-    /**
      * Provides the test source files that should be compiled.
      *
      * @param files the test source files
@@ -1115,12 +1024,72 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
+     * Provides the working directory if it differs from the project's directory.
+     *
+     * @param dir the directory
+     * @return this operation instance
+     */
+    public CompileKotlinOperation workDir(File dir) {
+        workDir_ = dir;
+        return this;
+    }
+
+    /**
+     * Provides the working directory if it differs from the project's directory.
+     *
+     * @param dir the directory
+     * @return this operation instance
+     */
+    public CompileKotlinOperation workDir(Path dir) {
+        return workDir(dir.toFile());
+    }
+
+    /**
+     * Provides the working directory if it differs from the project's directory.
+     *
+     * @param dir the directory path
+     * @return this operation instance
+     */
+    public CompileKotlinOperation workDir(String dir) {
+        return workDir(new File(dir));
+    }
+
+    /**
      * Retrieves the working directory.
      *
      * @return the directory
      */
     public File workDir() {
         return workDir_;
+    }
+
+    private String cleanPath(File path) {
+        return cleanPath(path.getAbsolutePath());
+    }
+
+    private String cleanPath(String path) {
+        if (isWindows()) {
+            return path.replaceAll("\\\\", "\\\\\\\\");
+        }
+        return path;
+    }
+
+    /**
+     * Part of the {@link #execute execute} operation, builds the main sources.
+     *
+     * @throws ExitStatusException if an error occurs
+     */
+    @SuppressWarnings("PMD.SystemPrintln")
+    protected void executeBuildMainSources() throws ExitStatusException {
+        if (!silent()) {
+            System.out.println("Compiling Kotlin main sources.");
+        }
+
+        executeBuildSources(
+                compileMainClasspath(),
+                sources(mainSourceFiles(), mainSourceDirectories()),
+                buildMainDirectory(),
+                null);
     }
 
     /**
@@ -1269,6 +1238,37 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                 LOGGER.severe(e.getLocalizedMessage());
             }
             throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
+        }
+    }
+
+    /**
+     * Part of the {@link #execute execute} operation, builds the test sources.
+     *
+     * @throws ExitStatusException if an error occurs
+     */
+    @SuppressWarnings("PMD.SystemPrintln")
+    protected void executeBuildTestSources() throws ExitStatusException {
+        if (!silent()) {
+            System.out.println("Compiling Kotlin test sources.");
+        }
+        executeBuildSources(
+                compileTestClasspath(),
+                sources(testSourceFiles(), testSourceDirectories()),
+                buildTestDirectory(),
+                buildMainDirectory());
+    }
+
+    /**
+     * Part of the {@link #execute execute} operation, creates the build directories.
+     *
+     * @throws IOException if an error occurs
+     */
+    protected void executeCreateBuildDirectories() throws IOException {
+        if (buildMainDirectory() != null && !buildMainDirectory().exists() && !buildMainDirectory().mkdirs()) {
+            throw new IOException("Could not create build main directory: " + buildMainDirectory().getAbsolutePath());
+        }
+        if (buildTestDirectory() != null && !buildTestDirectory().exists() && !buildTestDirectory().mkdirs()) {
+            throw new IOException("Could not create build test directory: " + buildTestDirectory().getAbsolutePath());
         }
     }
 

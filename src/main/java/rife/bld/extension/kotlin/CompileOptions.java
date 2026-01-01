@@ -1,5 +1,5 @@
 /*
- * Copyright 2023-2025 the original author or authors.
+ * Copyright 2023-2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,6 +68,38 @@ public class CompileOptions {
     private boolean verbose_;
     private boolean wError_;
     private boolean wExtra_;
+
+    @Override
+    public String toString() {
+        return "CompileOptions{" +
+                "advancedOptions_=" + advancedOptions_ +
+                ", argFile_=" + argFile_ +
+                ", classpath_=" + classpath_ +
+                ", optIn_=" + optIn_ +
+                ", options_=" + options_ +
+                ", plugin_=" + plugin_ +
+                ", scriptTemplates_=" + scriptTemplates_ +
+                ", apiVersion_='" + apiVersion_ + '\'' +
+                ", expression_='" + expression_ + '\'' +
+                ", includeRuntime_=" + includeRuntime_ +
+                ", javaParameters_=" + javaParameters_ +
+                ", jdkHome_=" + jdkHome_ +
+                ", jdkRelease_='" + jdkRelease_ + '\'' +
+                ", jvmTarget_='" + jvmTarget_ + '\'' +
+                ", kotlinHome_=" + kotlinHome_ +
+                ", languageVersion_='" + languageVersion_ + '\'' +
+                ", moduleName_='" + moduleName_ + '\'' +
+                ", noJdk_=" + noJdk_ +
+                ", noReflect_=" + noReflect_ +
+                ", noStdLib_=" + noStdLib_ +
+                ", noWarn_=" + noWarn_ +
+                ", path_=" + path_ +
+                ", progressive_=" + progressive_ +
+                ", verbose_=" + verbose_ +
+                ", wError_=" + wError_ +
+                ", wExtra_=" + wExtra_ +
+                '}';
+    }
 
     /**
      * Specify advanced compiler options.
@@ -1098,38 +1130,6 @@ public class CompileOptions {
     public CompileOptions scriptTemplates(Collection<String> classNames) {
         scriptTemplates_.addAll(classNames);
         return this;
-    }
-
-    @Override
-    public String toString() {
-        return "CompileOptions{" +
-                "advancedOptions_=" + advancedOptions_ +
-                ", argFile_=" + argFile_ +
-                ", classpath_=" + classpath_ +
-                ", optIn_=" + optIn_ +
-                ", options_=" + options_ +
-                ", plugin_=" + plugin_ +
-                ", scriptTemplates_=" + scriptTemplates_ +
-                ", apiVersion_='" + apiVersion_ + '\'' +
-                ", expression_='" + expression_ + '\'' +
-                ", includeRuntime_=" + includeRuntime_ +
-                ", javaParameters_=" + javaParameters_ +
-                ", jdkHome_=" + jdkHome_ +
-                ", jdkRelease_='" + jdkRelease_ + '\'' +
-                ", jvmTarget_='" + jvmTarget_ + '\'' +
-                ", kotlinHome_=" + kotlinHome_ +
-                ", languageVersion_='" + languageVersion_ + '\'' +
-                ", moduleName_='" + moduleName_ + '\'' +
-                ", noJdk_=" + noJdk_ +
-                ", noReflect_=" + noReflect_ +
-                ", noStdLib_=" + noStdLib_ +
-                ", noWarn_=" + noWarn_ +
-                ", path_=" + path_ +
-                ", progressive_=" + progressive_ +
-                ", verbose_=" + verbose_ +
-                ", wError_=" + wError_ +
-                ", wExtra_=" + wExtra_ +
-                '}';
     }
 
     /**
