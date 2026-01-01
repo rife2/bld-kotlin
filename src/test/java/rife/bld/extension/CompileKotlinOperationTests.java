@@ -28,6 +28,8 @@ import rife.bld.extension.kotlin.CompileOptions;
 import rife.bld.extension.kotlin.CompilerPlugin;
 import rife.bld.extension.kotlin.JvmOptions;
 import rife.bld.extension.testing.LoggingExtension;
+import rife.bld.extension.testing.RandomString;
+import rife.bld.extension.testing.RandomStringResolver;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -39,6 +41,7 @@ import java.util.Objects;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(LoggingExtension.class)
+@ExtendWith(RandomStringResolver.class)
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class CompileKotlinOperationTests {
     private static final String BAR = "bar";
@@ -482,10 +485,11 @@ class CompileKotlinOperationTests {
             }
 
             @Test
-            void pluginsAsStringList() {
+            @RandomString(size = 2)
+            void pluginsAsStringList(List<String> plugins) {
                 var op = new CompileKotlinOperation();
-                op.plugins(List.of("plugin1", "plugin2"));
-                assertThat(op.plugins()).containsExactly("plugin1", "plugin2");
+                op.plugins(plugins);
+                assertThat(op.plugins()).containsExactly(plugins.toArray(new String[0]));
             }
         }
 
