@@ -22,6 +22,7 @@ import rife.bld.extension.kotlin.CompileOptions;
 import rife.bld.extension.kotlin.CompilerPlugin;
 import rife.bld.extension.kotlin.JvmOptions;
 import rife.bld.extension.tools.CollectionUtils;
+import rife.bld.extension.tools.FilesUtils;
 import rife.bld.extension.tools.SystemUtils;
 import rife.bld.extension.tools.TextUtils;
 import rife.bld.operations.AbstractOperation;
@@ -246,7 +247,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     private static boolean isExecutable(File file) {
-        return file != null && file.exists() && file.isFile() && file.canExecute();
+        return FilesUtils.exists(file) && file.isFile() && file.canExecute();
     }
 
     private static void logKotlincPath(String kotlincPath, boolean isSilent) {
@@ -1130,7 +1131,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         args.add('"' + cleanPath(destination) + '"');
 
         // friend-path
-        if (friendPaths != null && friendPaths.exists()) {
+        if (FilesUtils.exists(friendPaths)) {
             args.add("-Xfriend-paths=\"" + cleanPath(friendPaths) + '"');
         }
 
@@ -1225,10 +1226,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @throws IOException if an error occurs
      */
     protected void executeCreateBuildDirectories() throws IOException {
-        if (buildMainDirectory() != null && !buildMainDirectory().exists() && !buildMainDirectory().mkdirs()) {
+        if (FilesUtils.notExists(buildMainDirectory()) && !buildMainDirectory().mkdirs()) {
             throw new IOException("Could not create build main directory: " + buildMainDirectory().getAbsolutePath());
         }
-        if (buildTestDirectory() != null && !buildTestDirectory().exists() && !buildTestDirectory().mkdirs()) {
+        if (FilesUtils.notExists(buildTestDirectory()) && !buildTestDirectory().mkdirs()) {
             throw new IOException("Could not create build test directory: " + buildTestDirectory().getAbsolutePath());
         }
     }
