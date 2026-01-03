@@ -30,12 +30,12 @@ import rife.bld.extension.kotlin.JvmOptions;
 import rife.bld.extension.testing.LoggingExtension;
 import rife.bld.extension.testing.RandomString;
 import rife.bld.extension.testing.RandomStringResolver;
+import rife.bld.extension.tools.SystemUtils;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -93,7 +93,7 @@ class CompileKotlinOperationTests {
         op.compileOptions().verbose(true);
         op.compileOptions().argFile("src/test/resources/argfile.txt", "src/test/resources/argfile2.txt");
 
-        if (!CompileKotlinOperation.isWindows()) {
+        if (!SystemUtils.isWindows()) {
             op.jvmOptions().enableNativeAccess(JvmOptions.ALL_UNNAMED);
             assertThat(op.jvmOptions()).containsExactly("--enable-native-access=ALL-UNNAMED");
         }
@@ -121,21 +121,6 @@ class CompileKotlinOperationTests {
         var testOut = Path.of(testDir.getAbsolutePath(), "com", "example").toFile();
         assertThat(new File(testOut, "ExampleTest.class")).as("ExampleTest.class").exists();
 
-    }
-
-    @Test
-    void isOS() {
-        var osName = System.getProperty("os.name");
-        if (osName != null) {
-            var os = osName.toLowerCase(Locale.US);
-            if (os.contains("win")) {
-                assertThat(CompileKotlinOperation.isWindows()).isTrue();
-            } else if (os.contains("linux") || os.contains("unix")) {
-                assertThat(CompileKotlinOperation.isLinux()).isTrue();
-            } else if (os.contains("mac") || os.contains("darwin")) {
-                assertThat(CompileKotlinOperation.isMacOS()).isTrue();
-            }
-        }
     }
 
     @Nested

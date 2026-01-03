@@ -21,6 +21,7 @@ import rife.bld.BaseProject;
 import rife.bld.extension.kotlin.CompileOptions;
 import rife.bld.extension.kotlin.CompilerPlugin;
 import rife.bld.extension.kotlin.JvmOptions;
+import rife.bld.extension.tools.SystemUtils;
 import rife.bld.operations.AbstractOperation;
 import rife.bld.operations.exceptions.ExitStatusException;
 import rife.tools.FileUtils;
@@ -39,12 +40,10 @@ import java.util.logging.Logger;
  * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
  * @since 1.0
  */
-@SuppressFBWarnings({"PATH_TRAVERSAL_IN", "FCCD_FIND_CLASS_CIRCULAR_DEPENDENCY"})
+@SuppressFBWarnings({"PATH_TRAVERSAL_IN"})
 public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOperation> {
+    private static final String KOTLINC_EXECUTABLE = "kotlinc" + (SystemUtils.isWindows() ? ".bat" : "");
     private static final Logger LOGGER = Logger.getLogger(CompileKotlinOperation.class.getName());
-    private static final String OS_NAME =
-            System.getProperty("os.name") != null ? System.getProperty("os.name").toLowerCase(Locale.ENGLISH) : null;
-    private static final String KOTLINC_EXECUTABLE = "kotlinc" + (isWindows() ? ".bat" : "");
     private final List<String> compileMainClasspath_ = new ArrayList<>();
     private final List<String> compileTestClasspath_ = new ArrayList<>();
     private final JvmOptions jvmOptions_ = new JvmOptions();
@@ -155,7 +154,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         // Common installation paths (e.g., SDKMAN!, IntelliJ IDEA, etc.)
         var commonPaths = new LinkedHashMap<String, String>();
 
-        if (isLinux()) {
+        if (SystemUtils.isLinux()) {
             var userHome = System.getProperty("user.home");
             if (userHome != null) {
                 commonPaths.put(userHome + "/.sdkman/candidates/kotlin/current/bin", "SDKMAN!");
@@ -181,7 +180,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                     "IntelliJ IDEA Community Edition (Snap)");
             commonPaths.put("/snap/android-studio/current/android-studio/commons/plugins/Kotlin/kotlinc/bin",
                     "Android Studio (Snap)");
-        } else if (isWindows()) {
+        } else if (SystemUtils.isWindows()) {
             commonPaths.put("C:\\tools\\kotlinc\\bin", null);
             var localAppData = System.getenv("LOCALAPPDATA");
             if (localAppData != null) {
@@ -196,7 +195,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             if (programFiles != null) {
                 commonPaths.put(programFiles + "\\Kotlin\\bin", null);
             }
-        } else if (isMacOS()) {
+        } else if (SystemUtils.isMacOS()) {
             var userHome = System.getProperty("user.home");
             if (userHome != null) {
                 commonPaths.put(userHome + "/.sdkman/candidates/kotlin/current/bin", "SDKMAN!");
@@ -222,7 +221,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         // Try 'which' or 'where' commands (less reliable but sometimes works)
         try {
             Process process;
-            if (isWindows()) {
+            if (SystemUtils.isWindows()) {
                 process = Runtime.getRuntime().exec("where kotlinc");
             } else {
                 process = Runtime.getRuntime().exec("which kotlinc");
@@ -246,46 +245,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
     private static boolean isExecutable(File file) {
         return file != null && file.exists() && file.isFile() && file.canExecute();
-    }
-
-    /**
-     * Determines if the operating system is Linux.
-     *
-     * @return true if the operating system is Linux, false otherwise.
-     * @since 1.1.0
-     */
-    public static boolean isLinux() {
-        return OS_NAME != null && (OS_NAME.contains("linux") || OS_NAME.contains("unix")); // Consider Unix-like systems as well.
-    }
-
-    /**
-     * Determines if the current operating system is macOS.
-     *
-     * @return true if the OS is macOS, false otherwise.
-     * @since 1.1.0
-     */
-    public static boolean isMacOS() {
-        return OS_NAME != null && (OS_NAME.contains("mac") || OS_NAME.contains("darwin") || OS_NAME.contains("osx"));
-    }
-
-    /**
-     * Determines if the given string is not blank.
-     *
-     * @param s the string
-     * @return {@code true} if not blank, {@code false} otherwise.
-     */
-    public static boolean isNotBlank(String s) {
-        return s != null && !s.isBlank();
-    }
-
-    /**
-     * Determines if the current operating system is Windows.
-     *
-     * @return true if the operating system is Windows, false otherwise.
-     * @since 1.1.0
-     */
-    public static boolean isWindows() {
-        return OS_NAME != null && OS_NAME.contains("win");
     }
 
     private static void logKotlincPath(String kotlincPath, boolean isSilent) {
@@ -1068,7 +1027,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     private String cleanPath(String path) {
-        if (isWindows()) {
+        if (SystemUtils.isWindows()) {
             return path.replaceAll("\\\\", "\\\\\\\\");
         }
         return path;

@@ -17,7 +17,7 @@
 package rife.bld.extension.kotlin;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import rife.bld.extension.CompileKotlinOperation;
+import rife.bld.extension.tools.TextUtils;
 import rife.bld.operations.AbstractToolProviderOperation;
 
 import java.io.File;
@@ -30,8 +30,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import static rife.bld.extension.CompileKotlinOperation.isNotBlank;
 
 /**
  * Configuration for the Kotlin compiler options.
@@ -284,7 +282,7 @@ public class CompileOptions {
         var args = new ArrayList<String>();
 
         // api-version
-        if (isNotBlank(apiVersion_)) {
+        if (TextUtils.isNotBlank(apiVersion_)) {
             args.add("-api-version");
             args.add(apiVersion_);
         }
@@ -315,7 +313,7 @@ public class CompileOptions {
         }
 
         // expression
-        if (isNotBlank(expression_)) {
+        if (TextUtils.isNotBlank(expression_)) {
             args.add("-expression");
             args.add(expression_);
         }
@@ -326,7 +324,7 @@ public class CompileOptions {
         }
 
         // jvm-target
-        if (isNotBlank(jvmTarget_)) {
+        if (TextUtils.isNotBlank(jvmTarget_)) {
             args.add("-jvm-target");
             args.add(jvmTarget_);
         }
@@ -343,7 +341,7 @@ public class CompileOptions {
         }
 
         // jdk-release
-        if (isNotBlank(jdkRelease_)) {
+        if (TextUtils.isNotBlank(jdkRelease_)) {
             args.add("-Xjdk-release=" + jdkRelease_);
         }
 
@@ -359,13 +357,13 @@ public class CompileOptions {
         }
 
         // language-version
-        if (isNotBlank(languageVersion_)) {
+        if (TextUtils.isNotBlank(languageVersion_)) {
             args.add("-language-version");
             args.add(languageVersion_);
         }
 
         // module-name
-        if (isNotBlank(moduleName_)) {
+        if (TextUtils.isNotBlank(moduleName_)) {
             args.add("-module-name");
             args.add(moduleName_);
         }
@@ -391,7 +389,7 @@ public class CompileOptions {
         }
 
         // opt-in
-        optIn_.stream().filter(CompileKotlinOperation::isNotBlank).forEach(o -> {
+        optIn_.stream().filter(TextUtils::isNotBlank).forEach(o -> {
             args.add("-opt-in");
             args.add(o);
         });
@@ -408,7 +406,7 @@ public class CompileOptions {
         }
 
         // plugin
-        plugin_.stream().filter(CompileKotlinOperation::isNotBlank).forEach(p -> {
+        plugin_.stream().filter(TextUtils::isNotBlank).forEach(p -> {
             args.add("-P");
             args.add("plugin:" + p);
         });
