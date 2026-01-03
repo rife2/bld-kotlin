@@ -21,7 +21,9 @@ import rife.bld.BaseProject;
 import rife.bld.extension.kotlin.CompileOptions;
 import rife.bld.extension.kotlin.CompilerPlugin;
 import rife.bld.extension.kotlin.JvmOptions;
+import rife.bld.extension.tools.CollectionUtils;
 import rife.bld.extension.tools.SystemUtils;
+import rife.bld.extension.tools.TextUtils;
 import rife.bld.operations.AbstractOperation;
 import rife.bld.operations.exceptions.ExitStatusException;
 import rife.tools.FileUtils;
@@ -130,7 +132,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
         // Check the KOTLIN_HOME environment variable first
         var kotlinHome = System.getenv("KOTLIN_HOME");
-        if (kotlinHome != null && !kotlinHome.isEmpty()) {
+        if (TextUtils.isNotEmpty(kotlinHome)) {
             kotlincPath = findKotlincInDir(kotlinHome);
             if (kotlincPath != null) {
                 logKotlincPath(kotlincPath, isSilent, "KOTLIN_HOME");
@@ -140,7 +142,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
         // Check PATH environment variable
         var pathEnv = System.getenv("PATH");
-        if (pathEnv != null && !pathEnv.isEmpty()) {
+        if (TextUtils.isNotEmpty(pathEnv)) {
             var pathDirs = pathEnv.split(File.pathSeparator);
             for (var dir : pathDirs) {
                 kotlincPath = findKotlincInDir(dir);
@@ -1068,7 +1070,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             throws ExitStatusException {
 
         var cp = new ArrayList<String>();
-        if (classpath != null && !classpath.isEmpty()) {
+        if (CollectionUtils.isNotEmpty(classpath)) {
             cp.addAll(classpath);
         }
 
@@ -1110,7 +1112,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         }
 
         // classpath
-        if (compileOptions_ != null && !compileOptions_.classpath().isEmpty()) {
+        if (compileOptions_ != null && CollectionUtils.isNotEmpty(compileOptions_.classpath())) {
             cp.addAll(compileOptions_.classpath().stream().map(this::cleanPath).toList());
         }
         if (!cp.isEmpty()) {
