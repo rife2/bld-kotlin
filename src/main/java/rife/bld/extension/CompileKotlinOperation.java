@@ -93,7 +93,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     private static String findKotlincInDir(String directory) {
         var kotlinc = new File(directory, KOTLINC_EXECUTABLE);
 
-        if (isExecutable(kotlinc)) {
+        if (FilesUtils.canExecute(kotlinc)) {
             return kotlinc.getAbsolutePath();
         }
 
@@ -101,7 +101,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         var binDir = new File(directory, "bin");
         if (binDir.isDirectory()) {
             kotlinc = new File(binDir, KOTLINC_EXECUTABLE);
-            if (isExecutable(kotlinc)) {
+            if (FilesUtils.canExecute(kotlinc)) {
                 return kotlinc.getAbsolutePath();
             }
         }
@@ -233,7 +233,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             try (var scanner = new Scanner(process.getInputStream())) {
                 if (scanner.hasNextLine()) {
                     kotlincPath = scanner.nextLine().trim();
-                    if (isExecutable(new File(kotlincPath))) {
+                    if (FilesUtils.canExecute(new File(kotlincPath))) {
                         logKotlincPath(kotlincPath, isSilent);
                         return kotlincPath;
                     }
@@ -244,10 +244,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         }
 
         return KOTLINC_EXECUTABLE;
-    }
-
-    private static boolean isExecutable(File file) {
-        return FilesUtils.exists(file) && file.isFile() && file.canExecute();
     }
 
     private static void logKotlincPath(String kotlincPath, boolean isSilent) {
