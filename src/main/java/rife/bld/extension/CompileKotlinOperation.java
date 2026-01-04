@@ -431,8 +431,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *     <li>{@link #workDir() workDir} to the project's directory.</li>
      *     <li>{@link #buildMainDirectory() buildMainDirectory}</li>
      *     <li>{@link #buildTestDirectory() buildTestDirectory}</li>
-     *     <li>{@link #compileMainClasspath() compileMainClassPath}</li>
-     *     <li>{@link #compileTestClasspath() compilesTestClassPath}</li>
+     *     <li>{@link #compileMainClasspath() compileMainClasspath}</li>
+     *     <li>{@link #compileTestClasspath() compilesTestClasspath}</li>
      *     <li>{@link #mainSourceDirectories() mainSourceDirectories} to the {@code kotlin} directory in
      *     {@link BaseProject#srcMainDirectory() srcMainDirectory}, if present.</li>
      *     <li>{@link #testSourceDirectories() testSourceDirectories} to the {@code kotlin} directory in
@@ -1244,10 +1244,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         // Deduct from kotlinc location if provided
         if (kotlinc_ != null) {
             var parent = kotlinc_.getParentFile();
-            if (parent != null && parent.isDirectory()) {
+            if (FilesUtils.isDirectory(parent)) {
                 if (parent.getPath().endsWith("bin")) {
                     var binParent = parent.getParentFile();
-                    if (binParent != null && binParent.isDirectory()) {
+                    if (FilesUtils.isDirectory(binParent)) {
                         return binParent.getParentFile();
                     }
                 } else {
