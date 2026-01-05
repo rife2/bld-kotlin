@@ -22,7 +22,7 @@ import rife.bld.extension.kotlin.CompileOptions;
 import rife.bld.extension.kotlin.CompilerPlugin;
 import rife.bld.extension.kotlin.JvmOptions;
 import rife.bld.extension.tools.CollectionUtils;
-import rife.bld.extension.tools.FilesUtils;
+import rife.bld.extension.tools.IOUtils;
 import rife.bld.extension.tools.SystemUtils;
 import rife.bld.extension.tools.TextUtils;
 import rife.bld.operations.AbstractOperation;
@@ -93,7 +93,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     private static String findKotlincInDir(String directory) {
         var kotlinc = new File(directory, KOTLINC_EXECUTABLE);
 
-        if (FilesUtils.canExecute(kotlinc)) {
+        if (IOUtils.canExecute(kotlinc)) {
             return kotlinc.getAbsolutePath();
         }
 
@@ -101,7 +101,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         var binDir = new File(directory, "bin");
         if (binDir.isDirectory()) {
             kotlinc = new File(binDir, KOTLINC_EXECUTABLE);
-            if (FilesUtils.canExecute(kotlinc)) {
+            if (IOUtils.canExecute(kotlinc)) {
                 return kotlinc.getAbsolutePath();
             }
         }
@@ -233,7 +233,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             try (var scanner = new Scanner(process.getInputStream())) {
                 if (scanner.hasNextLine()) {
                     kotlincPath = scanner.nextLine().trim();
-                    if (FilesUtils.canExecute(new File(kotlincPath))) {
+                    if (IOUtils.canExecute(new File(kotlincPath))) {
                         logKotlincPath(kotlincPath, isSilent);
                         return kotlincPath;
                     }
@@ -1127,7 +1127,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         args.add('"' + cleanPath(destination) + '"');
 
         // friend-path
-        if (FilesUtils.exists(friendPaths)) {
+        if (IOUtils.exists(friendPaths)) {
             args.add("-Xfriend-paths=\"" + cleanPath(friendPaths) + '"');
         }
 
@@ -1222,10 +1222,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @throws IOException if an error occurs
      */
     protected void executeCreateBuildDirectories() throws IOException {
-        if (!FilesUtils.mkdirs(buildMainDirectory())) {
+        if (!IOUtils.mkdirs(buildMainDirectory())) {
             throw new IOException("Could not create build main directory: " + buildMainDirectory().getAbsolutePath());
         }
-        if (!FilesUtils.mkdirs(buildTestDirectory())) {
+        if (!IOUtils.mkdirs(buildTestDirectory())) {
             throw new IOException("Could not create build test directory: " + buildTestDirectory().getAbsolutePath());
         }
     }
@@ -1244,10 +1244,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         // Deduct from kotlinc location if provided
         if (kotlinc_ != null) {
             var parent = kotlinc_.getParentFile();
-            if (FilesUtils.isDirectory(parent)) {
+            if (IOUtils.isDirectory(parent)) {
                 if (parent.getPath().endsWith("bin")) {
                     var binParent = parent.getParentFile();
-                    if (FilesUtils.isDirectory(binParent)) {
+                    if (IOUtils.isDirectory(binParent)) {
                         return binParent.getParentFile();
                     }
                 } else {
