@@ -45,6 +45,7 @@ import java.util.logging.Logger;
  */
 @SuppressFBWarnings({"PATH_TRAVERSAL_IN"})
 public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOperation> {
+
     private static final String KOTLINC_EXECUTABLE = "kotlinc" + (SystemUtils.isWindows() ? ".bat" : "");
     private static final Logger LOGGER = Logger.getLogger(CompileKotlinOperation.class.getName());
     private final List<String> compileMainClasspath_ = new ArrayList<>();
@@ -1142,7 +1143,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                 try {
                     var pluginValue = CompilerPlugin.valueOf(p);
                     if (kotlinHomePath != null) {
-                        pluginJar = Path.of(kotlinHomePath.getAbsolutePath(), "lib", pluginValue.jar).toFile();
+                        pluginJar = IOUtils.resolveFile(kotlinHomePath, "lib", pluginValue.jar);
                     } else if (LOGGER.isLoggable(Level.WARNING) && !silent()) {
                         LOGGER.warning("The Kotlin home must be set to specify the '"
                                 + CompilerPlugin.class.getSimpleName() + '.' + pluginValue.name()

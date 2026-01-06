@@ -30,6 +30,7 @@ import rife.bld.extension.kotlin.JvmOptions;
 import rife.bld.extension.testing.LoggingExtension;
 import rife.bld.extension.testing.RandomString;
 import rife.bld.extension.testing.RandomStringResolver;
+import rife.bld.extension.tools.IOUtils;
 import rife.bld.extension.tools.SystemUtils;
 
 import java.io.File;
@@ -44,6 +45,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(RandomStringResolver.class)
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class CompileKotlinOperationTests {
+
     private static final String BAR = "bar";
     private static final String FILE_1 = "file1";
     private static final String FILE_2 = "file2";
@@ -111,14 +113,14 @@ class CompileKotlinOperationTests {
             softly.assertThat(testDir).as("testDir shouldn't be empty").isNotEmptyDirectory();
         }
 
-        var mainOut = Path.of(mainDir.getAbsolutePath(), "com", "example").toFile();
+        var mainOut = IOUtils.resolveFile(mainDir, "com", "example");
         try (var softly = new AutoCloseableSoftAssertions()) {
             softly.assertThat(new File(mainOut, "Example.class")).as("Example.class").exists();
             softly.assertThat(new File(mainOut, "Example$Companion.class"))
                     .as("ExampleCompanion.class").exists();
         }
 
-        var testOut = Path.of(testDir.getAbsolutePath(), "com", "example").toFile();
+        var testOut = IOUtils.resolveFile(testDir, "com", "example");
         assertThat(new File(testOut, "ExampleTest.class")).as("ExampleTest.class").exists();
 
     }
@@ -126,6 +128,7 @@ class CompileKotlinOperationTests {
     @Nested
     @DisplayName("Options Test")
     class OptionsTest {
+
         private static final String KOTLINC = "kotlinc";
         private static final String LIB_COMPILE = "lib/compile";
 
@@ -197,6 +200,7 @@ class CompileKotlinOperationTests {
         @Nested
         @DisplayName("Build Directory Tests")
         class BuildDirectoryTests {
+
             private final File bar = new File(BAR);
             private final File foo = new File(FOO);
             private CompileKotlinOperation op = new CompileKotlinOperation();
@@ -241,6 +245,7 @@ class CompileKotlinOperationTests {
         @Nested
         @DisplayName("From Project Tests")
         class FromProjectTests {
+
             @Test
             void fromProject() {
                 var examples = new File(PROJECT);
@@ -278,6 +283,7 @@ class CompileKotlinOperationTests {
         @Nested
         @DisplayName("Kotlin Path Tests")
         class KotlinPathTests {
+
             private final File bar = new File(BAR);
             private final File foo = new File(FOO);
             private CompileKotlinOperation op = new CompileKotlinOperation();
@@ -290,6 +296,7 @@ class CompileKotlinOperationTests {
             @Nested
             @DisplayName("Kotlin Home Tests")
             class KotlinHomeTests {
+
                 @Test
                 void kotlinHomeAsFile() {
                     op.kotlinHome(foo);
@@ -312,6 +319,7 @@ class CompileKotlinOperationTests {
             @Nested
             @DisplayName("Kotlinc Tests")
             class KotlincTests {
+
                 @Test
                 void kotlincAsFile() {
                     op.kotlinc(foo);
@@ -381,6 +389,7 @@ class CompileKotlinOperationTests {
             @Nested
             @DisplayName("Main Source Files Tests")
             class MainSourceFilesTests {
+
                 @Test
                 void mainSourceFilesAsFileArray() {
                     var op = new CompileKotlinOperation();
@@ -428,6 +437,7 @@ class CompileKotlinOperationTests {
         @Nested
         @DisplayName("Plugins Tests")
         class PluginsTests {
+
             @Test
             void pluginsAsCompilerPluginArray() {
                 var op = new CompileKotlinOperation();
@@ -481,6 +491,7 @@ class CompileKotlinOperationTests {
         @Nested
         @DisplayName("Source Test")
         class SourceDirectoriesTests {
+
             @Test
             void testSourceDirectoriesAsFileArray() {
                 var op = new CompileKotlinOperation();
@@ -526,6 +537,7 @@ class CompileKotlinOperationTests {
             @Nested
             @DisplayName("Source Files Tests")
             class SourceFilesTests {
+
                 @Test
                 void testSourceFilesAsFileArray() {
                     var op = new CompileKotlinOperation();
@@ -573,6 +585,7 @@ class CompileKotlinOperationTests {
         @Nested
         @DisplayName("Work Dir Tests")
         class WorkDirTests {
+
             private final File bar = new File(BAR);
             private final File foo = new File(FOO);
             private CompileKotlinOperation op = new CompileKotlinOperation();
