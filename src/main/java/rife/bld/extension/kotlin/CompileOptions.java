@@ -17,7 +17,8 @@
 package rife.bld.extension.kotlin;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import rife.bld.extension.tools.TextUtils;
+import rife.bld.extension.tools.ObjectTools;
+import rife.bld.extension.tools.TextTools;
 import rife.bld.operations.AbstractToolProviderOperation;
 
 import java.io.File;
@@ -38,6 +39,7 @@ import java.util.logging.Logger;
  * @since 1.0
  */
 public class CompileOptions {
+
     private static final Logger LOGGER = Logger.getLogger(CompileOptions.class.getName());
     private final List<String> advancedOptions_ = new ArrayList<>();
     private final List<File> argFile_ = new ArrayList<>();
@@ -106,7 +108,10 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions advancedOptions(String... options) {
-        return advancedOptions(List.of(options));
+        if (ObjectTools.isNotEmpty(options)) {
+            return advancedOptions(List.of(options));
+        }
+        return this;
     }
 
     /**
@@ -116,7 +121,9 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions advancedOptions(Collection<String> options) {
-        advancedOptions_.addAll(options);
+        if (ObjectTools.isNotEmpty(options)) {
+            advancedOptions_.addAll(options);
+        }
         return this;
     }
 
@@ -180,7 +187,10 @@ public class CompileOptions {
      * @see #argFileStrings(Collection)
      */
     public CompileOptions argFile(String... files) {
-        return argFileStrings(List.of(files));
+        if (ObjectTools.isNotEmpty(files)) {
+            return argFileStrings(List.of(files));
+        }
+        return this;
     }
 
     /**
@@ -191,7 +201,9 @@ public class CompileOptions {
      * @see #argFile(File...)
      */
     public CompileOptions argFile(Collection<File> files) {
-        argFile_.addAll(files);
+        if (ObjectTools.isNotEmpty(files)) {
+            argFile_.addAll(files);
+        }
         return this;
     }
 
@@ -215,7 +227,10 @@ public class CompileOptions {
      * @see #argFile(Collection)
      */
     public CompileOptions argFile(File... files) {
-        return argFile(List.of(files));
+        if (ObjectTools.isNotEmpty(files)) {
+            return argFile(List.of(files));
+        }
+        return this;
     }
 
     /**
@@ -238,7 +253,10 @@ public class CompileOptions {
      * @see #argFilePaths(Collection)
      */
     public CompileOptions argFile(Path... files) {
-        return argFilePaths(List.of(files));
+        if (ObjectTools.isNotEmpty(files)) {
+            return argFilePaths(List.of(files));
+        }
+        return this;
     }
 
     /**
@@ -259,7 +277,10 @@ public class CompileOptions {
      * @see #argFile(Path...)
      */
     public CompileOptions argFilePaths(Collection<Path> files) {
-        return argFile(files.stream().map(Path::toFile).toList());
+        if (ObjectTools.isNotEmpty(files)) {
+            return argFile(files.stream().map(Path::toFile).toList());
+        }
+        return this;
     }
 
     /**
@@ -270,7 +291,10 @@ public class CompileOptions {
      * @see #argFile(String...)
      */
     public CompileOptions argFileStrings(Collection<String> files) {
-        return argFile(files.stream().map(File::new).toList());
+        if (ObjectTools.isNotEmpty(files)) {
+            return argFile(files.stream().map(File::new).toList());
+        }
+        return this;
     }
 
     /**
@@ -282,7 +306,7 @@ public class CompileOptions {
         var args = new ArrayList<String>();
 
         // api-version
-        if (TextUtils.isNotBlank(apiVersion_)) {
+        if (TextTools.isNotBlank(apiVersion_)) {
             args.add("-api-version");
             args.add(apiVersion_);
         }
@@ -313,7 +337,7 @@ public class CompileOptions {
         }
 
         // expression
-        if (TextUtils.isNotBlank(expression_)) {
+        if (TextTools.isNotBlank(expression_)) {
             args.add("-expression");
             args.add(expression_);
         }
@@ -324,7 +348,7 @@ public class CompileOptions {
         }
 
         // jvm-target
-        if (TextUtils.isNotBlank(jvmTarget_)) {
+        if (TextTools.isNotBlank(jvmTarget_)) {
             args.add("-jvm-target");
             args.add(jvmTarget_);
         }
@@ -341,7 +365,7 @@ public class CompileOptions {
         }
 
         // jdk-release
-        if (TextUtils.isNotBlank(jdkRelease_)) {
+        if (TextTools.isNotBlank(jdkRelease_)) {
             args.add("-Xjdk-release=" + jdkRelease_);
         }
 
@@ -357,13 +381,13 @@ public class CompileOptions {
         }
 
         // language-version
-        if (TextUtils.isNotBlank(languageVersion_)) {
+        if (TextTools.isNotBlank(languageVersion_)) {
             args.add("-language-version");
             args.add(languageVersion_);
         }
 
         // module-name
-        if (TextUtils.isNotBlank(moduleName_)) {
+        if (TextTools.isNotBlank(moduleName_)) {
             args.add("-module-name");
             args.add(moduleName_);
         }
@@ -389,7 +413,7 @@ public class CompileOptions {
         }
 
         // opt-in
-        optIn_.stream().filter(TextUtils::isNotBlank).forEach(o -> {
+        optIn_.stream().filter(TextTools::isNotBlank).forEach(o -> {
             args.add("-opt-in");
             args.add(o);
         });
@@ -406,7 +430,7 @@ public class CompileOptions {
         }
 
         // plugin
-        plugin_.stream().filter(TextUtils::isNotBlank).forEach(p -> {
+        plugin_.stream().filter(TextTools::isNotBlank).forEach(p -> {
             args.add("-P");
             args.add("plugin:" + p);
         });
@@ -461,7 +485,10 @@ public class CompileOptions {
      * @see #classpathStrings(Collection)
      */
     public CompileOptions classpath(String... paths) {
-        return classpathStrings(List.of(paths));
+        if (ObjectTools.isNotEmpty(paths)) {
+            return classpathStrings(List.of(paths));
+        }
+        return this;
     }
 
     /**
@@ -474,7 +501,10 @@ public class CompileOptions {
      * @see #classpath(Collection)
      */
     public CompileOptions classpath(File... paths) {
-        return classpath(List.of(paths));
+        if (ObjectTools.isNotEmpty(paths)) {
+            return classpath(List.of(paths));
+        }
+        return this;
     }
 
     /**
@@ -487,7 +517,10 @@ public class CompileOptions {
      * @see #classpathPaths(Collection)
      */
     public CompileOptions classpath(Path... paths) {
-        return classpathPaths(List.of(paths));
+        if (ObjectTools.isNotEmpty(paths)) {
+            return classpathPaths(List.of(paths));
+        }
+        return this;
     }
 
     /**
@@ -500,7 +533,9 @@ public class CompileOptions {
      * @see #classpath(File...)
      */
     public CompileOptions classpath(Collection<File> paths) {
-        classpath_.addAll(paths);
+        if (ObjectTools.isNotEmpty(paths)) {
+            classpath_.addAll(paths);
+        }
         return this;
     }
 
@@ -524,7 +559,10 @@ public class CompileOptions {
      * @see #classpath(Path...)
      */
     public CompileOptions classpathPaths(Collection<Path> paths) {
-        return classpath(paths.stream().map(Path::toFile).toList());
+        if (ObjectTools.isNotEmpty(paths)) {
+            return classpath(paths.stream().map(Path::toFile).toList());
+        }
+        return this;
     }
 
     /**
@@ -537,7 +575,10 @@ public class CompileOptions {
      * @see #classpath(String...)
      */
     public CompileOptions classpathStrings(Collection<String> paths) {
-        return classpath(paths.stream().map(File::new).toList());
+        if (ObjectTools.isNotEmpty(paths)) {
+            return classpath(paths.stream().map(File::new).toList());
+        }
+        return this;
     }
 
     /**
@@ -959,7 +1000,10 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions optIn(String... annotations) {
-        return optIn(List.of(annotations));
+        if (ObjectTools.isNotEmpty(annotations)) {
+            return optIn(List.of(annotations));
+        }
+        return this;
     }
 
     /**
@@ -979,7 +1023,9 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions optIn(Collection<String> annotations) {
-        optIn_.addAll(annotations);
+        if (ObjectTools.isNotEmpty(annotations)) {
+            optIn_.addAll(annotations);
+        }
         return this;
     }
 
@@ -990,7 +1036,10 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions options(String... options) {
-        return options(List.of(options));
+        if (ObjectTools.isNotEmpty(options)) {
+            return options(List.of(options));
+        }
+        return this;
     }
 
     /**
@@ -1010,7 +1059,9 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions options(Collection<String> options) {
-        options_.addAll(options);
+        if (ObjectTools.isNotEmpty(options)) {
+            options_.addAll(options);
+        }
         return this;
     }
 
@@ -1070,7 +1121,9 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions plugin(String id, String optionName, String value) {
-        plugin_.add(id + ':' + optionName + ':' + value);
+        if (TextTools.isNotBlank(id, optionName, value)) {
+            plugin_.add(id + ':' + optionName + ':' + value);
+        }
         return this;
     }
 
@@ -1104,7 +1157,10 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions scriptTemplates(String... classNames) {
-        return scriptTemplates(List.of(classNames));
+        if (ObjectTools.isNotEmpty(classNames)) {
+            return scriptTemplates(List.of(classNames));
+        }
+        return this;
     }
 
     /**
@@ -1126,7 +1182,9 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions scriptTemplates(Collection<String> classNames) {
-        scriptTemplates_.addAll(classNames);
+        if (ObjectTools.isNotEmpty(classNames)) {
+            scriptTemplates_.addAll(classNames);
+        }
         return this;
     }
 

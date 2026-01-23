@@ -24,6 +24,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class CompilerPluginTests {
+
     @Test
     @DisplayName("Ensure the number of compiler plugins is correct")
     void testEnumSize() {

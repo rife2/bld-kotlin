@@ -28,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class JvmOptionsTests {
+
     @Test
     void jvmOptions() {
         var op = new CompileKotlinOperation().jvmOptions("--option1", "--option2");
@@ -64,6 +65,7 @@ class JvmOptionsTests {
     @Nested
     @DisplayName("Enable Native Access Tests")
     class EnableNativeAccessTests {
+
         @Test
         void enableNativeAccessWithAllUnnamed() {
             var options = new JvmOptions().enableNativeAccess(JvmOptions.ALL_UNNAMED);
@@ -79,13 +81,13 @@ class JvmOptionsTests {
         @Test
         void enableNativeAccessWithEmptyCollection() {
             var options = new JvmOptions().enableNativeAccess(Set.of());
-            assertThat(options).containsExactly("--enable-native-access=");
+            assertThat(options).isEmpty();
         }
 
         @Test
         void enableNativeAccessWithEmptyVarargs() {
             var options = new JvmOptions().enableNativeAccess();
-            assertThat(options).containsExactly("--enable-native-access=");
+            assertThat(options).isEmpty();
         }
 
         @Test
@@ -116,6 +118,7 @@ class JvmOptionsTests {
     @Nested
     @DisplayName("Fluent API Tests")
     class FluentApiTests {
+
         @Test
         void shouldAllowMethodChaining() {
             var options = new JvmOptions()
@@ -147,6 +150,7 @@ class JvmOptionsTests {
     @Nested
     @DisplayName("Illegal Native Access Tests")
     class IllegalNativeAccessTests {
+
         @Test
         void illegalNativeAccessWithAllow() {
             var options = new JvmOptions().illegalNativeAccess(JvmOptions.NativeAccess.ALLOW);
@@ -169,6 +173,7 @@ class JvmOptionsTests {
     @Nested
     @DisplayName("NativeAccess Enum Tests")
     class NativeAccessEnumTests {
+
         @Test
         void shouldHaveCorrectAllowMode() {
             assertThat(JvmOptions.NativeAccess.ALLOW.mode).isEqualTo("allow");

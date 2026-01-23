@@ -30,8 +30,8 @@ import rife.bld.extension.kotlin.JvmOptions;
 import rife.bld.extension.testing.LoggingExtension;
 import rife.bld.extension.testing.RandomString;
 import rife.bld.extension.testing.RandomStringResolver;
-import rife.bld.extension.tools.IOUtils;
-import rife.bld.extension.tools.SystemUtils;
+import rife.bld.extension.tools.IOTools;
+import rife.bld.extension.tools.SystemTools;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -95,7 +95,7 @@ class CompileKotlinOperationTests {
         op.compileOptions().verbose(true);
         op.compileOptions().argFile("src/test/resources/argfile.txt", "src/test/resources/argfile2.txt");
 
-        if (!SystemUtils.isWindows()) {
+        if (!SystemTools.isWindows()) {
             op.jvmOptions().enableNativeAccess(JvmOptions.ALL_UNNAMED);
             assertThat(op.jvmOptions()).containsExactly("--enable-native-access=ALL-UNNAMED");
         }
@@ -113,14 +113,14 @@ class CompileKotlinOperationTests {
             softly.assertThat(testDir).as("testDir shouldn't be empty").isNotEmptyDirectory();
         }
 
-        var mainOut = IOUtils.resolveFile(mainDir, "com", "example");
+        var mainOut = IOTools.resolveFile(mainDir, "com", "example");
         try (var softly = new AutoCloseableSoftAssertions()) {
             softly.assertThat(new File(mainOut, "Example.class")).as("Example.class").exists();
             softly.assertThat(new File(mainOut, "Example$Companion.class"))
                     .as("ExampleCompanion.class").exists();
         }
 
-        var testOut = IOUtils.resolveFile(testDir, "com", "example");
+        var testOut = IOTools.resolveFile(testDir, "com", "example");
         assertThat(new File(testOut, "ExampleTest.class")).as("ExampleTest.class").exists();
 
     }

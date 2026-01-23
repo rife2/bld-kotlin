@@ -38,6 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class CompileOptionsTests {
+
     /**
      * Returns the local path of the given file names.
      *
@@ -52,6 +53,7 @@ class CompileOptionsTests {
     @Nested
     @DisplayName("Args File Tests")
     class ArgsFileTests {
+
         private final File bar = new File("bar.txt");
         private final File foo = new File("foo.txt");
         private final CompileOptions options = new CompileOptions();
@@ -101,6 +103,7 @@ class CompileOptionsTests {
     @Nested
     @DisplayName("Args Tests")
     class ArgsTests {
+
         @Test
         @SuppressWarnings("PMD.UnitTestShouldIncludeAssert")
         void args() {
@@ -237,6 +240,7 @@ class CompileOptionsTests {
     @Nested
     @DisplayName("Classpath Tests")
     class ClasspathTests {
+
         private final File bar = new File("bar.txt");
         private final File foo = new File("foo.txt");
         private final CompileOptions options = new CompileOptions();
@@ -296,6 +300,7 @@ class CompileOptionsTests {
     @Nested
     @DisplayName("JDK Home Tests")
     class JdkHomeTests {
+
         private final File foo = new File("foo.txt");
         private final CompileOptions options = new CompileOptions();
 
@@ -322,6 +327,7 @@ class CompileOptionsTests {
     @Nested
     @DisplayName("Kotlin Home Tests")
     class KotlinHomeTests {
+
         private final File foo = new File("foo.txt");
 
         @Test
@@ -346,6 +352,7 @@ class CompileOptionsTests {
     @Nested
     @DisplayName("Options Tests")
     class OptionsTests {
+
         @Test
         @EnabledOnOs(OS.LINUX)
         void checkAllParams() throws IOException {

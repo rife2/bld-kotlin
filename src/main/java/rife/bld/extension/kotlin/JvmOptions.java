@@ -16,6 +16,7 @@
 
 package rife.bld.extension.kotlin;
 
+import rife.bld.extension.tools.ObjectTools;
 import rife.tools.StringUtils;
 
 import java.io.Serial;
@@ -31,6 +32,7 @@ import java.util.List;
  */
 @SuppressWarnings("PMD.LooseCoupling")
 public class JvmOptions extends ArrayList<String> {
+
     /**
      * Keyword to enable native access for all code on the class path.
      */
@@ -47,7 +49,10 @@ public class JvmOptions extends ArrayList<String> {
      * @return this list of options
      */
     public JvmOptions enableNativeAccess(String... modules) {
-        return enableNativeAccess(List.of(modules));
+        if (ObjectTools.isNotEmpty(modules)) {
+            return enableNativeAccess(List.of(modules));
+        }
+        return this;
     }
 
     /**
@@ -58,7 +63,9 @@ public class JvmOptions extends ArrayList<String> {
      * @return this list of options
      */
     public JvmOptions enableNativeAccess(Collection<String> modules) {
-        add("--enable-native-access=" + StringUtils.join(modules, ","));
+        if (ObjectTools.isNotEmpty(modules)) {
+            add("--enable-native-access=" + StringUtils.join(modules, ","));
+        }
         return this;
     }
 

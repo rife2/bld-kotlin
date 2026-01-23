@@ -21,10 +21,10 @@ import rife.bld.BaseProject;
 import rife.bld.extension.kotlin.CompileOptions;
 import rife.bld.extension.kotlin.CompilerPlugin;
 import rife.bld.extension.kotlin.JvmOptions;
-import rife.bld.extension.tools.CollectionUtils;
-import rife.bld.extension.tools.IOUtils;
-import rife.bld.extension.tools.SystemUtils;
-import rife.bld.extension.tools.TextUtils;
+import rife.bld.extension.tools.IOTools;
+import rife.bld.extension.tools.ObjectTools;
+import rife.bld.extension.tools.SystemTools;
+import rife.bld.extension.tools.TextTools;
 import rife.bld.operations.AbstractOperation;
 import rife.bld.operations.exceptions.ExitStatusException;
 import rife.tools.FileUtils;
@@ -46,7 +46,7 @@ import java.util.logging.Logger;
 @SuppressFBWarnings({"PATH_TRAVERSAL_IN"})
 public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOperation> {
 
-    private static final String KOTLINC_EXECUTABLE = "kotlinc" + (SystemUtils.isWindows() ? ".bat" : "");
+    private static final String KOTLINC_EXECUTABLE = "kotlinc" + (SystemTools.isWindows() ? ".bat" : "");
     private static final Logger LOGGER = Logger.getLogger(CompileKotlinOperation.class.getName());
     private final List<String> compileMainClasspath_ = new ArrayList<>();
     private final List<String> compileTestClasspath_ = new ArrayList<>();
@@ -94,7 +94,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     private static String findKotlincInDir(String directory) {
         var kotlinc = new File(directory, KOTLINC_EXECUTABLE);
 
-        if (IOUtils.canExecute(kotlinc)) {
+        if (IOTools.canExecute(kotlinc)) {
             return kotlinc.getAbsolutePath();
         }
 
@@ -102,7 +102,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         var binDir = new File(directory, "bin");
         if (binDir.isDirectory()) {
             kotlinc = new File(binDir, KOTLINC_EXECUTABLE);
-            if (IOUtils.canExecute(kotlinc)) {
+            if (IOTools.canExecute(kotlinc)) {
                 return kotlinc.getAbsolutePath();
             }
         }
@@ -134,7 +134,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
         // Check the KOTLIN_HOME environment variable first
         var kotlinHome = System.getenv("KOTLIN_HOME");
-        if (TextUtils.isNotEmpty(kotlinHome)) {
+        if (TextTools.isNotEmpty(kotlinHome)) {
             kotlincPath = findKotlincInDir(kotlinHome);
             if (kotlincPath != null) {
                 logKotlincPath(kotlincPath, isSilent, "KOTLIN_HOME");
@@ -144,7 +144,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
         // Check PATH environment variable
         var pathEnv = System.getenv("PATH");
-        if (TextUtils.isNotEmpty(pathEnv)) {
+        if (TextTools.isNotEmpty(pathEnv)) {
             var pathDirs = pathEnv.split(File.pathSeparator);
             for (var dir : pathDirs) {
                 kotlincPath = findKotlincInDir(dir);
@@ -158,7 +158,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         // Common installation paths (e.g., SDKMAN!, IntelliJ IDEA, etc.)
         var commonPaths = new LinkedHashMap<String, String>();
 
-        if (SystemUtils.isLinux()) {
+        if (SystemTools.isLinux()) {
             var userHome = System.getProperty("user.home");
             if (userHome != null) {
                 commonPaths.put(userHome + "/.sdkman/candidates/kotlin/current/bin", "SDKMAN!");
@@ -184,7 +184,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                     "IntelliJ IDEA Community Edition (Snap)");
             commonPaths.put("/snap/android-studio/current/android-studio/commons/plugins/Kotlin/kotlinc/bin",
                     "Android Studio (Snap)");
-        } else if (SystemUtils.isWindows()) {
+        } else if (SystemTools.isWindows()) {
             commonPaths.put("C:\\tools\\kotlinc\\bin", null);
             var localAppData = System.getenv("LOCALAPPDATA");
             if (localAppData != null) {
@@ -199,7 +199,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             if (programFiles != null) {
                 commonPaths.put(programFiles + "\\Kotlin\\bin", null);
             }
-        } else if (SystemUtils.isMacOS()) {
+        } else if (SystemTools.isMacOS()) {
             var userHome = System.getProperty("user.home");
             if (userHome != null) {
                 commonPaths.put(userHome + "/.sdkman/candidates/kotlin/current/bin", "SDKMAN!");
@@ -225,7 +225,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         // Try 'which' or 'where' commands (less reliable but sometimes works)
         try {
             Process process;
-            if (SystemUtils.isWindows()) {
+            if (SystemTools.isWindows()) {
                 process = Runtime.getRuntime().exec("where kotlinc");
             } else {
                 process = Runtime.getRuntime().exec("which kotlinc");
@@ -234,7 +234,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             try (var scanner = new Scanner(process.getInputStream())) {
                 if (scanner.hasNextLine()) {
                     kotlincPath = scanner.nextLine().trim();
-                    if (IOUtils.canExecute(new File(kotlincPath))) {
+                    if (IOTools.canExecute(new File(kotlincPath))) {
                         logKotlincPath(kotlincPath, isSilent);
                         return kotlincPath;
                     }
@@ -349,7 +349,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #compileMainClasspath(Collection)
      */
     public CompileKotlinOperation compileMainClasspath(String... classpath) {
-        return compileMainClasspath(List.of(classpath));
+        if (ObjectTools.isNotEmpty(classpath)) {
+            return compileMainClasspath(List.of(classpath));
+        }
+        return this;
     }
 
     /**
@@ -359,7 +362,9 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @return this operation instance
      */
     public CompileKotlinOperation compileMainClasspath(Collection<String> classpath) {
-        compileMainClasspath_.addAll(classpath);
+        if (ObjectTools.isNotEmpty(classpath)) {
+            compileMainClasspath_.addAll(classpath);
+        }
         return this;
     }
 
@@ -400,7 +405,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @return this operation instance
      */
     public CompileKotlinOperation compileTestClasspath(String... classpath) {
-        return compileTestClasspath(List.of(classpath));
+        if (ObjectTools.isNotEmpty(classpath)) {
+            return compileTestClasspath(List.of(classpath));
+        }
+        return this;
     }
 
     /**
@@ -410,7 +418,9 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @return this operation instance
      */
     public CompileKotlinOperation compileTestClasspath(Collection<String> classpath) {
-        compileTestClasspath_.addAll(classpath);
+        if (ObjectTools.isNotEmpty(classpath)) {
+            compileTestClasspath_.addAll(classpath);
+        }
         return this;
     }
 
@@ -495,7 +505,9 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @return this operation instance
      */
     public CompileKotlinOperation jvmOptions(Collection<String> jvmOptions) {
-        jvmOptions_.addAll(jvmOptions);
+        if (ObjectTools.isNotEmpty(jvmOptions)) {
+            jvmOptions_.addAll(jvmOptions);
+        }
         return this;
     }
 
@@ -506,7 +518,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @return this operation instance
      */
     public CompileKotlinOperation jvmOptions(String... jvmOptions) {
-        return jvmOptions(List.of(jvmOptions));
+        if (ObjectTools.isNotEmpty(jvmOptions)) {
+            return jvmOptions(List.of(jvmOptions));
+        }
+        return this;
     }
 
     /**
@@ -609,7 +624,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #mainSourceDirectories(Collection)
      */
     public CompileKotlinOperation mainSourceDirectories(File... directories) {
-        return mainSourceDirectories(List.of(directories));
+        if (ObjectTools.isNotEmpty(directories)) {
+            return mainSourceDirectories(List.of(directories));
+        }
+        return this;
     }
 
     /**
@@ -620,7 +638,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #mainSourceDirectoriesPaths(Collection)
      */
     public CompileKotlinOperation mainSourceDirectories(Path... directories) {
-        return mainSourceDirectoriesPaths(List.of(directories));
+        if (ObjectTools.isNotEmpty(directories)) {
+            return mainSourceDirectoriesPaths(List.of(directories));
+        }
+        return this;
     }
 
     /**
@@ -631,7 +652,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #mainSourceDirectoriesStrings(Collection)
      */
     public CompileKotlinOperation mainSourceDirectories(String... directories) {
-        return mainSourceDirectoriesStrings(List.of(directories));
+        if (ObjectTools.isNotEmpty(directories)) {
+            return mainSourceDirectoriesStrings(List.of(directories));
+        }
+        return this;
     }
 
     /**
@@ -642,7 +666,9 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #mainSourceDirectories(File...)
      */
     public CompileKotlinOperation mainSourceDirectories(Collection<File> directories) {
-        mainSourceDirectories_.addAll(directories);
+        if (ObjectTools.isNotEmpty(directories)) {
+            mainSourceDirectories_.addAll(directories);
+        }
         return this;
     }
 
@@ -654,7 +680,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #mainSourceDirectories(Path...)
      */
     public CompileKotlinOperation mainSourceDirectoriesPaths(Collection<Path> directories) {
-        return mainSourceDirectories(directories.stream().map(Path::toFile).toList());
+        if (ObjectTools.isNotEmpty(directories)) {
+            return mainSourceDirectories(directories.stream().map(Path::toFile).toList());
+        }
+        return this;
     }
 
     /**
@@ -665,7 +694,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #mainSourceDirectories(String...)
      */
     public CompileKotlinOperation mainSourceDirectoriesStrings(Collection<String> directories) {
-        return mainSourceDirectories(directories.stream().map(File::new).toList());
+        if (ObjectTools.isNotEmpty(directories)) {
+            return mainSourceDirectories(directories.stream().map(File::new).toList());
+        }
+        return this;
     }
 
     /**
@@ -686,7 +718,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #mainSourceFiles(Collection)
      */
     public CompileKotlinOperation mainSourceFiles(File... files) {
-        return mainSourceFiles(List.of(files));
+        if (ObjectTools.isNotEmpty(files)) {
+            return mainSourceFiles(List.of(files));
+        }
+        return this;
     }
 
     /**
@@ -697,7 +732,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #mainSourceFilesStrings(Collection)
      */
     public CompileKotlinOperation mainSourceFiles(String... files) {
-        return mainSourceFilesStrings(List.of(files));
+        if (ObjectTools.isNotEmpty(files)) {
+            return mainSourceFilesStrings(List.of(files));
+        }
+        return this;
     }
 
     /**
@@ -708,7 +746,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #mainSourceFilesPaths(Collection)
      */
     public CompileKotlinOperation mainSourceFiles(Path... files) {
-        return mainSourceFilesPaths(List.of(files));
+        if (ObjectTools.isNotEmpty(files)) {
+            return mainSourceFilesPaths(List.of(files));
+        }
+        return this;
     }
 
     /**
@@ -719,7 +760,9 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #mainSourceFiles(File...)
      */
     public CompileKotlinOperation mainSourceFiles(Collection<File> files) {
-        mainSourceFiles_.addAll(files);
+        if (ObjectTools.isNotEmpty(files)) {
+            mainSourceFiles_.addAll(files);
+        }
         return this;
     }
 
@@ -731,7 +774,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #mainSourceFiles(Path...)
      */
     public CompileKotlinOperation mainSourceFilesPaths(Collection<Path> files) {
-        return mainSourceFiles(files.stream().map(Path::toFile).toList());
+        if (ObjectTools.isNotEmpty(files)) {
+            return mainSourceFiles(files.stream().map(Path::toFile).toList());
+        }
+        return this;
     }
 
     /**
@@ -742,7 +788,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #mainSourceFiles(String...)
      */
     public CompileKotlinOperation mainSourceFilesStrings(Collection<String> files) {
-        return mainSourceFiles(files.stream().map(File::new).toList());
+        if (ObjectTools.isNotEmpty(files)) {
+            return mainSourceFiles(files.stream().map(File::new).toList());
+        }
+        return this;
     }
 
     /**
@@ -754,7 +803,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     @SuppressFBWarnings("PATH_TRAVERSAL_IN")
     public CompileKotlinOperation plugins(String directory, CompilerPlugin... plugins) {
-        return plugins(new File(directory), plugins);
+        if (ObjectTools.isNotEmpty(plugins)) {
+            return plugins(new File(directory), plugins);
+        }
+        return this;
     }
 
     /**
@@ -766,8 +818,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     @SuppressFBWarnings("PATH_TRAVERSAL_IN")
     public CompileKotlinOperation plugins(File directory, CompilerPlugin... plugins) {
-        for (var p : plugins) {
-            plugins_.add(new File(directory, p.jar).getAbsolutePath());
+        if (ObjectTools.isNotEmpty(plugins)) {
+            for (var p : plugins) {
+                plugins_.add(new File(directory, p.jar).getAbsolutePath());
+            }
         }
         return this;
     }
@@ -789,7 +843,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @return this class instance
      */
     public CompileKotlinOperation plugins(String... plugins) {
-        return plugins(List.of(plugins));
+        if (ObjectTools.isNotEmpty(plugins)) {
+            return plugins(List.of(plugins));
+        }
+        return this;
     }
 
     /**
@@ -799,7 +856,9 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @return this class instance
      */
     public CompileKotlinOperation plugins(Collection<String> plugins) {
-        plugins_.addAll(plugins);
+        if (ObjectTools.isNotEmpty(plugins)) {
+            plugins_.addAll(plugins);
+        }
         return this;
     }
 
@@ -811,7 +870,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @return this class instance
      */
     public CompileKotlinOperation plugins(Path directory, CompilerPlugin... plugins) {
-        return plugins(directory.toFile(), plugins);
+        if (ObjectTools.isNotEmpty(plugins)) {
+            return plugins(directory.toFile(), plugins);
+        }
+        return this;
     }
 
     /**
@@ -822,8 +884,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #plugins(File, CompilerPlugin...)
      */
     public CompileKotlinOperation plugins(CompilerPlugin... plugins) {
-        for (var plugin : plugins) {
-            plugins_.add(plugin.name());
+        if (ObjectTools.isNotEmpty(plugins)) {
+            for (var plugin : plugins) {
+                plugins_.add(plugin.name());
+            }
         }
         return this;
     }
@@ -846,7 +910,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #testSourceDirectories(Collection)
      */
     public CompileKotlinOperation testSourceDirectories(File... directories) {
-        return testSourceDirectories(List.of(directories));
+        if (ObjectTools.isNotEmpty(directories)) {
+            return testSourceDirectories(List.of(directories));
+        }
+        return this;
     }
 
     /**
@@ -857,7 +924,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #testSourceDirectoriesPaths(Collection)
      */
     public CompileKotlinOperation testSourceDirectories(Path... directories) {
-        return testSourceDirectoriesPaths(List.of(directories));
+        if (ObjectTools.isNotEmpty(directories)) {
+            return testSourceDirectoriesPaths(List.of(directories));
+        }
+        return this;
     }
 
     /**
@@ -868,7 +938,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #testSourceDirectoriesStrings(Collection)
      */
     public CompileKotlinOperation testSourceDirectories(String... directories) {
-        return testSourceDirectoriesStrings(List.of(directories));
+        if (ObjectTools.isNotEmpty(directories)) {
+            return testSourceDirectoriesStrings(List.of(directories));
+        }
+        return this;
     }
 
     /**
@@ -879,7 +952,9 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #testSourceDirectories(File...)
      */
     public CompileKotlinOperation testSourceDirectories(Collection<File> directories) {
-        testSourceDirectories_.addAll(directories);
+        if (ObjectTools.isNotEmpty(directories)) {
+            testSourceDirectories_.addAll(directories);
+        }
         return this;
     }
 
@@ -891,7 +966,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #testSourceDirectories(Path...)
      */
     public CompileKotlinOperation testSourceDirectoriesPaths(Collection<Path> directories) {
-        return testSourceDirectories(directories.stream().map(Path::toFile).toList());
+        if (ObjectTools.isNotEmpty(directories)) {
+            return testSourceDirectories(directories.stream().map(Path::toFile).toList());
+        }
+        return this;
     }
 
     /**
@@ -902,7 +980,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #testSourceDirectories(String...)
      */
     public CompileKotlinOperation testSourceDirectoriesStrings(Collection<String> directories) {
-        return testSourceDirectories(directories.stream().map(File::new).toList());
+        if (ObjectTools.isNotEmpty(directories)) {
+            return testSourceDirectories(directories.stream().map(File::new).toList());
+        }
+        return this;
     }
 
     /**
@@ -923,7 +1004,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #testSourceFiles(Collection)
      */
     public CompileKotlinOperation testSourceFiles(File... files) {
-        return testSourceFiles(List.of(files));
+        if (ObjectTools.isNotEmpty(files)) {
+            return testSourceFiles(List.of(files));
+        }
+        return this;
     }
 
     /**
@@ -934,7 +1018,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #testSourceFilesStrings(Collection)
      */
     public CompileKotlinOperation testSourceFiles(String... files) {
-        return testSourceFilesStrings(List.of(files));
+        if (ObjectTools.isNotEmpty(files)) {
+            return testSourceFilesStrings(List.of(files));
+        }
+        return this;
     }
 
     /**
@@ -945,7 +1032,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #testSourceFilesPaths(Collection)
      */
     public CompileKotlinOperation testSourceFiles(Path... files) {
-        return testSourceFilesPaths(List.of(files));
+        if (ObjectTools.isNotEmpty(files)) {
+            return testSourceFilesPaths(List.of(files));
+        }
+        return this;
     }
 
     /**
@@ -956,7 +1046,9 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #testSourceFiles(File...)
      */
     public CompileKotlinOperation testSourceFiles(Collection<File> files) {
-        testSourceFiles_.addAll(files);
+        if (ObjectTools.isNotEmpty(files)) {
+            testSourceFiles_.addAll(files);
+        }
         return this;
     }
 
@@ -968,7 +1060,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #testSourceFiles(Path...)
      */
     public CompileKotlinOperation testSourceFilesPaths(Collection<Path> files) {
-        return testSourceFiles(files.stream().map(Path::toFile).toList());
+        if (ObjectTools.isNotEmpty(files)) {
+            return testSourceFiles(files.stream().map(Path::toFile).toList());
+        }
+        return this;
     }
 
     /**
@@ -979,7 +1074,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @see #testSourceFiles(String...)
      */
     public CompileKotlinOperation testSourceFilesStrings(Collection<String> files) {
-        return testSourceFiles(files.stream().map(File::new).toList());
+        if (ObjectTools.isNotEmpty(files)) {
+            return testSourceFiles(files.stream().map(File::new).toList());
+        }
+        return this;
     }
 
     /**
@@ -1027,7 +1125,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     private String cleanPath(String path) {
-        if (SystemUtils.isWindows()) {
+        if (SystemTools.isWindows()) {
             return path.replaceAll("\\\\", "\\\\\\\\");
         }
         return path;
@@ -1068,7 +1166,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             throws ExitStatusException {
 
         var cp = new ArrayList<String>();
-        if (CollectionUtils.isNotEmpty(classpath)) {
+        if (ObjectTools.isNotEmpty(classpath)) {
             cp.addAll(classpath);
         }
 
@@ -1110,7 +1208,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         }
 
         // classpath
-        if (compileOptions_ != null && CollectionUtils.isNotEmpty(compileOptions_.classpath())) {
+        if (compileOptions_ != null && ObjectTools.isNotEmpty(compileOptions_.classpath())) {
             cp.addAll(compileOptions_.classpath().stream().map(this::cleanPath).toList());
         }
         if (!cp.isEmpty()) {
@@ -1128,7 +1226,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         args.add('"' + cleanPath(destination) + '"');
 
         // friend-path
-        if (IOUtils.exists(friendPaths)) {
+        if (IOTools.exists(friendPaths)) {
             args.add("-Xfriend-paths=\"" + cleanPath(friendPaths) + '"');
         }
 
@@ -1143,7 +1241,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                 try {
                     var pluginValue = CompilerPlugin.valueOf(p);
                     if (kotlinHomePath != null) {
-                        pluginJar = IOUtils.resolveFile(kotlinHomePath, "lib", pluginValue.jar);
+                        pluginJar = IOTools.resolveFile(kotlinHomePath, "lib", pluginValue.jar);
                     } else if (LOGGER.isLoggable(Level.WARNING) && !silent()) {
                         LOGGER.warning("The Kotlin home must be set to specify the '"
                                 + CompilerPlugin.class.getSimpleName() + '.' + pluginValue.name()
@@ -1223,10 +1321,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @throws IOException if an error occurs
      */
     protected void executeCreateBuildDirectories() throws IOException {
-        if (!IOUtils.mkdirs(buildMainDirectory())) {
+        if (!IOTools.mkdirs(buildMainDirectory())) {
             throw new IOException("Could not create build main directory: " + buildMainDirectory().getAbsolutePath());
         }
-        if (!IOUtils.mkdirs(buildTestDirectory())) {
+        if (!IOTools.mkdirs(buildTestDirectory())) {
             throw new IOException("Could not create build test directory: " + buildTestDirectory().getAbsolutePath());
         }
     }
@@ -1245,10 +1343,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         // Deduct from kotlinc location if provided
         if (kotlinc_ != null) {
             var parent = kotlinc_.getParentFile();
-            if (IOUtils.isDirectory(parent)) {
+            if (IOTools.isDirectory(parent)) {
                 if (parent.getPath().endsWith("bin")) {
                     var binParent = parent.getParentFile();
-                    if (IOUtils.isDirectory(binParent)) {
+                    if (IOTools.isDirectory(binParent)) {
                         return binParent.getParentFile();
                     }
                 } else {

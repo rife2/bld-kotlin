@@ -27,9 +27,11 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
  * Unit tests for the {@link JvmDefault} enum.
  */
 class JvmDefaultTests {
+
     @Nested
     @DisplayName("Enum Tests")
     class EnumTests {
+
         @Test
         void shouldHaveCorrectDisableMode() {
             assertThat(JvmDefault.DISABLE.value).as("DISABLE").isEqualTo("disable");
@@ -50,6 +52,7 @@ class JvmDefaultTests {
     @Nested
     @DisplayName("Enum ValueOf Tests")
     class EnumValueOfTests {
+
         @Test
         void shouldHaveCorrectDisableValue() {
             assertThat(JvmDefault.valueOf("DISABLE")).as("DISABLE").isEqualTo(JvmDefault.DISABLE);
