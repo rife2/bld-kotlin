@@ -29,7 +29,6 @@ import rife.bld.extension.kotlin.CompilerPlugin;
 import rife.bld.extension.kotlin.JvmOptions;
 import rife.bld.extension.testing.LoggingExtension;
 import rife.bld.extension.testing.RandomString;
-import rife.bld.extension.testing.RandomStringResolver;
 import rife.bld.extension.tools.IOTools;
 import rife.bld.extension.tools.SystemTools;
 
@@ -42,7 +41,6 @@ import java.util.Objects;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(LoggingExtension.class)
-@ExtendWith(RandomStringResolver.class)
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class CompileKotlinOperationTests {
 
