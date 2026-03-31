@@ -106,9 +106,18 @@ public enum CompilerPlugin {
      */
     SAM_WITH_RECEIVER("sam-with-receiver-compiler-plugin.jar");
 
-    public final String jar;
+    private final String jar;
 
     CompilerPlugin(String jar) {
         this.jar = jar;
+    }
+
+    /**
+     * Returns the JAR filename for this compiler plugin.
+     *
+     * @return the JAR filename
+     */
+    public String getJar() {
+        return jar;
     }
 }

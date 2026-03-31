@@ -34,17 +34,17 @@ class JvmDefaultTests {
 
         @Test
         void shouldHaveCorrectDisableMode() {
-            assertThat(JvmDefault.DISABLE.value).as("DISABLE").isEqualTo("disable");
+            assertThat(JvmDefault.DISABLE.getValue()).as("DISABLE").isEqualTo("disable");
         }
 
         @Test
         void shouldHaveCorrectEnableMode() {
-            assertThat(JvmDefault.ENABLE.value).as("ENABLE").isEqualTo("enable");
+            assertThat(JvmDefault.ENABLE.getValue()).as("ENABLE").isEqualTo("enable");
         }
 
         @Test
         void shouldHaveCorrectNoCompatibilityMode() {
-            assertThat(JvmDefault.NO_COMPATIBILITY.value).as("NO_COMPATIBILITY")
+            assertThat(JvmDefault.NO_COMPATIBILITY.getValue()).as("NO_COMPATIBILITY")
                     .isEqualTo("no-compatibility");
         }
     }

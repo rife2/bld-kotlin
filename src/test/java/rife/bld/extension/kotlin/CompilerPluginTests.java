@@ -39,7 +39,7 @@ class CompilerPluginTests {
     void testIndividualPlugin() {
         var allOpen = CompilerPlugin.valueOf("ALL_OPEN");
         assertThat(allOpen).isEqualTo(CompilerPlugin.ALL_OPEN);
-        assertThat(allOpen.jar).isEqualTo("allopen-compiler-plugin.jar");
+        assertThat(allOpen.getJar()).isEqualTo("allopen-compiler-plugin.jar");
     }
 
     @ParameterizedTest
@@ -47,16 +47,19 @@ class CompilerPluginTests {
     @DisplayName("Verify the JAR file name for each compiler plugin")
     void testPluginJarFileName(CompilerPlugin plugin) {
         switch (plugin) {
-            case ALL_OPEN -> assertThat(plugin.jar).isEqualTo("allopen-compiler-plugin.jar");
-            case ASSIGNMENT -> assertThat(plugin.jar).isEqualTo("assignment-compiler-plugin.jar");
-            case COMPOSE -> assertThat(plugin.jar).isEqualTo("compose-compiler-plugin.jar");
-            case KOTLIN_IMPORTS_DUMPER -> assertThat(plugin.jar).isEqualTo("kotlin-imports-dumper-compiler-plugin.jar");
-            case KOTLINX_SERIALIZATION -> assertThat(plugin.jar).isEqualTo("kotlinx-serialization-compiler-plugin.jar");
-            case KOTLIN_SERIALIZATION -> assertThat(plugin.jar).isEqualTo("kotlin-serialization-compiler-plugin.jar");
-            case LOMBOK -> assertThat(plugin.jar).isEqualTo("lombok-compiler-plugin.jar");
-            case NOARG -> assertThat(plugin.jar).isEqualTo("noarg-compiler-plugin.jar");
-            case POWER_ASSERT -> assertThat(plugin.jar).isEqualTo("power-assert-compiler-plugin.jar");
-            case SAM_WITH_RECEIVER -> assertThat(plugin.jar).isEqualTo("sam-with-receiver-compiler-plugin.jar");
+            case ALL_OPEN -> assertThat(plugin.getJar()).isEqualTo("allopen-compiler-plugin.jar");
+            case ASSIGNMENT -> assertThat(plugin.getJar()).isEqualTo("assignment-compiler-plugin.jar");
+            case COMPOSE -> assertThat(plugin.getJar()).isEqualTo("compose-compiler-plugin.jar");
+            case KOTLIN_IMPORTS_DUMPER ->
+                    assertThat(plugin.getJar()).isEqualTo("kotlin-imports-dumper-compiler-plugin.jar");
+            case KOTLINX_SERIALIZATION ->
+                    assertThat(plugin.getJar()).isEqualTo("kotlinx-serialization-compiler-plugin.jar");
+            case KOTLIN_SERIALIZATION ->
+                    assertThat(plugin.getJar()).isEqualTo("kotlin-serialization-compiler-plugin.jar");
+            case LOMBOK -> assertThat(plugin.getJar()).isEqualTo("lombok-compiler-plugin.jar");
+            case NOARG -> assertThat(plugin.getJar()).isEqualTo("noarg-compiler-plugin.jar");
+            case POWER_ASSERT -> assertThat(plugin.getJar()).isEqualTo("power-assert-compiler-plugin.jar");
+            case SAM_WITH_RECEIVER -> assertThat(plugin.getJar()).isEqualTo("sam-with-receiver-compiler-plugin.jar");
             default -> throw new IllegalStateException("Unhandled plugin in test: " + plugin);
         }
     }

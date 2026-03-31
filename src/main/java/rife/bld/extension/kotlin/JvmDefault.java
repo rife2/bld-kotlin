@@ -40,9 +40,18 @@ public enum JvmDefault {
      */
     DISABLE("disable");
 
-    public final String value;
+    private final String value;
 
     JvmDefault(String value) {
         this.value = value;
+    }
+
+    /**
+     * Returns the JVM default value.
+     *
+     * @return the default value
+     */
+    public String getValue() {
+        return value;
     }
 }

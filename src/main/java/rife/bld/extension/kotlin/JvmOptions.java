@@ -50,7 +50,7 @@ public class JvmOptions extends ArrayList<String> {
      */
     public JvmOptions enableNativeAccess(String... modules) {
         if (ObjectTools.isNotEmpty(modules)) {
-            return enableNativeAccess(List.of(modules));
+            addOption("--enable-native-access", StringUtils.join(List.of(modules), ","));
         }
         return this;
     }
@@ -64,7 +64,7 @@ public class JvmOptions extends ArrayList<String> {
      */
     public JvmOptions enableNativeAccess(Collection<String> modules) {
         if (ObjectTools.isNotEmpty(modules)) {
-            add("--enable-native-access=" + StringUtils.join(modules, ","));
+            addOption("--enable-native-access", StringUtils.join(modules, ","));
         }
         return this;
     }
@@ -76,8 +76,18 @@ public class JvmOptions extends ArrayList<String> {
      * @return this list of options
      */
     public JvmOptions illegalNativeAccess(NativeAccess access) {
-        add("--illegal-native-access=" + access.mode);
+        addOption("--illegal-native-access", access.getMode());
         return this;
+    }
+
+    /**
+     * Adds a formatted option to this list.
+     *
+     * @param flag  the option flag
+     * @param value the option value
+     */
+    private void addOption(String flag, String value) {
+        add(flag + "=" + value);
     }
 
     /**
@@ -90,7 +100,7 @@ public class JvmOptions extends ArrayList<String> {
          * This mode permits the operation or access that would otherwise be restricted
          * or managed by native access policies.
          */
-        ALLOW("allow"),
+        ALLOW,
         /**
          * Represents the {@code deny} mode which signifies complete prevention of specific
          * native access.
@@ -98,7 +108,7 @@ public class JvmOptions extends ArrayList<String> {
          * This mode ensures that the operation or access is entirely prohibited according to
          * the native access policies.
          */
-        DENY("deny"),
+        DENY,
         /**
          * Represents the {@code warn} mode, which logs a warning when specific native access
          * is attempted.
@@ -106,12 +116,15 @@ public class JvmOptions extends ArrayList<String> {
          * This mode allows the operation to proceed while notifying the user about the
          * potential risks or restrictions associated with native access policies.
          */
-        WARN("warn");
+        WARN;
 
-        public final String mode;
-
-        NativeAccess(String mode) {
-            this.mode = mode;
+        /**
+         * Return the native access mode.
+         *
+         * @return the native access mode
+         */
+        public String getMode() {
+            return name().toLowerCase();
         }
     }
 }

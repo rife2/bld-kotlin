@@ -56,3 +56,5 @@ atlassian-ide-plugin.xml
 .idea/httpRequests
 
 local.properties
+./claude
+/.claude/

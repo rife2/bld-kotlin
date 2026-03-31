@@ -82,8 +82,8 @@ class CompileOptionsTests {
         @Test
         void argsFileAsPathList() {
             options.argFile().clear();
-            options.argFilePaths(List.of(foo.toPath(), bar.toPath()));
-            assertThat(options.argFile()).contains(foo, bar);
+            var ops = options.argFilePaths(List.of(foo.toPath(), bar.toPath()));
+            assertThat(ops.argFile()).contains(foo, bar);
         }
 
         @Test
@@ -95,8 +95,8 @@ class CompileOptionsTests {
 
         @Test
         void argsFileAsStringList() {
-            options.argFileStrings(List.of(foo.getAbsolutePath(), bar.getAbsolutePath()));
-            assertThat(options.argFile()).contains(foo.getAbsoluteFile(), bar.getAbsoluteFile());
+            var ops = options.argFileStrings(List.of(foo.getAbsolutePath(), bar.getAbsolutePath()));
+            assertThat(ops.argFile()).contains(foo.getAbsoluteFile(), bar.getAbsoluteFile());
         }
     }
 
@@ -132,31 +132,30 @@ class CompileOptionsTests {
 
             var matches = List.of(
                     "-api-version", "11",
+                    "-language-version", "1.0",
                     "-java-parameters",
                     "-jvm-target", "11",
                     "-include-runtime",
                     "-jdk-home", localPath("path"),
                     "-Xjdk-release=11",
                     "-kotlin-home", localPath("path"),
-                    "-language-version", "1.0",
                     "-module-name", "module",
                     "-no-jdk",
                     "-no-reflect",
-                    "-nowarn",
+                    "-d", localPath("path"),
                     "-opt-in", "opt1",
                     "-opt-in", "opt2",
                     "-foo",
                     "-bar",
-                    "-d", localPath("path"),
                     "-P", "plugin:id:name:value",
-                    "-progressive",
                     "-script-templates", "name,name2",
+                    "-nowarn",
+                    "-progressive",
                     "-verbose",
                     "-Werror",
                     "-Wextra");
 
             var args = new ArrayList<List<String>>();
-            args.add(options.args());
             args.add(options.apiVersion(11).jvmTarget(11).args());
 
             try (var softly = new AutoCloseableSoftAssertions()) {
@@ -276,8 +275,8 @@ class CompileOptionsTests {
         @Test
         void classpathAsPathList() {
             options.classpath().clear();
-            options.classpathPaths(List.of(foo.toPath(), bar.toPath()));
-            assertThat(options.classpath()).containsExactly(foo, bar);
+            var ops = options.classpathPaths(List.of(foo.toPath(), bar.toPath()));
+            assertThat(ops.classpath()).containsExactly(foo, bar);
         }
 
         @Test
@@ -291,8 +290,8 @@ class CompileOptionsTests {
         @Test
         void classpathAsStringList() {
             options.classpath().clear();
-            options.classpathStrings(List.of(foo.getAbsolutePath(), bar.getAbsolutePath()));
-            assertThat(options.classpath())
+            var ops = options.classpathStrings(List.of(foo.getAbsolutePath(), bar.getAbsolutePath()));
+            assertThat(ops.classpath())
                     .containsExactly(new File(foo.getAbsolutePath()), new File(bar.getAbsolutePath()));
         }
     }

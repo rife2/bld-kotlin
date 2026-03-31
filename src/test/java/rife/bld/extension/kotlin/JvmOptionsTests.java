@@ -176,17 +176,17 @@ class JvmOptionsTests {
 
         @Test
         void shouldHaveCorrectAllowMode() {
-            assertThat(JvmOptions.NativeAccess.ALLOW.mode).isEqualTo("allow");
+            assertThat(JvmOptions.NativeAccess.ALLOW.getMode()).isEqualTo("allow");
         }
 
         @Test
         void shouldHaveCorrectDenyMode() {
-            assertThat(JvmOptions.NativeAccess.DENY.mode).isEqualTo("deny");
+            assertThat(JvmOptions.NativeAccess.DENY.getMode()).isEqualTo("deny");
         }
 
         @Test
         void shouldHaveCorrectWarnMode() {
-            assertThat(JvmOptions.NativeAccess.WARN.mode).isEqualTo("warn");
+            assertThat(JvmOptions.NativeAccess.WARN.getMode()).isEqualTo("warn");
         }
     }
 }

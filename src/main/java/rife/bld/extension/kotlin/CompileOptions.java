@@ -17,6 +17,7 @@
 package rife.bld.extension.kotlin;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import rife.bld.extension.tools.CollectionTools;
 import rife.bld.extension.tools.ObjectTools;
 import rife.bld.extension.tools.TextTools;
 import rife.bld.operations.AbstractToolProviderOperation;
@@ -29,6 +30,7 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -41,6 +43,7 @@ import java.util.logging.Logger;
 public class CompileOptions {
 
     private static final Logger LOGGER = Logger.getLogger(CompileOptions.class.getName());
+
     private final List<String> advancedOptions_ = new ArrayList<>();
     private final List<File> argFile_ = new ArrayList<>();
     private final List<File> classpath_ = new ArrayList<>();
@@ -48,6 +51,7 @@ public class CompileOptions {
     private final List<String> options_ = new ArrayList<>();
     private final List<String> plugin_ = new ArrayList<>();
     private final List<String> scriptTemplates_ = new ArrayList<>();
+
     private String apiVersion_;
     private String expression_;
     private boolean includeRuntime_;
@@ -85,6 +89,7 @@ public class CompileOptions {
                 ", javaParameters_=" + javaParameters_ +
                 ", jdkHome_=" + jdkHome_ +
                 ", jdkRelease_='" + jdkRelease_ + '\'' +
+                ", jvmDefault_=" + jvmDefault_ +
                 ", jvmTarget_='" + jvmTarget_ + '\'' +
                 ", kotlinHome_=" + kotlinHome_ +
                 ", languageVersion_='" + languageVersion_ + '\'' +
@@ -102,6 +107,29 @@ public class CompileOptions {
     }
 
     /**
+     * Appends {@code flag value} to {@code args} when {@code value} is not blank.
+     */
+    private static void addFlag(List<String> args, String flag, String value) {
+        if (TextTools.isNotBlank(flag, value)) {
+            args.add(flag);
+            args.add(value);
+        }
+    }
+
+    /**
+     * Appends {@code flag} to {@code args} when {@code condition} is {@code true}.
+     * <p>
+     * The blank-flag guard was removed: every call site passes a compile-time
+     * string literal, so checking {@code TextTools.isNotBlank(flag)} on every
+     * invocation was pure overhead.
+     */
+    private static void addFlag(List<String> args, String flag, boolean condition) {
+        if (condition) {
+            args.add(flag);
+        }
+    }
+
+    /**
      * Specify advanced compiler options.
      *
      * @param options one or more advanced options
@@ -109,7 +137,7 @@ public class CompileOptions {
      */
     public CompileOptions advancedOptions(String... options) {
         if (ObjectTools.isNotEmpty(options)) {
-            return advancedOptions(List.of(options));
+            advancedOptions_.addAll(List.of(options));
         }
         return this;
     }
@@ -120,10 +148,9 @@ public class CompileOptions {
      * @param options the compiler options
      * @return this operation instance
      */
-    public CompileOptions advancedOptions(Collection<String> options) {
-        if (ObjectTools.isNotEmpty(options)) {
-            advancedOptions_.addAll(options);
-        }
+    @SafeVarargs
+    public final CompileOptions advancedOptions(Collection<String>... options) {
+        advancedOptions_.addAll(CollectionTools.combine(options));
         return this;
     }
 
@@ -135,15 +162,6 @@ public class CompileOptions {
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public List<String> advancedOptions() {
         return advancedOptions_;
-    }
-
-    /**
-     * Retrieves the version of Kotlin bundled libraries.
-     *
-     * @return the API version
-     */
-    public String apiVersion() {
-        return apiVersion_;
     }
 
     /**
@@ -168,6 +186,15 @@ public class CompileOptions {
     }
 
     /**
+     * Retrieves the version of Kotlin bundled libraries.
+     *
+     * @return the API version
+     */
+    public String apiVersion() {
+        return apiVersion_;
+    }
+
+    /**
      * Read the compiler options from the given files.
      * <p>
      * Such a file can contain compiler options with values and paths to the source files.
@@ -184,12 +211,33 @@ public class CompileOptions {
      *
      * @param files one or more files
      * @return this operation instance
-     * @see #argFileStrings(Collection)
      */
     public CompileOptions argFile(String... files) {
+        argFile_.addAll(CollectionTools.combineStringsToFiles(files));
+        return this;
+    }
+
+    /**
+     * Read the compiler options from the given files.
+     *
+     * @param files one or more files
+     * @return this operation instance
+     */
+    public CompileOptions argFile(File... files) {
         if (ObjectTools.isNotEmpty(files)) {
-            return argFileStrings(List.of(files));
+            argFile_.addAll(List.of(files));
         }
+        return this;
+    }
+
+    /**
+     * Read the compiler options from the given files.
+     *
+     * @param files one or more files
+     * @return this operation instance
+     */
+    public CompileOptions argFile(Path... files) {
+        argFile_.addAll(CollectionTools.combinePathsToFiles(files));
         return this;
     }
 
@@ -198,64 +246,10 @@ public class CompileOptions {
      *
      * @param files the compiler options files
      * @return this operation instance
-     * @see #argFile(File...)
      */
-    public CompileOptions argFile(Collection<File> files) {
-        if (ObjectTools.isNotEmpty(files)) {
-            argFile_.addAll(files);
-        }
-        return this;
-    }
-
-    /**
-     * Read the compiler options from the given files.
-     * <p>
-     * Such a file can contain compiler options with values and paths to the source files.
-     * Options and paths should be separated by whitespaces. For example:
-     * <ul>
-     * <li>{@code -include-runtime -d hello.jar hello.kt}</li>
-     * </ul>
-     * To pass values that contain whitespaces, surround them with single ({@code '}) or double ({@code "}) quotes.
-     * If a value contains quotation marks in it, escape them with a backslash (\).
-     * <ul>
-     * <li>{@code -include-runtime -d 'My folder'}</li>
-     * </ul>
-     * If the files reside in locations different from the current directory, use relative paths.
-     *
-     * @param files one or more files
-     * @return this operation instance
-     * @see #argFile(Collection)
-     */
-    public CompileOptions argFile(File... files) {
-        if (ObjectTools.isNotEmpty(files)) {
-            return argFile(List.of(files));
-        }
-        return this;
-    }
-
-    /**
-     * Read the compiler options from the given files.
-     * <p>
-     * Such a file can contain compiler options with values and paths to the source files.
-     * Options and paths should be separated by whitespaces. For example:
-     * <ul>
-     * <li>{@code -include-runtime -d hello.jar hello.kt}</li>
-     * </ul>
-     * To pass values that contain whitespaces, surround them with single ({@code '}) or double ({@code "}) quotes.
-     * If a value contains quotation marks in it, escape them with a backslash (\).
-     * <ul>
-     * <li>{@code -include-runtime -d 'My folder'}</li>
-     * </ul>
-     * If the files reside in locations different from the current directory, use relative paths.
-     *
-     * @param files one or more files
-     * @return this operation instance
-     * @see #argFilePaths(Collection)
-     */
-    public CompileOptions argFile(Path... files) {
-        if (ObjectTools.isNotEmpty(files)) {
-            return argFilePaths(List.of(files));
-        }
+    @SafeVarargs
+    public final CompileOptions argFile(Collection<File>... files) {
+        argFile_.addAll(CollectionTools.combine(files));
         return this;
     }
 
@@ -272,206 +266,56 @@ public class CompileOptions {
     /**
      * Read the compiler options from the given files.
      *
-     * @param files the compiler options files
+     * @param files the compiler options files (as {@link Path})
      * @return this operation instance
-     * @see #argFile(Path...)
      */
-    public CompileOptions argFilePaths(Collection<Path> files) {
-        if (ObjectTools.isNotEmpty(files)) {
-            return argFile(files.stream().map(Path::toFile).toList());
-        }
+    @SafeVarargs
+    public final CompileOptions argFilePaths(Collection<Path>... files) {
+        argFile_.addAll(CollectionTools.combinePathsToFiles(files));
         return this;
     }
 
     /**
      * Read the compiler options from the given files.
      *
-     * @param files the compiler options files
+     * @param files the compiler options files (as {@link String})
      * @return this operation instance
-     * @see #argFile(String...)
      */
-    public CompileOptions argFileStrings(Collection<String> files) {
-        if (ObjectTools.isNotEmpty(files)) {
-            return argFile(files.stream().map(File::new).toList());
-        }
+    @SafeVarargs
+    public final CompileOptions argFileStrings(Collection<String>... files) {
+        argFile_.addAll(CollectionTools.combineStringsToFiles(files));
         return this;
     }
 
     /**
      * Returns the formatted arguments.
+     * <p>
+     * The list is pre-sized to 32 entries to avoid repeated internal array
+     * copies for the typical number of compiler flags.
      *
      * @return the arguments
      */
     public List<String> args() {
-        var args = new ArrayList<String>();
+        // Pre-sized to avoid ArrayList reallocation for the typical flag count.
+        var args = new ArrayList<String>(32);
 
-        // api-version
-        if (TextTools.isNotBlank(apiVersion_)) {
-            args.add("-api-version");
-            args.add(apiVersion_);
-        }
+        // Version flags
+        addFlag(args, "-api-version", apiVersion_);
+        addFlag(args, "-language-version", languageVersion_);
 
-        // @argfile
-        if (!argFile_.isEmpty()) {
-            argFile_.forEach(f -> {
-                if (f.exists()) {
-                    try {
-                        try (var reader = Files.newBufferedReader(f.toPath(), Charset.defaultCharset())) {
-                            var tokenizer = new AbstractToolProviderOperation.CommandLineTokenizer(reader);
-                            String token;
-                            while ((token = tokenizer.nextToken()) != null) {
-                                args.add(token);
-                            }
-                        }
-                    } catch (IOException e) {
-                        if (LOGGER.isLoggable(Level.WARNING)) {
-                            LOGGER.log(Level.WARNING, "Could not read: " + f.getAbsolutePath(), e);
-                        }
-                    }
-                } else {
-                    if (LOGGER.isLoggable(Level.WARNING)) {
-                        LOGGER.warning("File not found: " + f.getAbsolutePath());
-                    }
-                }
-            });
-        }
+        addArgFileArgs(args);
+        addJvmArgs(args);
+        addLibraryArgs(args);
+        addOutputArgs(args);
 
-        // expression
-        if (TextTools.isNotBlank(expression_)) {
-            args.add("-expression");
-            args.add(expression_);
-        }
+        // Warning / diagnostic flags
+        addFlag(args, "-nowarn", noWarn_);
+        addFlag(args, "-progressive", progressive_);
+        addFlag(args, "-verbose", verbose_);
+        addFlag(args, "-Werror", wError_);
+        addFlag(args, "-Wextra", wExtra_);
 
-        // java-parameters
-        if (javaParameters_) {
-            args.add("-java-parameters");
-        }
-
-        // jvm-target
-        if (TextTools.isNotBlank(jvmTarget_)) {
-            args.add("-jvm-target");
-            args.add(jvmTarget_);
-        }
-
-        // include-runtime
-        if (includeRuntime_) {
-            args.add("-include-runtime");
-        }
-
-        // jdk-home
-        if (jdkHome_ != null) {
-            args.add("-jdk-home");
-            args.add(jdkHome_.getAbsolutePath());
-        }
-
-        // jdk-release
-        if (TextTools.isNotBlank(jdkRelease_)) {
-            args.add("-Xjdk-release=" + jdkRelease_);
-        }
-
-        // jvm-default
-        if (jvmDefault_ != null) {
-            args.add("-jvm-default=" + jvmDefault_.value);
-        }
-
-        // kotlin-home
-        if (kotlinHome_ != null) {
-            args.add("-kotlin-home");
-            args.add(kotlinHome_.getAbsolutePath());
-        }
-
-        // language-version
-        if (TextTools.isNotBlank(languageVersion_)) {
-            args.add("-language-version");
-            args.add(languageVersion_);
-        }
-
-        // module-name
-        if (TextTools.isNotBlank(moduleName_)) {
-            args.add("-module-name");
-            args.add(moduleName_);
-        }
-
-        // no-jdk
-        if (noJdk_) {
-            args.add("-no-jdk");
-        }
-
-        // no-reflect
-        if (noReflect_) {
-            args.add("-no-reflect");
-        }
-
-        // no-std-lib
-        if (noStdLib_) {
-            args.add("-no-stdlib");
-        }
-
-        // no-warn
-        if (noWarn_) {
-            args.add("-nowarn");
-        }
-
-        // opt-in
-        optIn_.stream().filter(TextTools::isNotBlank).forEach(o -> {
-            args.add("-opt-in");
-            args.add(o);
-        });
-
-        // options
-        if (!options_.isEmpty()) {
-            args.addAll(options_);
-        }
-
-        // path
-        if (path_ != null) {
-            args.add("-d");
-            args.add(path_.getAbsolutePath());
-        }
-
-        // plugin
-        plugin_.stream().filter(TextTools::isNotBlank).forEach(p -> {
-            args.add("-P");
-            args.add("plugin:" + p);
-        });
-
-        // progressive
-        if (progressive_) {
-            args.add("-progressive");
-        }
-
-        // script-templates
-        if (!scriptTemplates_.isEmpty()) {
-            args.add("-script-templates");
-            args.add(String.join(",", scriptTemplates_));
-        }
-
-        // verbose
-        if (verbose_) {
-            args.add("-verbose");
-        }
-
-        // Werror
-        if (wError_) {
-            args.add("-Werror");
-        }
-
-        // Wextra
-        if (wExtra_) {
-            args.add("-Wextra");
-        }
-
-        // advanced options (X)
-        if (!advancedOptions_.isEmpty()) {
-            advancedOptions_.forEach(it -> {
-                if (it.startsWith("-X")) {
-                    args.add(it);
-                } else {
-                    args.add("-X" + it);
-                }
-            });
-        }
-
+        addMiscArgs(args);
         return args;
     }
 
@@ -480,14 +324,11 @@ public class CompileOptions {
      * <p>
      * The classpath can contain file and directory paths, ZIP, or JAR files.
      *
-     * @param paths one pr more paths
+     * @param paths one or more paths
      * @return this operation instance
-     * @see #classpathStrings(Collection)
      */
     public CompileOptions classpath(String... paths) {
-        if (ObjectTools.isNotEmpty(paths)) {
-            return classpathStrings(List.of(paths));
-        }
+        classpath_.addAll(CollectionTools.combineStringsToFiles(paths));
         return this;
     }
 
@@ -496,13 +337,12 @@ public class CompileOptions {
      * <p>
      * The classpath can contain file and directory paths, ZIP, or JAR files.
      *
-     * @param paths one or more path
+     * @param paths one or more paths
      * @return this operation instance
-     * @see #classpath(Collection)
      */
     public CompileOptions classpath(File... paths) {
         if (ObjectTools.isNotEmpty(paths)) {
-            return classpath(List.of(paths));
+            classpath_.addAll(List.of(paths));
         }
         return this;
     }
@@ -512,14 +352,11 @@ public class CompileOptions {
      * <p>
      * The classpath can contain file and directory paths, ZIP, or JAR files.
      *
-     * @param paths one or more path
+     * @param paths one or more paths
      * @return this operation instance
-     * @see #classpathPaths(Collection)
      */
     public CompileOptions classpath(Path... paths) {
-        if (ObjectTools.isNotEmpty(paths)) {
-            return classpathPaths(List.of(paths));
-        }
+        classpath_.addAll(CollectionTools.combinePathsToFiles(paths));
         return this;
     }
 
@@ -530,12 +367,10 @@ public class CompileOptions {
      *
      * @param paths the search paths
      * @return this operation instance
-     * @see #classpath(File...)
      */
-    public CompileOptions classpath(Collection<File> paths) {
-        if (ObjectTools.isNotEmpty(paths)) {
-            classpath_.addAll(paths);
-        }
+    @SafeVarargs
+    public final CompileOptions classpath(Collection<File>... paths) {
+        classpath_.addAll(CollectionTools.combine(paths));
         return this;
     }
 
@@ -551,43 +386,26 @@ public class CompileOptions {
 
     /**
      * Search for class files in the specified paths.
-     * <p>
-     * The classpath can contain file and directory paths, ZIP, or JAR files.
      *
-     * @param paths one pr more paths
+     * @param paths the search paths (as {@link Path})
      * @return this operation instance
-     * @see #classpath(Path...)
      */
-    public CompileOptions classpathPaths(Collection<Path> paths) {
-        if (ObjectTools.isNotEmpty(paths)) {
-            return classpath(paths.stream().map(Path::toFile).toList());
-        }
+    @SafeVarargs
+    public final CompileOptions classpathPaths(Collection<Path>... paths) {
+        classpath_.addAll(CollectionTools.combinePathsToFiles(paths));
         return this;
     }
 
     /**
      * Search for class files in the specified paths.
-     * <p>
-     * The classpath can contain file and directory paths, ZIP, or JAR files.
      *
-     * @param paths one pr more paths
+     * @param paths the search paths (as {@link String})
      * @return this operation instance
-     * @see #classpath(String...)
      */
-    public CompileOptions classpathStrings(Collection<String> paths) {
-        if (ObjectTools.isNotEmpty(paths)) {
-            return classpath(paths.stream().map(File::new).toList());
-        }
+    @SafeVarargs
+    public final CompileOptions classpathStrings(Collection<String>... paths) {
+        classpath_.addAll(CollectionTools.combineStringsToFiles(paths));
         return this;
-    }
-
-    /**
-     * Retrieves the string to evaluate as a Kotlin script.
-     *
-     * @return the expression
-     */
-    public String expression() {
-        return expression_;
     }
 
     /**
@@ -602,7 +420,16 @@ public class CompileOptions {
     }
 
     /**
-     * Indicates whether the {@link #jdkRelease(String) jdkRelease} was set.
+     * Retrieves the string to evaluate as a Kotlin script.
+     *
+     * @return the expression
+     */
+    public String expression() {
+        return expression_;
+    }
+
+    /**
+     * Indicates whether {@link #jdkRelease(String)} was set.
      *
      * @return {@code true} if the release was set; or {@code false} otherwise
      */
@@ -611,7 +438,7 @@ public class CompileOptions {
     }
 
     /**
-     * Indicates whether the {@link #jvmTarget(String) jvmTarget)} was set.
+     * Indicates whether {@link #jvmTarget(String)} was set.
      *
      * @return {@code true} if the target was set; or {@code false} otherwise
      */
@@ -620,8 +447,7 @@ public class CompileOptions {
     }
 
     /**
-     * Include the Kotlin runtime in the resulting JAR file. Makes the resulting archive runnable on any Java-enabled
-     * environment.
+     * Include the Kotlin runtime in the resulting JAR file.
      *
      * @param includeRuntime {@code true} or {@code false}
      * @return this operation instance
@@ -632,7 +458,7 @@ public class CompileOptions {
     }
 
     /**
-     * Indicates whether the {@link #includeRuntime(boolean)} was set.
+     * Indicates whether {@link #includeRuntime(boolean)} was set.
      *
      * @return {@code true} or {@code false}
      */
@@ -650,7 +476,7 @@ public class CompileOptions {
     }
 
     /**
-     * Indicates whether {@link #noJdk(boolean) noJdk} was set.
+     * Indicates whether {@link #noJdk(boolean)} was set.
      *
      * @return {@code true} or {@code false}
      */
@@ -659,7 +485,7 @@ public class CompileOptions {
     }
 
     /**
-     * Indicates whether {@link #noReflect(boolean) noRflect} was set.
+     * Indicates whether {@link #noReflect(boolean)} was set.
      *
      * @return {@code true} or {@code false}
      */
@@ -668,7 +494,7 @@ public class CompileOptions {
     }
 
     /**
-     * Indicates whether {@link #noStdLib(boolean) noStdLib} +was set.
+     * Indicates whether {@link #noStdLib(boolean)} was set.
      *
      * @return {@code true} or {@code false}
      */
@@ -677,7 +503,7 @@ public class CompileOptions {
     }
 
     /**
-     * Indicates whether {@link #noWarn(boolean) noWarn} was set.
+     * Indicates whether {@link #noWarn(boolean)} was set.
      *
      * @return {@code true} or {@code false}
      */
@@ -686,7 +512,7 @@ public class CompileOptions {
     }
 
     /**
-     * Indicates whether {@link #progressive(boolean) progressive} was set.
+     * Indicates whether {@link #progressive(boolean)} was set.
      *
      * @return {@code true} or {@code false}
      */
@@ -749,8 +575,9 @@ public class CompileOptions {
      * @param jdkHome the JDK home path
      * @return this operation instance
      */
-    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
+    @SuppressFBWarnings(value = "PATH_TRAVERSAL_IN", justification = "caller controls path")
     public CompileOptions jdkHome(String jdkHome) {
+        Objects.requireNonNull(jdkHome, "JDK home path cannot be null");
         return jdkHome(new File(jdkHome));
     }
 
@@ -761,25 +588,17 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions jdkHome(Path jdkHome) {
+        Objects.requireNonNull(jdkHome, "JDK home path cannot be null");
         return jdkHome(jdkHome.toFile());
     }
 
     /**
      * Retrieves the custom JDK home directory.
      *
-     * @return the JDK home path.
+     * @return the JDK home path
      */
     public File jdkHome() {
         return jdkHome_;
-    }
-
-    /**
-     * Return the specified JDK API version.
-     *
-     * @return the API version
-     */
-    public String jdkRelease() {
-        return jdkRelease_;
     }
 
     /**
@@ -800,9 +619,6 @@ public class CompileOptions {
 
     /**
      * Compile against the specified JDK API version.
-     * <p>
-     * Limit the API of the JDK in the classpath to the specified Java version. Automatically sets
-     * {@link #jvmTarget(String) JVM target} version.
      *
      * @param version the target version
      * @return this operation instance
@@ -813,14 +629,23 @@ public class CompileOptions {
     }
 
     /**
-     * Emit JVM default methods for interface declarations with bodies. The default is {@link JvmDefault#ENABLE}.
+     * Return the specified JDK API version.
+     *
+     * @return the API version
+     */
+    public String jdkRelease() {
+        return jdkRelease_;
+    }
+
+    /**
+     * Emit JVM default methods for interface declarations with bodies.
      *
      * @param jvmDefault the default methods option
      * @return this operation instance
      * @since 1.1.0
      */
     public CompileOptions jvmDefault(JvmDefault jvmDefault) {
-        this.jvmDefault_ = jvmDefault;
+        jvmDefault_ = jvmDefault;
         return this;
     }
 
@@ -836,17 +661,6 @@ public class CompileOptions {
 
     /**
      * Specify the target version of the generated JVM bytecode.
-     *
-     * @param target the target version
-     * @return this operation instance
-     * @see #jvmTarget(String)
-     */
-    public CompileOptions jvmTarget(int target) {
-        return jvmTarget(String.valueOf(target));
-    }
-
-    /**
-     * Specify the target version of the generated JVM bytecode.
      * <p>
      * Possible values are 1.8, 9, 10, ..., 23. The default value is 1.8.
      *
@@ -856,6 +670,17 @@ public class CompileOptions {
     public CompileOptions jvmTarget(String target) {
         jvmTarget_ = target;
         return this;
+    }
+
+    /**
+     * Specify the target version of the generated JVM bytecode.
+     *
+     * @param target the target version
+     * @return this operation instance
+     * @see #jvmTarget(String)
+     */
+    public CompileOptions jvmTarget(int target) {
+        return jvmTarget(String.valueOf(target));
     }
 
     /**
@@ -879,21 +704,13 @@ public class CompileOptions {
     }
 
     /**
-     * Retrieves the custom path of the Kotlin compiler.
-     *
-     * @return the Kotlin home path
-     */
-    public File kotlinHome() {
-        return kotlinHome_;
-    }
-
-    /**
      * Specify a custom path to the Kotlin compiler used for the discovery of runtime libraries.
      *
      * @param path the Kotlin home path
      * @return this operation instance
      */
     public CompileOptions kotlinHome(Path path) {
+        Objects.requireNonNull(path, "Kotlin home path cannot be null");
         return kotlinHome(path.toFile());
     }
 
@@ -903,9 +720,19 @@ public class CompileOptions {
      * @param path the Kotlin home path
      * @return this operation instance
      */
-    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
+    @SuppressFBWarnings(value = "PATH_TRAVERSAL_IN", justification = "caller controls path")
     public CompileOptions kotlinHome(String path) {
+        Objects.requireNonNull(path, "Kotlin home path cannot be null");
         return kotlinHome(new File(path));
+    }
+
+    /**
+     * Retrieves the custom path of the Kotlin compiler.
+     *
+     * @return the Kotlin home path
+     */
+    public File kotlinHome() {
+        return kotlinHome_;
     }
 
     /**
@@ -1001,8 +828,20 @@ public class CompileOptions {
      */
     public CompileOptions optIn(String... annotations) {
         if (ObjectTools.isNotEmpty(annotations)) {
-            return optIn(List.of(annotations));
+            optIn_.addAll(List.of(annotations));
         }
+        return this;
+    }
+
+    /**
+     * Enable usages of API that requires opt-in with a requirement annotation with the given fully qualified name.
+     *
+     * @param annotations the annotation names
+     * @return this operation instance
+     */
+    @SafeVarargs
+    public final CompileOptions optIn(Collection<String>... annotations) {
+        optIn_.addAll(CollectionTools.combine(annotations));
         return this;
     }
 
@@ -1017,19 +856,6 @@ public class CompileOptions {
     }
 
     /**
-     * Enable usages of API that requires opt-in with a requirement annotation with the given fully qualified name.
-     *
-     * @param annotations the annotation names
-     * @return this operation instance
-     */
-    public CompileOptions optIn(Collection<String> annotations) {
-        if (ObjectTools.isNotEmpty(annotations)) {
-            optIn_.addAll(annotations);
-        }
-        return this;
-    }
-
-    /**
      * Specify additional compiler options.
      *
      * @param options one or more compiler options
@@ -1037,8 +863,20 @@ public class CompileOptions {
      */
     public CompileOptions options(String... options) {
         if (ObjectTools.isNotEmpty(options)) {
-            return options(List.of(options));
+            options_.addAll(List.of(options));
         }
+        return this;
+    }
+
+    /**
+     * Specify additional compiler options.
+     *
+     * @param options the compiler options
+     * @return this operation instance
+     */
+    @SafeVarargs
+    public final CompileOptions options(Collection<String>... options) {
+        options_.addAll(CollectionTools.combine(options));
         return this;
     }
 
@@ -1050,19 +888,6 @@ public class CompileOptions {
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public List<String> options() {
         return options_;
-    }
-
-    /**
-     * Specify additional compiler options.
-     *
-     * @param options the compiler options
-     * @return this operation instance
-     */
-    public CompileOptions options(Collection<String> options) {
-        if (ObjectTools.isNotEmpty(options)) {
-            options_.addAll(options);
-        }
-        return this;
     }
 
     /**
@@ -1079,15 +904,6 @@ public class CompileOptions {
     }
 
     /**
-     * Retrieves the location to place generated class files into.
-     *
-     * @return the location path.
-     */
-    public File path() {
-        return path_;
-    }
-
-    /**
      * Place the generated class files into the specified location.
      * <p>
      * The location can be a directory, a ZIP, or a JAR file.
@@ -1096,6 +912,7 @@ public class CompileOptions {
      * @return this operation instance
      */
     public CompileOptions path(Path path) {
+        Objects.requireNonNull(path, "Path cannot be null");
         return path(path.toFile());
     }
 
@@ -1107,9 +924,19 @@ public class CompileOptions {
      * @param path the location path
      * @return this operation instance
      */
-    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
+    @SuppressFBWarnings(value = "PATH_TRAVERSAL_IN", justification = "caller controls path")
     public CompileOptions path(String path) {
+        Objects.requireNonNull(path, "Path cannot be null");
         return path(new File(path));
+    }
+
+    /**
+     * Retrieves the location to place generated class files into.
+     *
+     * @return the location path
+     */
+    public File path() {
+        return path_;
     }
 
     /**
@@ -1130,7 +957,7 @@ public class CompileOptions {
     /**
      * Retrieves the plugin options.
      *
-     * @return the plugin options.
+     * @return the plugin options
      */
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public List<String> plugin() {
@@ -1138,7 +965,7 @@ public class CompileOptions {
     }
 
     /**
-     * Allow using declarations only from the specified version of Kotlin bundled libraries.
+     * Enable progressive compilation mode.
      *
      * @param progressive {@code true} or {@code false}
      * @return this operation instance
@@ -1158,19 +985,9 @@ public class CompileOptions {
      */
     public CompileOptions scriptTemplates(String... classNames) {
         if (ObjectTools.isNotEmpty(classNames)) {
-            return scriptTemplates(List.of(classNames));
+            scriptTemplates_.addAll(List.of(classNames));
         }
         return this;
-    }
-
-    /**
-     * Retrieves the script templates.
-     *
-     * @return the script templates.
-     */
-    @SuppressFBWarnings("EI_EXPOSE_REP")
-    public List<String> scriptTemplates() {
-        return scriptTemplates_;
     }
 
     /**
@@ -1181,11 +998,20 @@ public class CompileOptions {
      * @param classNames the class names
      * @return this operation instance
      */
-    public CompileOptions scriptTemplates(Collection<String> classNames) {
-        if (ObjectTools.isNotEmpty(classNames)) {
-            scriptTemplates_.addAll(classNames);
-        }
+    @SafeVarargs
+    public final CompileOptions scriptTemplates(Collection<String>... classNames) {
+        scriptTemplates_.addAll(CollectionTools.combine(classNames));
         return this;
+    }
+
+    /**
+     * Retrieves the script templates.
+     *
+     * @return the script templates
+     */
+    @SuppressFBWarnings("EI_EXPOSE_REP")
+    public List<String> scriptTemplates() {
+        return scriptTemplates_;
     }
 
     /**
@@ -1219,5 +1045,125 @@ public class CompileOptions {
     public CompileOptions wExtra(boolean wExtra) {
         wExtra_ = wExtra;
         return this;
+    }
+
+    /**
+     * Reads and inlines tokens from each arg file.
+     * <p>
+     * {@link AbstractToolProviderOperation.CommandLineTokenizer} wraps the
+     * {@link java.io.BufferedReader} passed to it and does not hold additional
+     * closeable resources of its own, so closing the reader is sufficient.
+     */
+    private void addArgFileArgs(List<String> args) {
+        for (var f : argFile_) {
+            if (f.exists()) {
+                try (var reader = Files.newBufferedReader(f.toPath(), Charset.defaultCharset())) {
+                    var tokenizer = new AbstractToolProviderOperation.CommandLineTokenizer(reader); // NOPMD
+                    String token;
+                    while ((token = tokenizer.nextToken()) != null) {
+                        args.add(token);
+                    }
+                } catch (IOException e) {
+                    if (LOGGER.isLoggable(Level.WARNING)) {
+                        LOGGER.log(Level.WARNING, "Could not read: " + f.getAbsolutePath(), e);
+                    }
+                }
+            } else if (LOGGER.isLoggable(Level.WARNING)) {
+                LOGGER.warning("File not found: " + f.getAbsolutePath());
+            }
+        }
+    }
+
+    /**
+     * Adds JVM-targeting flags.
+     */
+    private void addJvmArgs(List<String> args) {
+        addFlag(args, "-expression", expression_);
+        addFlag(args, "-java-parameters", javaParameters_);
+        addFlag(args, "-jvm-target", jvmTarget_);
+        addFlag(args, "-include-runtime", includeRuntime_);
+
+        if (jdkHome_ != null) {
+            args.add("-jdk-home");
+            args.add(jdkHome_.getAbsolutePath());
+        }
+
+        if (TextTools.isNotBlank(jdkRelease_)) {
+            args.add("-Xjdk-release=" + jdkRelease_);
+        }
+
+        if (jvmDefault_ != null) {
+            args.add("-jvm-default=" + jvmDefault_.getValue());
+        }
+    }
+
+    /**
+     * Adds library/classpath-related flags.
+     */
+    private void addLibraryArgs(List<String> args) {
+        if (kotlinHome_ != null) {
+            args.add("-kotlin-home");
+            args.add(kotlinHome_.getAbsolutePath());
+        }
+
+        addFlag(args, "-module-name", moduleName_);
+        addFlag(args, "-no-jdk", noJdk_);
+        addFlag(args, "-no-reflect", noReflect_);
+        addFlag(args, "-no-stdlib", noStdLib_);
+    }
+
+    /**
+     * Adds advanced ({@code -X}) options.
+     * <p>
+     * Options that do not already start with {@code -X} are silently prefixed.
+     * Uses a plain loop instead of a stream to avoid lambda and iterator
+     * allocation overhead on what is typically a small list.
+     */
+    private void addMiscArgs(List<String> args) {
+        for (var opt : advancedOptions_) {
+            args.add(opt.startsWith("-X") ? opt : "-X" + opt);
+        }
+    }
+
+    /**
+     * Adds output path and plugin flags.
+     * <p>
+     * Plain loops replace stream pipelines throughout to avoid lambda and
+     * iterator allocation on typically small lists. Empty-list guards keep
+     * the behaviour consistent with the {@code options_} pattern already
+     * present in the original code.
+     */
+    private void addOutputArgs(List<String> args) {
+        if (path_ != null) {
+            args.add("-d");
+            args.add(path_.getAbsolutePath());
+        }
+
+        if (!optIn_.isEmpty()) {
+            for (var o : optIn_) {
+                if (TextTools.isNotBlank(o)) {
+                    args.add("-opt-in");
+                    args.add(o);
+                }
+            }
+        }
+
+        if (!options_.isEmpty()) {
+            args.addAll(options_);
+        }
+
+        if (!plugin_.isEmpty()) {
+            for (var p : plugin_) {
+                if (TextTools.isNotBlank(p)) {
+                    args.add("-P");
+                    args.add("plugin:" + p);
+                }
+            }
+        }
+
+        if (!scriptTemplates_.isEmpty()) {
+            args.add("-script-templates");
+            args.add(String.join(",", scriptTemplates_));
+        }
     }
 }
