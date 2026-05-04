@@ -28,7 +28,7 @@ public class ExampleBuild extends Project {
 
         repositories = List.of(MAVEN_CENTRAL, CENTRAL_SNAPSHOTS, RIFE2_RELEASES, RIFE2_SNAPSHOTS);
 
-        var kotlin = "2.3.20";
+        var kotlin = "2.3.21";
         if (System.getenv("KOTLIN_VERSION") != null) {
             kotlin = System.getenv("KOTLIN_VERSION");
         }
