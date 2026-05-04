@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class JvmOptionsTests {
@@ -53,6 +54,7 @@ class JvmOptionsTests {
     }
 
     @Test
+    @SuppressWarnings("deprecation")
     void jvmOptionsWithNativeAccessAllow() {
         var jvmOptions = new JvmOptions().illegalNativeAccess(JvmOptions.NativeAccess.ALLOW);
         jvmOptions.addAll(List.of("--option1", "--option2"));
@@ -80,14 +82,20 @@ class JvmOptionsTests {
 
         @Test
         void enableNativeAccessWithEmptyCollection() {
-            var options = new JvmOptions().enableNativeAccess(Set.of());
-            assertThat(options).isEmpty();
+            assertThatThrownBy(() -> new JvmOptions().enableNativeAccess(Set.of()))
+                    .isInstanceOf(IllegalArgumentException.class);
         }
 
         @Test
         void enableNativeAccessWithEmptyVarargs() {
-            var options = new JvmOptions().enableNativeAccess();
-            assertThat(options).isEmpty();
+            assertThatThrownBy(() -> new JvmOptions().enableNativeAccess("foo", "", "bar"))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void enableNativeAccessWithList() {
+            var options = new JvmOptions().enableNativeAccess(List.of("module1", "module2"));
+            assertThat(options).containsExactly("--enable-native-access=module1,module2");
         }
 
         @Test
@@ -120,6 +128,7 @@ class JvmOptionsTests {
     class FluentApiTests {
 
         @Test
+        @SuppressWarnings("deprecation")
         void shouldAllowMethodChaining() {
             var options = new JvmOptions()
                     .enableNativeAccess("my.module", JvmOptions.ALL_UNNAMED)
@@ -132,6 +141,7 @@ class JvmOptionsTests {
         }
 
         @Test
+        @SuppressWarnings("deprecation")
         void shouldReturnTheSameInstance() {
             var options = new JvmOptions();
 
@@ -149,6 +159,7 @@ class JvmOptionsTests {
 
     @Nested
     @DisplayName("Illegal Native Access Tests")
+    @SuppressWarnings("deprecation")
     class IllegalNativeAccessTests {
 
         @Test

@@ -16,6 +16,7 @@
 
 package rife.bld.extension.kotlin;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import rife.bld.extension.tools.CollectionTools;
 import rife.bld.extension.tools.ObjectTools;
@@ -24,7 +25,7 @@ import rife.bld.operations.AbstractToolProviderOperation;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -40,9 +41,15 @@ import java.util.logging.Logger;
  * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
  * @since 1.0
  */
+@SuppressFBWarnings(
+        value = "EI_EXPOSE_REP",
+        justification = "Builder pattern intentionally exposes mutable collections"
+)
 public class CompileOptions {
 
-    private static final Logger LOGGER = Logger.getLogger(CompileOptions.class.getName());
+    private static final String ARG_FILE_NOT_VALID = "'argFile' and its elements must not be null or empty";
+    private static final String CLASSPATH_NOT_VALID = "'classpath' and its elements must not be null or empty";
+    private static final Logger logger = Logger.getLogger(CompileOptions.class.getName());
 
     private final List<String> advancedOptions_ = new ArrayList<>();
     private final List<File> argFile_ = new ArrayList<>();
@@ -135,10 +142,9 @@ public class CompileOptions {
      * @param options one or more advanced options
      * @return this operation instance
      */
-    public CompileOptions advancedOptions(String... options) {
-        if (ObjectTools.isNotEmpty(options)) {
-            advancedOptions_.addAll(List.of(options));
-        }
+    public CompileOptions advancedOptions(@NonNull String... options) {
+        ObjectTools.requireAllNotEmpty(options, "'advancedOptions' and its elements must not be null or empty");
+        advancedOptions_.addAll(List.of(options));
         return this;
     }
 
@@ -148,9 +154,9 @@ public class CompileOptions {
      * @param options the compiler options
      * @return this operation instance
      */
-    @SafeVarargs
-    public final CompileOptions advancedOptions(Collection<String>... options) {
-        advancedOptions_.addAll(CollectionTools.combine(options));
+    public final CompileOptions advancedOptions(@NonNull Collection<String> options) {
+        ObjectTools.requireAllNotEmpty(options, "'advancedOptions' and its elements must not be null or empty");
+        advancedOptions_.addAll(options);
         return this;
     }
 
@@ -159,7 +165,6 @@ public class CompileOptions {
      *
      * @return the advanced compiler options
      */
-    @SuppressFBWarnings("EI_EXPOSE_REP")
     public List<String> advancedOptions() {
         return advancedOptions_;
     }
@@ -170,7 +175,7 @@ public class CompileOptions {
      * @param version the API version
      * @return this operation instance
      */
-    public CompileOptions apiVersion(String version) {
+    public CompileOptions apiVersion(@NonNull String version) {
         apiVersion_ = version;
         return this;
     }
@@ -212,7 +217,8 @@ public class CompileOptions {
      * @param files one or more files
      * @return this operation instance
      */
-    public CompileOptions argFile(String... files) {
+    public CompileOptions argFile(@NonNull String... files) {
+        ObjectTools.requireAllNotEmpty(files, ARG_FILE_NOT_VALID);
         argFile_.addAll(CollectionTools.combineStringsToFiles(files));
         return this;
     }
@@ -223,10 +229,9 @@ public class CompileOptions {
      * @param files one or more files
      * @return this operation instance
      */
-    public CompileOptions argFile(File... files) {
-        if (ObjectTools.isNotEmpty(files)) {
-            argFile_.addAll(List.of(files));
-        }
+    public CompileOptions argFile(@NonNull File... files) {
+        ObjectTools.requireAllNotEmpty(files, ARG_FILE_NOT_VALID);
+        argFile_.addAll(List.of(files));
         return this;
     }
 
@@ -236,7 +241,8 @@ public class CompileOptions {
      * @param files one or more files
      * @return this operation instance
      */
-    public CompileOptions argFile(Path... files) {
+    public CompileOptions argFile(@NonNull Path... files) {
+        ObjectTools.requireAllNotEmpty(files, ARG_FILE_NOT_VALID);
         argFile_.addAll(CollectionTools.combinePathsToFiles(files));
         return this;
     }
@@ -247,9 +253,9 @@ public class CompileOptions {
      * @param files the compiler options files
      * @return this operation instance
      */
-    @SafeVarargs
-    public final CompileOptions argFile(Collection<File>... files) {
-        argFile_.addAll(CollectionTools.combine(files));
+    public final CompileOptions argFile(@NonNull Collection<File> files) {
+        ObjectTools.requireAllNotEmpty(files, ARG_FILE_NOT_VALID);
+        argFile_.addAll(files);
         return this;
     }
 
@@ -258,7 +264,6 @@ public class CompileOptions {
      *
      * @return the compiler options files
      */
-    @SuppressFBWarnings("EI_EXPOSE_REP")
     public List<File> argFile() {
         return argFile_;
     }
@@ -269,8 +274,8 @@ public class CompileOptions {
      * @param files the compiler options files (as {@link Path})
      * @return this operation instance
      */
-    @SafeVarargs
-    public final CompileOptions argFilePaths(Collection<Path>... files) {
+    public final CompileOptions argFilePaths(@NonNull Collection<Path> files) {
+        ObjectTools.requireAllNotEmpty(files, "'argFilePaths' and its elements must not be null or empty");
         argFile_.addAll(CollectionTools.combinePathsToFiles(files));
         return this;
     }
@@ -281,8 +286,8 @@ public class CompileOptions {
      * @param files the compiler options files (as {@link String})
      * @return this operation instance
      */
-    @SafeVarargs
-    public final CompileOptions argFileStrings(Collection<String>... files) {
+    public final CompileOptions argFileStrings(@NonNull Collection<String> files) {
+        ObjectTools.requireAllNotEmpty(files, "'argFileStrings' and its elements must not be null or empty");
         argFile_.addAll(CollectionTools.combineStringsToFiles(files));
         return this;
     }
@@ -327,7 +332,8 @@ public class CompileOptions {
      * @param paths one or more paths
      * @return this operation instance
      */
-    public CompileOptions classpath(String... paths) {
+    public CompileOptions classpath(@NonNull String... paths) {
+        ObjectTools.requireAllNotEmpty(paths, CLASSPATH_NOT_VALID);
         classpath_.addAll(CollectionTools.combineStringsToFiles(paths));
         return this;
     }
@@ -340,10 +346,9 @@ public class CompileOptions {
      * @param paths one or more paths
      * @return this operation instance
      */
-    public CompileOptions classpath(File... paths) {
-        if (ObjectTools.isNotEmpty(paths)) {
-            classpath_.addAll(List.of(paths));
-        }
+    public CompileOptions classpath(@NonNull File... paths) {
+        ObjectTools.requireAllNotEmpty(paths, CLASSPATH_NOT_VALID);
+        classpath_.addAll(List.of(paths));
         return this;
     }
 
@@ -355,7 +360,8 @@ public class CompileOptions {
      * @param paths one or more paths
      * @return this operation instance
      */
-    public CompileOptions classpath(Path... paths) {
+    public CompileOptions classpath(@NonNull Path... paths) {
+        ObjectTools.requireAllNotEmpty(paths, CLASSPATH_NOT_VALID);
         classpath_.addAll(CollectionTools.combinePathsToFiles(paths));
         return this;
     }
@@ -368,9 +374,9 @@ public class CompileOptions {
      * @param paths the search paths
      * @return this operation instance
      */
-    @SafeVarargs
-    public final CompileOptions classpath(Collection<File>... paths) {
-        classpath_.addAll(CollectionTools.combine(paths));
+    public final CompileOptions classpath(@NonNull Collection<File> paths) {
+        ObjectTools.requireAllNotEmpty(paths, CLASSPATH_NOT_VALID);
+        classpath_.addAll(paths);
         return this;
     }
 
@@ -379,7 +385,6 @@ public class CompileOptions {
      *
      * @return the class files classpath
      */
-    @SuppressFBWarnings("EI_EXPOSE_REP")
     public List<File> classpath() {
         return classpath_;
     }
@@ -390,8 +395,8 @@ public class CompileOptions {
      * @param paths the search paths (as {@link Path})
      * @return this operation instance
      */
-    @SafeVarargs
-    public final CompileOptions classpathPaths(Collection<Path>... paths) {
+    public final CompileOptions classpathPaths(@NonNull Collection<Path> paths) {
+        ObjectTools.requireAllNotEmpty(paths, "'classpathPaths' and its elements must not be null or empty");
         classpath_.addAll(CollectionTools.combinePathsToFiles(paths));
         return this;
     }
@@ -402,8 +407,8 @@ public class CompileOptions {
      * @param paths the search paths (as {@link String})
      * @return this operation instance
      */
-    @SafeVarargs
-    public final CompileOptions classpathStrings(Collection<String>... paths) {
+    public final CompileOptions classpathStrings(@NonNull Collection<String> paths) {
+        ObjectTools.requireAllNotEmpty(paths, "'classpathStrings' and its elements must not be null or empty");
         classpath_.addAll(CollectionTools.combineStringsToFiles(paths));
         return this;
     }
@@ -414,7 +419,7 @@ public class CompileOptions {
      * @param expression the expression
      * @return this operation instance
      */
-    public CompileOptions expression(String expression) {
+    public CompileOptions expression(@NonNull String expression) {
         expression_ = expression;
         return this;
     }
@@ -564,7 +569,8 @@ public class CompileOptions {
      * @param jdkHome the JDK home path
      * @return this operation instance
      */
-    public CompileOptions jdkHome(File jdkHome) {
+    public CompileOptions jdkHome(@NonNull File jdkHome) {
+        Objects.requireNonNull(jdkHome, "'jdkHome` must not be null");
         jdkHome_ = jdkHome;
         return this;
     }
@@ -576,8 +582,8 @@ public class CompileOptions {
      * @return this operation instance
      */
     @SuppressFBWarnings(value = "PATH_TRAVERSAL_IN", justification = "caller controls path")
-    public CompileOptions jdkHome(String jdkHome) {
-        Objects.requireNonNull(jdkHome, "JDK home path cannot be null");
+    public CompileOptions jdkHome(@NonNull String jdkHome) {
+        Objects.requireNonNull(jdkHome, "'jdkHome` must not be null");
         return jdkHome(new File(jdkHome));
     }
 
@@ -587,8 +593,8 @@ public class CompileOptions {
      * @param jdkHome the JDK home path
      * @return this operation instance
      */
-    public CompileOptions jdkHome(Path jdkHome) {
-        Objects.requireNonNull(jdkHome, "JDK home path cannot be null");
+    public CompileOptions jdkHome(@NonNull Path jdkHome) {
+        Objects.requireNonNull(jdkHome, "'jdkHome` must not be null");
         return jdkHome(jdkHome.toFile());
     }
 
@@ -612,7 +618,8 @@ public class CompileOptions {
      * @param version the target version
      * @return this operation instance
      */
-    public CompileOptions jdkRelease(String version) {
+    public CompileOptions jdkRelease(@NonNull String version) {
+        ObjectTools.requireNotEmpty(version, "'jdkRelease' must not be null or empty");
         jdkRelease_ = version;
         return this;
     }
@@ -645,6 +652,7 @@ public class CompileOptions {
      * @since 1.1.0
      */
     public CompileOptions jvmDefault(JvmDefault jvmDefault) {
+        Objects.requireNonNull(jvmDefault, "'jvmDefault' must not be null");
         jvmDefault_ = jvmDefault;
         return this;
     }
@@ -667,7 +675,8 @@ public class CompileOptions {
      * @param target the target version
      * @return this operation instance
      */
-    public CompileOptions jvmTarget(String target) {
+    public CompileOptions jvmTarget(@NonNull String target) {
+        ObjectTools.requireNotEmpty(target, "'jvmTarget' must not be null or empty");
         jvmTarget_ = target;
         return this;
     }
@@ -698,7 +707,8 @@ public class CompileOptions {
      * @param path the Kotlin home path
      * @return this operation instance
      */
-    public CompileOptions kotlinHome(File path) {
+    public CompileOptions kotlinHome(@NonNull File path) {
+        Objects.requireNonNull(path, "`kotlinHome` must not be null");
         kotlinHome_ = path;
         return this;
     }
@@ -709,8 +719,8 @@ public class CompileOptions {
      * @param path the Kotlin home path
      * @return this operation instance
      */
-    public CompileOptions kotlinHome(Path path) {
-        Objects.requireNonNull(path, "Kotlin home path cannot be null");
+    public CompileOptions kotlinHome(@NonNull Path path) {
+        Objects.requireNonNull(path, "`kotlinHome` must not be null");
         return kotlinHome(path.toFile());
     }
 
@@ -721,8 +731,8 @@ public class CompileOptions {
      * @return this operation instance
      */
     @SuppressFBWarnings(value = "PATH_TRAVERSAL_IN", justification = "caller controls path")
-    public CompileOptions kotlinHome(String path) {
-        Objects.requireNonNull(path, "Kotlin home path cannot be null");
+    public CompileOptions kotlinHome(@NonNull String path) {
+        Objects.requireNonNull(path, "`kotlinHome` must not be null");
         return kotlinHome(new File(path));
     }
 
@@ -741,7 +751,8 @@ public class CompileOptions {
      * @param version the language version
      * @return this operation instance
      */
-    public CompileOptions languageVersion(String version) {
+    public CompileOptions languageVersion(@NonNull String version) {
+        ObjectTools.requireNotEmpty(version, "'languageVersion' must not be null or empty");
         languageVersion_ = version;
         return this;
     }
@@ -761,7 +772,8 @@ public class CompileOptions {
      * @param name the module name
      * @return this operation instance
      */
-    public CompileOptions moduleName(String name) {
+    public CompileOptions moduleName(@NonNull String name) {
+        ObjectTools.requireNotEmpty(name, "'moduleName' must not be null or empty");
         moduleName_ = name;
         return this;
     }
@@ -826,10 +838,9 @@ public class CompileOptions {
      * @param annotations one or more annotation names
      * @return this operation instance
      */
-    public CompileOptions optIn(String... annotations) {
-        if (ObjectTools.isNotEmpty(annotations)) {
-            optIn_.addAll(List.of(annotations));
-        }
+    public CompileOptions optIn(@NonNull String... annotations) {
+        ObjectTools.requireAllNotEmpty(annotations, "'optIn' and its elements must not be null or empty");
+        optIn_.addAll(List.of(annotations));
         return this;
     }
 
@@ -839,9 +850,9 @@ public class CompileOptions {
      * @param annotations the annotation names
      * @return this operation instance
      */
-    @SafeVarargs
-    public final CompileOptions optIn(Collection<String>... annotations) {
-        optIn_.addAll(CollectionTools.combine(annotations));
+    public final CompileOptions optIn(@NonNull Collection<String> annotations) {
+        ObjectTools.requireAllNotEmpty(annotations, "'optIn' and its elements must not be null or empty");
+        optIn_.addAll(annotations);
         return this;
     }
 
@@ -850,7 +861,6 @@ public class CompileOptions {
      *
      * @return the fully qualified names
      */
-    @SuppressFBWarnings("EI_EXPOSE_REP")
     public List<String> optIn() {
         return optIn_;
     }
@@ -861,10 +871,9 @@ public class CompileOptions {
      * @param options one or more compiler options
      * @return this operation instance
      */
-    public CompileOptions options(String... options) {
-        if (ObjectTools.isNotEmpty(options)) {
-            options_.addAll(List.of(options));
-        }
+    public CompileOptions options(@NonNull String... options) {
+        ObjectTools.requireAllNotEmpty(options, "'options' and its elements must not be null or empty");
+        options_.addAll(List.of(options));
         return this;
     }
 
@@ -874,9 +883,9 @@ public class CompileOptions {
      * @param options the compiler options
      * @return this operation instance
      */
-    @SafeVarargs
-    public final CompileOptions options(Collection<String>... options) {
-        options_.addAll(CollectionTools.combine(options));
+    public final CompileOptions options(@NonNull Collection<String> options) {
+        ObjectTools.requireAllNotEmpty(options, "'options' and its elements must not be null or empty");
+        options_.addAll(options);
         return this;
     }
 
@@ -885,7 +894,6 @@ public class CompileOptions {
      *
      * @return the compiler options
      */
-    @SuppressFBWarnings("EI_EXPOSE_REP")
     public List<String> options() {
         return options_;
     }
@@ -898,7 +906,8 @@ public class CompileOptions {
      * @param path the location path
      * @return this operation instance
      */
-    public CompileOptions path(File path) {
+    public CompileOptions path(@NonNull File path) {
+        Objects.requireNonNull(path, "'path' must not be null");
         path_ = path;
         return this;
     }
@@ -911,8 +920,8 @@ public class CompileOptions {
      * @param path the location path
      * @return this operation instance
      */
-    public CompileOptions path(Path path) {
-        Objects.requireNonNull(path, "Path cannot be null");
+    public CompileOptions path(@NonNull Path path) {
+        Objects.requireNonNull(path, "'path' must not be null");
         return path(path.toFile());
     }
 
@@ -925,8 +934,8 @@ public class CompileOptions {
      * @return this operation instance
      */
     @SuppressFBWarnings(value = "PATH_TRAVERSAL_IN", justification = "caller controls path")
-    public CompileOptions path(String path) {
-        Objects.requireNonNull(path, "Path cannot be null");
+    public CompileOptions path(@NonNull String path) {
+        Objects.requireNonNull(path, "'path' must not be null");
         return path(new File(path));
     }
 
@@ -947,7 +956,7 @@ public class CompileOptions {
      * @param value      the plugin option value
      * @return this operation instance
      */
-    public CompileOptions plugin(String id, String optionName, String value) {
+    public CompileOptions plugin(@NonNull String id, String optionName, String value) {
         if (TextTools.isNotBlank(id, optionName, value)) {
             plugin_.add(id + ':' + optionName + ':' + value);
         }
@@ -959,7 +968,6 @@ public class CompileOptions {
      *
      * @return the plugin options
      */
-    @SuppressFBWarnings("EI_EXPOSE_REP")
     public List<String> plugin() {
         return plugin_;
     }
@@ -983,10 +991,10 @@ public class CompileOptions {
      * @param classNames one or more class names
      * @return this operation instance
      */
-    public CompileOptions scriptTemplates(String... classNames) {
-        if (ObjectTools.isNotEmpty(classNames)) {
-            scriptTemplates_.addAll(List.of(classNames));
-        }
+    public CompileOptions scriptTemplates(@NonNull String... classNames) {
+        ObjectTools.requireAllNotEmpty(classNames,
+                "'scriptTemplates' and its elements must not be null or empty");
+        scriptTemplates_.addAll(List.of(classNames));
         return this;
     }
 
@@ -998,9 +1006,10 @@ public class CompileOptions {
      * @param classNames the class names
      * @return this operation instance
      */
-    @SafeVarargs
-    public final CompileOptions scriptTemplates(Collection<String>... classNames) {
-        scriptTemplates_.addAll(CollectionTools.combine(classNames));
+    public final CompileOptions scriptTemplates(@NonNull Collection<String> classNames) {
+        ObjectTools.requireAllNotEmpty(classNames,
+                "'scriptTemplates' and its elements must not be null or empty");
+        scriptTemplates_.addAll(classNames);
         return this;
     }
 
@@ -1009,7 +1018,6 @@ public class CompileOptions {
      *
      * @return the script templates
      */
-    @SuppressFBWarnings("EI_EXPOSE_REP")
     public List<String> scriptTemplates() {
         return scriptTemplates_;
     }
@@ -1057,19 +1065,19 @@ public class CompileOptions {
     private void addArgFileArgs(List<String> args) {
         for (var f : argFile_) {
             if (f.exists()) {
-                try (var reader = Files.newBufferedReader(f.toPath(), Charset.defaultCharset())) {
+                try (var reader = Files.newBufferedReader(f.toPath(), StandardCharsets.UTF_8)) {
                     var tokenizer = new AbstractToolProviderOperation.CommandLineTokenizer(reader); // NOPMD
                     String token;
                     while ((token = tokenizer.nextToken()) != null) {
                         args.add(token);
                     }
                 } catch (IOException e) {
-                    if (LOGGER.isLoggable(Level.WARNING)) {
-                        LOGGER.log(Level.WARNING, "Could not read: " + f.getAbsolutePath(), e);
+                    if (logger.isLoggable(Level.WARNING)) {
+                        logger.log(Level.WARNING, "Could not read: " + f.getAbsolutePath(), e);
                     }
                 }
-            } else if (LOGGER.isLoggable(Level.WARNING)) {
-                LOGGER.warning("File not found: " + f.getAbsolutePath());
+            } else if (logger.isLoggable(Level.WARNING)) {
+                logger.warning("File not found: " + f.getAbsolutePath());
             }
         }
     }

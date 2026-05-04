@@ -16,6 +16,7 @@
 
 package rife.bld.extension.kotlin;
 
+import edu.umd.cs.findbugs.annotations.NonNull;
 import rife.bld.extension.tools.ObjectTools;
 import rife.tools.StringUtils;
 
@@ -23,6 +24,7 @@ import java.io.Serial;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Java Virtual Machine options.
@@ -44,50 +46,64 @@ public class JvmOptions extends ArrayList<String> {
     /**
      * Modules that are permitted to perform restricted native operations.
      * The module name can also be {@link #ALL_UNNAMED}.
+     * <p>
+     * This replaces any previously set JVM options in this list to match CLI behavior
+     * where the last occurrence of the flag takes effect.
      *
      * @param modules the module names
+     *
      * @return this list of options
+     * @throws NullPointerException     if modules is null or contains null
+     * @throws IllegalArgumentException if modules is empty or contains empty strings
      */
-    public JvmOptions enableNativeAccess(String... modules) {
-        if (ObjectTools.isNotEmpty(modules)) {
-            addOption("--enable-native-access", StringUtils.join(List.of(modules), ","));
-        }
+    @NonNull
+    public JvmOptions enableNativeAccess(@NonNull String... modules) {
+        ObjectTools.requireAllNotEmpty(modules,
+                "'enableNativeAccess' and its elements must not be null or empty");
+        add("--enable-native-access=" + StringUtils.join(List.of(modules), ","));
         return this;
     }
 
     /**
      * Modules that are permitted to perform restricted native operations.
      * The module name can also be {@link #ALL_UNNAMED}.
+     * <p>
+     * This replaces any previously set JVM options in this list to match CLI behavior
+     * where the last occurrence of the flag takes effect.
      *
      * @param modules the module names
      * @return this list of options
+     * @throws NullPointerException     if modules is null or contains null
+     * @throws IllegalArgumentException if modules is empty or contains empty strings
      */
-    public JvmOptions enableNativeAccess(Collection<String> modules) {
-        if (ObjectTools.isNotEmpty(modules)) {
-            addOption("--enable-native-access", StringUtils.join(modules, ","));
-        }
+    @NonNull
+    public JvmOptions enableNativeAccess(@NonNull Collection<String> modules) {
+        ObjectTools.requireAllNotEmpty(modules,
+                "'enableNativeAccess' and its elements must not be null or empty");
+        add("--enable-native-access=" + StringUtils.join(modules, ","));
         return this;
     }
 
     /**
      * Controls what action the Java runtime takes when native access is not enabled for a module.
+     * <p>
+     * This replaces any previously set JVM options in this list to match CLI behavior
+     * where the last occurrence of the flag takes effect.
+     * <p>
+     * Note: This flag was introduced in JDK 17 and removed in JDK 23.
      *
      * @param access the access mode
      * @return this list of options
+     * @throws NullPointerException if access is null
+     * @deprecated Removed in JDK 23
      */
-    public JvmOptions illegalNativeAccess(NativeAccess access) {
-        addOption("--illegal-native-access", access.getMode());
+    @NonNull
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    @Deprecated(since = "23")
+    public JvmOptions illegalNativeAccess(@NonNull NativeAccess access) {
+        Objects.requireNonNull(access, "'illegalNativeAccess' must not be null");
+        add("--illegal-native-access=" + access.getMode());
         return this;
-    }
-
-    /**
-     * Adds a formatted option to this list.
-     *
-     * @param flag  the option flag
-     * @param value the option value
-     */
-    private void addOption(String flag, String value) {
-        add(flag + "=" + value);
     }
 
     /**
@@ -123,6 +139,7 @@ public class JvmOptions extends ArrayList<String> {
          *
          * @return the native access mode
          */
+        @NonNull
         public String getMode() {
             return name().toLowerCase();
         }

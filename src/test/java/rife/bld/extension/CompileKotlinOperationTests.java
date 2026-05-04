@@ -39,6 +39,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(LoggingExtension.class)
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
@@ -463,11 +464,19 @@ class CompileKotlinOperationTests {
 
             @Test
             void pluginsAsCompilerPluginArrayWithDirectoryString() {
-                var op = new CompileKotlinOperation();
-                op.plugins(LIB_COMPILE, CompilerPlugin.LOMBOK, CompilerPlugin.ALL_OPEN);
+                var op = new CompileKotlinOperation()
+                        .plugins(LIB_COMPILE, CompilerPlugin.LOMBOK, CompilerPlugin.ALL_OPEN);
                 assertThat(op.plugins()).containsExactly(
                         new File(LIB_COMPILE, "lombok-compiler-plugin.jar").getAbsolutePath(),
                         new File(LIB_COMPILE, "allopen-compiler-plugin.jar").getAbsolutePath());
+            }
+
+            @Test
+            void pluginsAsCompilerPluginArrayWithNull() {
+                var op = new CompileKotlinOperation();
+                assertThatThrownBy(() ->
+                        op.plugins(Path.of(LIB_COMPILE), CompilerPlugin.LOMBOK, null, CompilerPlugin.ALL_OPEN))
+                        .isInstanceOf(IllegalArgumentException.class);
             }
 
             @Test

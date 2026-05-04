@@ -23,6 +23,7 @@ import rife.bld.publish.PublishDeveloper;
 import rife.bld.publish.PublishLicense;
 import rife.bld.publish.PublishScm;
 
+import java.io.File;
 import java.util.List;
 
 import static rife.bld.dependencies.Repository.*;
@@ -46,7 +47,7 @@ public class CompileKotlinOperationBuild extends Project {
         var junit = version(6, 0, 3);
         scope(compile)
                 .include(dependency("com.uwyn.rife2", "bld-extensions-tools",
-                        version(1, 0, 1)))
+                        version(1, 2, 0)))
                 .include(dependency("com.uwyn.rife2", "bld",
                         version(2, 3, 1, "SNAPSHOT")));
         scope(provided)
@@ -54,7 +55,7 @@ public class CompileKotlinOperationBuild extends Project {
                         version(4, 9, 8)));
         scope(test)
                 .include(dependency("com.uwyn.rife2", "bld-extensions-testing-helpers",
-                        version(1, 0, 0)))
+                        version(1, 0, 1)))
                 .include(dependency("org.junit.jupiter", "junit-jupiter", junit))
                 .include(dependency("org.junit.platform", "junit-platform-console-standalone", junit))
                 .include(dependency("org.assertj", "assertj-core",
@@ -113,10 +114,11 @@ public class CompileKotlinOperationBuild extends Project {
 
     @BuildCommand(summary = "Runs PMD analysis")
     public void pmd() throws Exception {
+        compileOperation().testSourceFiles(new File("ahah"));
         new PmdOperation()
-                .fromProject(this)
                 .failOnViolation(true)
                 .ruleSets("config/pmd.xml")
+                .fromProject(this)
                 .execute();
     }
 
