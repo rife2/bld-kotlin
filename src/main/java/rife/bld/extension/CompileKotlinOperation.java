@@ -446,39 +446,73 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * <p>
      * Sets the following from the project:
      * <ul>
-     *     <li>{@link #workDir() workDir} to the project's directory.</li>
-     *     <li>{@link #buildMainDirectory() buildMainDirectory}</li>
-     *     <li>{@link #buildTestDirectory() buildTestDirectory}</li>
-     *     <li>{@link #compileMainClasspath() compileMainClasspath}</li>
-     *     <li>{@link #compileTestClasspath() compilesTestClasspath}</li>
-     *     <li>{@link #mainSourceDirectories() mainSourceDirectories} to the {@code kotlin} directory in
-     *     {@link BaseProject#srcMainDirectory() srcMainDirectory}, if present.</li>
-     *     <li>{@link #testSourceDirectories() testSourceDirectories} to the {@code kotlin} directory in
-     *     {@link BaseProject#srcTestDirectory() srcTestDirectory}, if present.</li>
-     *     <li>{@link CompileOptions#jdkRelease jdkRelease} to {@link BaseProject#javaRelease() javaRelease}</li>
-     *     <li>{@link CompileOptions#jvmTarget jvmTarget} to {@link BaseProject#javaRelease() javaRelease}</li>
+     *     <li>
+     *         {@link #workDir() workDir} to the project's directory, if not already set.
+     *     </li>
+     *     <li>
+     *         {@link #buildMainDirectory() buildMainDirectory}, if not already set.
+     *     </li>
+     *     <li>
+     *         {@link #buildTestDirectory() buildTestDirectory}, if not already set.
+     *     </li>
+     *     <li>
+     *         {@link #compileMainClasspath() compileMainClasspath}, if not already set.
+     *     </li>
+     *     <li>
+     *         {@link #compileTestClasspath() compilesTestClasspath}, if not already set.
+     *     </li>
+     *     <li>
+     *         {@link #mainSourceDirectories() mainSourceDirectories} to the {@code kotlin} directory in
+     *         {@link BaseProject#srcMainDirectory() srcMainDirectory}, if present and not already set.
+     *     </li>
+     *     <li>
+     *         {@link #testSourceDirectories() testSourceDirectories} to the {@code kotlin} directory in
+     *         {@link BaseProject#srcTestDirectory() srcTestDirectory}, if present and not already set.</li>
+     *     <li>
+     *         {@link CompileOptions#jdkRelease jdkRelease} to {@link BaseProject#javaRelease() javaRelease}, if not
+     *         already set.
+     *     </li>
+     *     <li>
+     *         {@link CompileOptions#jvmTarget jvmTarget} to {@link BaseProject#javaRelease() javaRelease}, if not
+     *         already set.
+     *     </li>
      *     <li>{@link CompileOptions#noStdLib(boolean) noStdLib} to {@code true}</li>
      * </ul>
      *
      * @param project the project to configure the compile operation from
      * @return this operation instance
      */
-    public CompileKotlinOperation fromProject(BaseProject project) {
+    public CompileKotlinOperation fromProject(@NonNull BaseProject project) {
         project_ = Objects.requireNonNull(project, "The project must not be null");
-        workDir_ = new File(project.workDirectory().getAbsolutePath());
 
-        buildMainDirectory_ = project.buildMainDirectory();
-        buildTestDirectory_ = project.buildTestDirectory();
-        compileMainClasspath_.addAll(project.compileMainClasspath());
-        compileTestClasspath_.addAll(project.compileTestClasspath());
-
-        var mainDir = new File(project.srcMainDirectory(), "kotlin");
-        if (mainDir.exists()) {
-            mainSourceDirectories_.add(mainDir);
+        if (workDir_ == null) {
+            workDir_ = new File(project.workDirectory().getAbsolutePath());
         }
-        var testDir = new File(project.srcTestDirectory(), "kotlin");
-        if (testDir.exists()) {
-            testSourceDirectories_.add(testDir);
+
+        if (buildMainDirectory_ == null) {
+            buildMainDirectory_ = project.buildMainDirectory();
+        }
+        if (buildTestDirectory_ == null) {
+            buildTestDirectory_ = project.buildTestDirectory();
+        }
+        if (compileMainClasspath_.isEmpty()) {
+            compileMainClasspath_.addAll(project.compileMainClasspath());
+        }
+        if (compileTestClasspath_.isEmpty()) {
+            compileTestClasspath_.addAll(project.compileTestClasspath());
+        }
+
+        if (mainSourceDirectories_.isEmpty()) {
+            var mainDir = new File(project.srcMainDirectory(), "kotlin");
+            if (mainDir.exists()) {
+                mainSourceDirectories_.add(mainDir);
+            }
+        }
+        if (testSourceDirectories_.isEmpty()) {
+            var testDir = new File(project.srcTestDirectory(), "kotlin");
+            if (testDir.exists()) {
+                testSourceDirectories_.add(testDir);
+            }
         }
 
         if (project.javaRelease() != null) {
@@ -489,6 +523,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                 compileOptions_.jvmTarget(project.javaRelease());
             }
         }
+
         compileOptions_.noStdLib(true);
 
         return this;
