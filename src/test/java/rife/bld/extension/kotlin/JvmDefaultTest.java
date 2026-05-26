@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 /**
  * Unit tests for the {@link JvmDefault} enum.
  */
-class JvmDefaultTests {
+class JvmDefaultTest {
 
     @Nested
     @DisplayName("Enum Tests")

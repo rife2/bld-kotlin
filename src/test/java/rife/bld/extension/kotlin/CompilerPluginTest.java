@@ -23,7 +23,7 @@ import org.junit.jupiter.params.provider.EnumSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class CompilerPluginTests {
+class CompilerPluginTest {
 
     @Test
     @DisplayName("Ensure the number of compiler plugins is correct")

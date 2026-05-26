@@ -37,7 +37,7 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
-class CompileOptionsTests {
+class CompileOptionsTest {
 
     /**
      * Returns the local path of the given file names.

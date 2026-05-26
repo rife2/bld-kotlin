@@ -17,14 +17,11 @@
 package rife.bld.extension.kotlin;
 
 import edu.umd.cs.findbugs.annotations.NonNull;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import rife.bld.extension.tools.ObjectTools;
 import rife.tools.StringUtils;
 
-import java.io.Serial;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Java Virtual Machine options.
@@ -32,78 +29,109 @@ import java.util.Objects;
  * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
  * @since 1.1.0
  */
-@SuppressWarnings("PMD.LooseCoupling")
-public class JvmOptions extends ArrayList<String> {
+public class JvmOptions {
 
     /**
      * Keyword to enable native access for all code on the class path.
      */
     public static final String ALL_UNNAMED = "ALL-UNNAMED";
 
-    @Serial
-    private static final long serialVersionUID = 1L;
+    private final Set<String> nativeAccessModules_ = new LinkedHashSet<>();
+    private NativeAccess illegalAccessMode_;
 
     /**
-     * Modules that are permitted to perform restricted native operations.
-     * The module name can also be {@link #ALL_UNNAMED}.
-     * <p>
-     * This replaces any previously set JVM options in this list to match CLI behavior
-     * where the last occurrence of the flag takes effect.
+     * Returns the formatted arguments.
      *
-     * @param modules the module names
-     *
-     * @return this list of options
-     * @throws NullPointerException     if modules is null or contains null
-     * @throws IllegalArgumentException if modules is empty or contains empty strings
+     * @return the arguments
      */
-    @NonNull
-    public JvmOptions enableNativeAccess(@NonNull String... modules) {
-        ObjectTools.requireAllNotEmpty(modules,
-                "'enableNativeAccess' and its elements must not be null or empty");
-        add("--enable-native-access=" + StringUtils.join(List.of(modules), ","));
-        return this;
+    public List<String> args() {
+        var args = new ArrayList<String>();
+
+        if (!nativeAccessModules_.isEmpty()) {
+            args.add("--enable-native-access=" + StringUtils.join(nativeAccessModules_, ","));
+        }
+
+        if (illegalAccessMode_ != null) {
+            args.add("--illegal-native-access=" + illegalAccessMode_.getMode());
+        }
+
+        return args;
     }
 
     /**
-     * Modules that are permitted to perform restricted native operations.
-     * The module name can also be {@link #ALL_UNNAMED}.
-     * <p>
-     * This replaces any previously set JVM options in this list to match CLI behavior
-     * where the last occurrence of the flag takes effect.
+     * Returns the action the Java runtime takes when native access is not enabled for a module.
      *
-     * @param modules the module names
-     * @return this list of options
-     * @throws NullPointerException     if modules is null or contains null
-     * @throws IllegalArgumentException if modules is empty or contains empty strings
+     * @return the access mode or {@code null} if unspecified
+     * @since 1.2
      */
-    @NonNull
-    public JvmOptions enableNativeAccess(@NonNull Collection<String> modules) {
-        ObjectTools.requireAllNotEmpty(modules,
-                "'enableNativeAccess' and its elements must not be null or empty");
-        add("--enable-native-access=" + StringUtils.join(modules, ","));
-        return this;
+    public NativeAccess illegalNativeAccess() {
+        return illegalAccessMode_;
     }
 
     /**
      * Controls what action the Java runtime takes when native access is not enabled for a module.
      * <p>
-     * This replaces any previously set JVM options in this list to match CLI behavior
-     * where the last occurrence of the flag takes effect.
-     * <p>
      * Note: This flag was introduced in JDK 17 and removed in JDK 23.
      *
      * @param access the access mode
      * @return this list of options
-     * @throws NullPointerException if access is null
+     * @throws NullPointerException if access is {@code null}
      * @deprecated Removed in JDK 23
      */
     @NonNull
     @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated(since = "23")
     public JvmOptions illegalNativeAccess(@NonNull NativeAccess access) {
-        Objects.requireNonNull(access, "'illegalNativeAccess' must not be null");
-        add("--illegal-native-access=" + access.getMode());
+        ObjectTools.requireNonNull(access, "illegalNativeAccess");
+        illegalAccessMode_ = access;
         return this;
+    }
+
+    /**
+     * Modules that are permitted to perform restricted native operations.
+     * <p>
+     * The module name can also be {@link #ALL_UNNAMED}.
+     *
+     * @param modules the module names
+     * @return this list of options
+     * @throws NullPointerException     if {@code modules} is {@code null}
+     * @throws IllegalArgumentException if {@code modules} is empty, or contains {@code null} or empty elements
+     * @since 1.2
+     */
+    @NonNull
+    public JvmOptions nativeAccessModules(@NonNull Collection<String> modules) {
+        ObjectTools.requireNotEmpty(modules, "nativeAccessModules");
+        nativeAccessModules_.addAll(modules);
+        return this;
+    }
+
+    /**
+     * Modules that are permitted to perform restricted native operations.
+     * <p>
+     * The module name can also be {@link #ALL_UNNAMED}.
+     *
+     * @param modules the module names
+     * @return this list of options
+     * @throws NullPointerException     if {@code modules} is {@code null}
+     * @throws IllegalArgumentException if {@code modules} is empty, or contains {@code null} or empty elements
+     * @since 1.2
+     */
+    @NonNull
+    public JvmOptions nativeAccessModules(@NonNull String... modules) {
+        ObjectTools.requireNotEmpty(modules, "nativeAccessModules");
+        nativeAccessModules_.addAll(List.of(modules));
+        return this;
+    }
+
+    /**
+     * Returns the modules that are permitted to perform restricted native operations.
+     *
+     * @return the modules list
+     * @since 1.2
+     */
+    @SuppressFBWarnings(value = "EI_EXPOSE_REP", justification = "Returns the live list. Mutate at your own risk.")
+    public Set<String> nativeAccessModules() {
+        return nativeAccessModules_;
     }
 
     /**

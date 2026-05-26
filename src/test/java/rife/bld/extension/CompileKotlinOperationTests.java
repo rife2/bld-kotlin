@@ -95,8 +95,8 @@ class CompileKotlinOperationTests {
         op.compileOptions().argFile("src/test/resources/argfile.txt", "src/test/resources/argfile2.txt");
 
         if (!SystemTools.isWindows()) {
-            op.jvmOptions().enableNativeAccess(JvmOptions.ALL_UNNAMED);
-            assertThat(op.jvmOptions()).containsExactly("--enable-native-access=ALL-UNNAMED");
+            op.jvmOptions().nativeAccessModules(JvmOptions.ALL_UNNAMED);
+            assertThat(op.jvmOptions().args()).containsExactly("--enable-native-access=ALL-UNNAMED");
         }
 
         var args = op.compileOptions().args();
