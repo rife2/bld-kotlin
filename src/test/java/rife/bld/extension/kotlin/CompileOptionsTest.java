@@ -22,6 +22,9 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledOnOs;
 import org.junit.jupiter.api.condition.OS;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EmptySource;
+import org.junit.jupiter.params.provider.NullSource;
 
 import java.io.File;
 import java.io.IOException;
@@ -30,11 +33,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class CompileOptionsTest {
@@ -462,6 +467,253 @@ class CompileOptionsTest {
                 softly.assertThat(options.isWError()).isTrue();
                 softly.assertThat(options.isWExtra()).isTrue();
             }
+        }
+    }
+
+    @Nested
+    @DisplayName("Validation Tests")
+    @SuppressWarnings("DataFlowIssue")
+    class ValidationTests {
+
+        @ParameterizedTest
+        @EmptySource
+        void advancedOptionsWithEmpty(String arg) {
+            assertThatThrownBy(() -> new CompileOptions().advancedOptions("foo", arg))
+                    .as("array has empty element").isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().advancedOptions(arg))
+                    .as("varargs with empty element").isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().advancedOptions(List.of("foo", arg)))
+                    .as("list has empty element").isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().advancedOptions(List.of()))
+                    .as("list is empty").isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @ParameterizedTest
+        @NullSource
+        void advancedOptionsWithNull(String arg) {
+            assertThatThrownBy(() -> new CompileOptions().advancedOptions("foo", arg))
+                    .as("array has null element").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().advancedOptions(arg))
+                    .as("varargs with null element").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().advancedOptions(List.of("foo", arg)))
+                    .as("list has null element").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().advancedOptions((String[]) null))
+                    .as("array is null").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().advancedOptions((Collection<String>) null))
+                    .as("collection is null").isInstanceOf(NullPointerException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void argFileWithEmpty(String arg) {
+            assertThatThrownBy(() -> new CompileOptions().argFile("foo", arg))
+                    .as("array has empty element").isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().argFile(arg))
+                    .as("varargs with empty element").isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().argFileStrings(List.of("foo", arg)))
+                    .as("list has empty element").isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().argFileStrings(List.of()))
+                    .as("list is empty").isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @ParameterizedTest
+        @NullSource
+        void argFileWithNull(String arg) {
+            assertThatThrownBy(() -> new CompileOptions().argFile("foo", arg))
+                    .as("array has null element").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().argFile(arg))
+                    .as("varargs with null element").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().argFileStrings(List.of("foo", arg)))
+                    .as("list has null element").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().argFile((File[]) null))
+                    .as("array is null").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().argFile((Collection<File>) null))
+                    .as("collection is null").isInstanceOf(NullPointerException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void classpathWithEmpty(String arg) {
+            assertThatThrownBy(() -> new CompileOptions().classpath("foo", arg))
+                    .as("array has empty element").isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().classpath(arg))
+                    .as("varargs with empty element").isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().classpathStrings(List.of("foo", arg)))
+                    .as("list has empty element").isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().classpathStrings(List.of()))
+                    .as("list is empty").isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @ParameterizedTest
+        @NullSource
+        void classpathWithNull(String arg) {
+            assertThatThrownBy(() -> new CompileOptions().classpath("foo", arg))
+                    .as("array has null element").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().classpath(arg))
+                    .as("varargs with null element").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().classpathStrings(List.of("foo", arg)))
+                    .as("list has null element").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().classpath((File[]) null))
+                    .as("array is null").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().classpath((Collection<File>) null))
+                    .as("collection is null").isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void jvmDefaultWithNull() {
+            assertThatThrownBy(() -> new CompileOptions().jvmDefault(null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void optInWithEmpty(String arg) {
+            assertThatThrownBy(() -> new CompileOptions().optIn("foo", arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().optIn(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().optIn(List.of("foo", arg)))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().optIn(List.of()))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @ParameterizedTest
+        @NullSource
+        void optInWithNull(String arg) {
+            assertThatThrownBy(() -> new CompileOptions().optIn("foo", arg))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().optIn(arg))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().optIn(List.of("foo", arg)))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().optIn((String[]) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().optIn((Collection<String>) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void optionsWithEmpty(String arg) {
+            assertThatThrownBy(() -> new CompileOptions().options("foo", arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().options(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().options(List.of("foo", arg)))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().options(List.of()))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @ParameterizedTest
+        @NullSource
+        void optionsWithNull(String arg) {
+            assertThatThrownBy(() -> new CompileOptions().options("foo", arg))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().options(arg))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().options(List.of("foo", arg)))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().options((String[]) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().options((Collection<String>) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void pluginWithNullOrEmpty() {
+            assertThatThrownBy(() -> new CompileOptions().plugin(null, "opt", "val"))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().plugin("", "opt", "val"))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().plugin("id", null, "val"))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().plugin("id", "", "val"))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().plugin("id", "opt", null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().plugin("id", "opt", ""))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void scriptTemplatesWithEmpty(String arg) {
+            assertThatThrownBy(() -> new CompileOptions().scriptTemplates("foo", arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().scriptTemplates(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().scriptTemplates(List.of("foo", arg)))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().scriptTemplates(List.of()))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @ParameterizedTest
+        @NullSource
+        void scriptTemplatesWithNull(String arg) {
+            assertThatThrownBy(() -> new CompileOptions().scriptTemplates("foo", arg))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().scriptTemplates(arg))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().scriptTemplates(List.of("foo", arg)))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().scriptTemplates((String[]) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().scriptTemplates((Collection<String>) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void stringSettersWithEmpty(String arg) {
+            assertThatThrownBy(() -> new CompileOptions().apiVersion(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().expression(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().jdkHome(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().jdkRelease(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().jvmTarget(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().kotlinHome(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().languageVersion(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().moduleName(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileOptions().path(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void stringSettersWithNull() {
+            assertThatThrownBy(() -> new CompileOptions().apiVersion(null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().expression(null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().jdkHome((File) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().jdkHome((Path) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().jdkRelease(null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().jvmTarget(null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().kotlinHome((File) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().kotlinHome((Path) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().languageVersion(null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().moduleName(null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().path((File) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileOptions().path((Path) null))
+                    .isInstanceOf(NullPointerException.class);
         }
     }
 }

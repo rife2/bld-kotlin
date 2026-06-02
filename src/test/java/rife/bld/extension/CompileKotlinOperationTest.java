@@ -23,6 +23,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EmptySource;
+import org.junit.jupiter.params.provider.NullSource;
 import rife.bld.blueprints.BaseProjectBlueprint;
 import rife.bld.extension.kotlin.CompileOptions;
 import rife.bld.extension.kotlin.CompilerPlugin;
@@ -35,6 +38,7 @@ import rife.bld.extension.tools.SystemTools;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -43,7 +47,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @ExtendWith(LoggingExtension.class)
 @SuppressWarnings("PMD.AvoidDuplicateLiterals")
-class CompileKotlinOperationTests {
+class CompileKotlinOperationTest {
 
     private static final String BAR = "bar";
     private static final String FILE_1 = "file1";
@@ -614,6 +618,291 @@ class CompileKotlinOperationTests {
                 op = new CompileKotlinOperation().workDir(FOO);
                 assertThat(op.workDir()).isEqualTo(foo);
             }
+        }
+    }
+
+    @Nested
+    @DisplayName("Validation Tests")
+    @SuppressWarnings("DataFlowIssue")
+    class ValidationTests {
+
+        @ParameterizedTest
+        @EmptySource
+        void buildMainDirectoryWithEmpty(String arg) {
+            assertThatThrownBy(() -> new CompileKotlinOperation().buildMainDirectory(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void buildMainDirectoryWithNull() {
+            assertThatThrownBy(() -> new CompileKotlinOperation().buildMainDirectory((File) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().buildMainDirectory((Path) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void buildTestDirectoryWithEmpty(String arg) {
+            assertThatThrownBy(() -> new CompileKotlinOperation().buildTestDirectory(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void buildTestDirectoryWithNull() {
+            assertThatThrownBy(() -> new CompileKotlinOperation().buildTestDirectory((File) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().buildTestDirectory((Path) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void compileMainClasspathWithEmpty(String arg) {
+            assertThatThrownBy(() -> new CompileKotlinOperation().compileMainClasspath("foo", arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().compileMainClasspath(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().compileMainClasspath(List.of("foo", arg)))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().compileMainClasspath(List.of()))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @ParameterizedTest
+        @NullSource
+        void compileMainClasspathWithNull(String arg) {
+            assertThatThrownBy(() -> new CompileKotlinOperation().compileMainClasspath("foo", arg))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().compileMainClasspath(arg))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().compileMainClasspath(List.of("foo", arg)))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().compileMainClasspath((String[]) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().compileMainClasspath((Collection<String>) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void compileOptionsWithNull() {
+            assertThatThrownBy(() -> new CompileKotlinOperation().compileOptions(null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void compileTestClasspathWithEmpty(String arg) {
+            assertThatThrownBy(() -> new CompileKotlinOperation().compileTestClasspath("foo", arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().compileTestClasspath(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().compileTestClasspath(List.of("foo", arg)))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().compileTestClasspath(List.of()))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @ParameterizedTest
+        @NullSource
+        void compileTestClasspathWithNull(String arg) {
+            assertThatThrownBy(() -> new CompileKotlinOperation().compileTestClasspath("foo", arg))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().compileTestClasspath(arg))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().compileTestClasspath(List.of("foo", arg)))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().compileTestClasspath((String[]) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().compileTestClasspath((Collection<String>) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void executeWithNullProjectOrWorkDir() {
+            var op = new CompileKotlinOperation();
+            assertThatThrownBy(op::execute)
+                    .isInstanceOf(NullPointerException.class)
+                    .hasMessageContaining("project");
+        }
+
+        @Test
+        void fromProjectWithNull() {
+            assertThatThrownBy(() -> new CompileKotlinOperation().fromProject(null))
+                    .isInstanceOf(NullPointerException.class)
+                    .hasMessageContaining("project");
+        }
+
+        @Test
+        void jvmOptionsWithNull() {
+            assertThatThrownBy(() -> new CompileKotlinOperation().jvmOptions(null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void kotlinHomeWithEmpty(String arg) {
+            assertThatThrownBy(() -> new CompileKotlinOperation().kotlinHome(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void kotlinHomeWithNull() {
+            assertThatThrownBy(() -> new CompileKotlinOperation().kotlinHome((File) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().kotlinHome((Path) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void kotlincWithEmpty(String arg) {
+            assertThatThrownBy(() -> new CompileKotlinOperation().kotlinc(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void kotlincWithNull() {
+            assertThatThrownBy(() -> new CompileKotlinOperation().kotlinc((File) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().kotlinc((Path) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void mainSourceDirectoriesWithEmpty(String arg) {
+            assertThatThrownBy(() -> new CompileKotlinOperation().mainSourceDirectories(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().mainSourceDirectoriesStrings(List.of("foo", arg)))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().mainSourceDirectoriesStrings(List.of()))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void mainSourceDirectoriesWithNull() {
+            assertThatThrownBy(() -> new CompileKotlinOperation().mainSourceDirectories((File[]) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().mainSourceDirectories((Path[]) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().mainSourceDirectories((Collection<File>) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void mainSourceFilesWithEmpty(String arg) {
+            assertThatThrownBy(() -> new CompileKotlinOperation().mainSourceFiles(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().mainSourceFilesStrings(List.of("foo", arg)))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().mainSourceFilesStrings(List.of()))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void mainSourceFilesWithNull() {
+            assertThatThrownBy(() -> new CompileKotlinOperation().mainSourceFiles((File[]) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().mainSourceFiles((Path[]) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().mainSourceFiles((Collection<File>) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void pluginsWithEmpty(String arg) {
+            assertThatThrownBy(() -> new CompileKotlinOperation().plugins("foo", arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+
+            assertThatThrownBy(() -> new CompileKotlinOperation().plugins(List.of("foo", arg)))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().plugins(List.of()))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @ParameterizedTest
+        @NullSource
+        void pluginsWithNull(String arg) {
+            assertThatThrownBy(() -> new CompileKotlinOperation().plugins("foo", arg))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().plugins(List.of("foo", arg)))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().plugins((String[]) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().plugins((Collection<String>) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void pluginsWithNullCompilerPlugin() {
+            assertThatThrownBy(() -> new CompileKotlinOperation().plugins((CompilerPlugin[]) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().plugins(new File("."), (CompilerPlugin[]) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().plugins(Path.of("."), (CompilerPlugin[]) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().plugins(".", (CompilerPlugin[]) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void testSourceDirectoriesWithEmpty(String arg) {
+            assertThatThrownBy(() -> new CompileKotlinOperation().testSourceDirectories(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().testSourceDirectoriesStrings(List.of("foo", arg)))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().testSourceDirectoriesStrings(List.of()))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void testSourceDirectoriesWithNull() {
+            assertThatThrownBy(() -> new CompileKotlinOperation().testSourceDirectories((File[]) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().testSourceDirectories((Path[]) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().testSourceDirectories((Collection<File>) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void testSourceFilesWithEmpty(String arg) {
+            assertThatThrownBy(() -> new CompileKotlinOperation().testSourceFiles(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().testSourceFilesStrings(List.of("foo", arg)))
+                    .isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().testSourceFilesStrings(List.of()))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void testSourceFilesWithNull() {
+            assertThatThrownBy(() -> new CompileKotlinOperation().testSourceFiles((File[]) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().testSourceFiles((Path[]) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().testSourceFiles((Collection<File>) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void workDirWithEmpty(String arg) {
+            assertThatThrownBy(() -> new CompileKotlinOperation().workDir(arg))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        void workDirWithNull() {
+            assertThatThrownBy(() -> new CompileKotlinOperation().workDir((File) null))
+                    .isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new CompileKotlinOperation().workDir((Path) null))
+                    .isInstanceOf(NullPointerException.class);
         }
     }
 }

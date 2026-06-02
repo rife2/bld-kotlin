@@ -19,15 +19,19 @@ package rife.bld.extension.kotlin;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EmptySource;
+import org.junit.jupiter.params.provider.NullSource;
 import rife.bld.extension.CompileKotlinOperation;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class JvmOptionsTest {
 
     @Test
@@ -184,6 +188,47 @@ class JvmOptionsTest {
         void enableNativeAccessWithVarargs() {
             var options = new JvmOptions().nativeAccessModules("module1", "module2");
             assertThat(options.args()).containsExactly("--enable-native-access=module1,module2");
+        }
+    }
+
+    @Nested
+    @DisplayName("Validation Tests")
+    @SuppressWarnings("DataFlowIssue")
+    class ValidationTests {
+
+        @Test
+        @SuppressWarnings("deprecation")
+        void illegalNativeAccessWithNull() {
+            assertThatThrownBy(() -> new JvmOptions().illegalNativeAccess(null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void nativeAccessModulesWithEmpty(String arg) {
+            assertThatThrownBy(() -> new JvmOptions().nativeAccessModules("foo", arg))
+                    .as("array has empty element").isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new JvmOptions().nativeAccessModules(arg))
+                    .as("varargs with empty element").isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new JvmOptions().nativeAccessModules(List.of("foo", arg)))
+                    .as("list has empty element").isInstanceOf(IllegalArgumentException.class);
+            assertThatThrownBy(() -> new JvmOptions().nativeAccessModules(List.of()))
+                    .as("list is empty").isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @ParameterizedTest
+        @NullSource
+        void nativeAccessModulesWithNull(String arg) {
+            assertThatThrownBy(() -> new JvmOptions().nativeAccessModules("foo", arg))
+                    .as("array has null element").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new JvmOptions().nativeAccessModules(arg))
+                    .as("varargs with null element").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new JvmOptions().nativeAccessModules(List.of("foo", arg)))
+                    .as("list has null element").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new JvmOptions().nativeAccessModules((String[]) null))
+                    .as("array is null").isInstanceOf(NullPointerException.class);
+            assertThatThrownBy(() -> new JvmOptions().nativeAccessModules((Collection<String>) null))
+                    .as("collection is null").isInstanceOf(NullPointerException.class);
         }
     }
 }

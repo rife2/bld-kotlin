@@ -94,8 +94,8 @@ public class JvmOptions {
      *
      * @param modules the module names
      * @return this list of options
-     * @throws NullPointerException     if {@code modules} is {@code null}
-     * @throws IllegalArgumentException if {@code modules} is empty, or contains {@code null} or empty elements
+     * @throws NullPointerException     if {@code modules} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code modules} is empty, or contains empty elements
      * @since 1.2
      */
     @NonNull
@@ -112,8 +112,8 @@ public class JvmOptions {
      *
      * @param modules the module names
      * @return this list of options
-     * @throws NullPointerException     if {@code modules} is {@code null}
-     * @throws IllegalArgumentException if {@code modules} is empty, or contains {@code null} or empty elements
+     * @throws NullPointerException     if {@code modules} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code modules} is empty, or contains empty elements
      * @since 1.2
      */
     @NonNull

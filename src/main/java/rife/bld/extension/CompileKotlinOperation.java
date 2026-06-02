@@ -360,8 +360,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *
      * @param classpath one or more classpath entries
      * @return this operation instance
-     * @throws NullPointerException     if {@code classpath} is {@code null}
-     * @throws IllegalArgumentException if {@code classpath} is empty, or contains {@code null} or empty elements
+     * @throws NullPointerException     if {@code classpath} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code classpath} is empty, or contains empty elements
      * @see #compileMainClasspath(Collection)
      */
     public CompileKotlinOperation compileMainClasspath(@NonNull String... classpath) {
@@ -374,8 +374,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *
      * @param classpath the classpath entries
      * @return this operation instance
-     * @throws NullPointerException     if {@code classpath} is {@code null}
-     * @throws IllegalArgumentException if {@code classpath} is empty, or contains {@code null} or empty elements
+     * @throws NullPointerException     if {@code classpath} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code classpath} is empty, or contains empty elements
      */
     public final CompileKotlinOperation compileMainClasspath(@NonNull Collection<String> classpath) {
         ObjectTools.requireNotEmpty(classpath, "compileMainClasspath");
@@ -420,8 +420,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *
      * @param classpath one or more classpath entries
      * @return this operation instance
-     * @throws NullPointerException     if {@code classpath} is {@code null}
-     * @throws IllegalArgumentException if {@code classpath} is empty, or contains {@code null} or empty elements
+     * @throws NullPointerException     if {@code classpath} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code classpath} is empty, or contains empty elements
      */
     public CompileKotlinOperation compileTestClasspath(@NonNull String... classpath) {
         ObjectTools.requireNotEmpty(classpath, "compileTestClasspath");
@@ -433,8 +433,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *
      * @param classpath the classpath entries
      * @return this operation instance
-     * @throws NullPointerException     if {@code classpath} is {@code null}
-     * @throws IllegalArgumentException if {@code classpath} is empty, or contains {@code null} or empty elements
+     * @throws NullPointerException     if {@code classpath} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code classpath} is empty, or contains empty elements
      */
     public final CompileKotlinOperation compileTestClasspath(@NonNull Collection<String> classpath) {
         ObjectTools.requireNotEmpty(classpath, "compileTestClasspath");
@@ -779,7 +779,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Provides main source files that should be compiled.
+     * Provides the main source files that should be compiled.
      *
      * @param files one or more main source files
      * @return this operation instance
@@ -793,7 +793,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Provides main source files that should be compiled.
+     * Provides the main source files that should be compiled.
      *
      * @param files one or more main source files
      * @return this operation instance
@@ -942,8 +942,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *
      * @param plugins one or more plugins
      * @return this class instance
-     * @throws NullPointerException     if {@code plugins} is {@code null}
-     * @throws IllegalArgumentException if {@code plugins} is empty, or contains {@code null} elements
+     * @throws NullPointerException     if {@code plugins} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code plugins} is empty
      * @see #plugins(File, CompilerPlugin...)
      */
     public CompileKotlinOperation plugins(@NonNull CompilerPlugin... plugins) {
@@ -1402,7 +1402,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         var classpath = new LinkedHashSet<>(compileTestClasspath_);
         var sources = CollectionTools.combine(testSourceFiles_, testSourceDirectories_);
 
-        executeBuildSources(classpath, sources, buildTestDirectory_, buildMainDirectory());
+        executeBuildSources(classpath, sources, buildTestDirectory_, buildMainDirectory_);
     }
 
     /**
