@@ -19,6 +19,7 @@ package rife.bld.extension.kotlin;
 import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import rife.bld.extension.tools.ObjectTools;
+import rife.bld.extension.tools.TextTools;
 import rife.tools.StringUtils;
 
 import java.util.*;
@@ -95,12 +96,12 @@ public class JvmOptions {
      * @param modules the module names
      * @return this list of options
      * @throws NullPointerException     if {@code modules} is {@code null} or contains {@code null} elements
-     * @throws IllegalArgumentException if {@code modules} is empty, or contains empty elements
+     * @throws IllegalArgumentException if {@code modules} is empty, or contains blank elements
      * @since 1.2
      */
     @NonNull
     public JvmOptions nativeAccessModules(@NonNull Collection<String> modules) {
-        ObjectTools.requireNotEmpty(modules, "nativeAccessModules");
+        TextTools.requireNotBlank(modules, "nativeAccessModules");
         nativeAccessModules_.addAll(modules);
         return this;
     }
@@ -113,12 +114,13 @@ public class JvmOptions {
      * @param modules the module names
      * @return this list of options
      * @throws NullPointerException     if {@code modules} is {@code null} or contains {@code null} elements
-     * @throws IllegalArgumentException if {@code modules} is empty, or contains empty elements
+     * @throws IllegalArgumentException if {@code modules} is empty, or contains blank elements
      * @since 1.2
      */
+
     @NonNull
     public JvmOptions nativeAccessModules(@NonNull String... modules) {
-        ObjectTools.requireNotEmpty(modules, "nativeAccessModules");
+        TextTools.requireNotBlank("nativeAccessModules", modules);
         nativeAccessModules_.addAll(List.of(modules));
         return this;
     }

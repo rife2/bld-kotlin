@@ -216,9 +216,9 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         }
 
         for (var path : commonPaths.entrySet()) {
-            kotlincPath = findKotlincInDir(path.getKey());
+            kotlincPath = findKotlinCompilerInDir(path.getKey());
             if (kotlincPath != null) {
-                logKotlincPath(kotlincPath, isSilent, commonPaths.get(path.getKey()));
+                logKotlinCompilerPath(kotlincPath, isSilent, commonPaths.get(path.getKey()));
                 return kotlincPath;
             }
         }
@@ -236,7 +236,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                 if (scanner.hasNextLine()) {
                     kotlincPath = scanner.nextLine().trim();
                     if (IOTools.canExecute(new File(kotlincPath))) {
-                        logKotlincPath(kotlincPath, isSilent);
+                        logKotlinCompilerPath(kotlincPath, isSilent);
                         return kotlincPath;
                     }
                 }
@@ -293,10 +293,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param directory the directory to use for the main build destination
      * @return this operation instance
      * @throws NullPointerException     if {@code directory} is {@code null}
-     * @throws IllegalArgumentException if {@code directory} is empty
+     * @throws IllegalArgumentException if {@code directory} is blank
      */
     public CompileKotlinOperation buildMainDirectory(@NonNull String directory) {
-        ObjectTools.requireNotEmpty(directory, "buildMainDirectory");
+        TextTools.requireNotBlank(directory, "buildMainDirectory");
         return buildMainDirectory(new File(directory));
     }
 
@@ -339,10 +339,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param directory the directory to use for the test build destination
      * @return this operation instance
      * @throws NullPointerException     if {@code directory} is {@code null}
-     * @throws IllegalArgumentException if {@code directory} is empty
+     * @throws IllegalArgumentException if {@code directory} is blank
      */
     public CompileKotlinOperation buildTestDirectory(@NonNull String directory) {
-        ObjectTools.requireNotEmpty(directory, "buildTestDirectory");
+        TextTools.requireNotBlank(directory, "buildTestDirectory");
         return buildTestDirectory(new File(directory));
     }
 
@@ -361,11 +361,11 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param classpath one or more classpath entries
      * @return this operation instance
      * @throws NullPointerException     if {@code classpath} is {@code null} or contains {@code null} elements
-     * @throws IllegalArgumentException if {@code classpath} is empty, or contains empty elements
+     * @throws IllegalArgumentException if {@code classpath} is empty, or contains blank elements
      * @see #compileMainClasspath(Collection)
      */
     public CompileKotlinOperation compileMainClasspath(@NonNull String... classpath) {
-        ObjectTools.requireNotEmpty(classpath, "compileMainClasspath");
+        TextTools.requireNotBlank("compileMainClasspath", classpath);
         return compileMainClasspath(List.of(classpath));
     }
 
@@ -375,10 +375,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param classpath the classpath entries
      * @return this operation instance
      * @throws NullPointerException     if {@code classpath} is {@code null} or contains {@code null} elements
-     * @throws IllegalArgumentException if {@code classpath} is empty, or contains empty elements
+     * @throws IllegalArgumentException if {@code classpath} is empty, or contains blank elements
      */
     public final CompileKotlinOperation compileMainClasspath(@NonNull Collection<String> classpath) {
-        ObjectTools.requireNotEmpty(classpath, "compileMainClasspath");
+        TextTools.requireNotBlank(classpath, "compileMainClasspath");
         compileMainClasspath_.addAll(classpath);
         return this;
     }
@@ -421,10 +421,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param classpath one or more classpath entries
      * @return this operation instance
      * @throws NullPointerException     if {@code classpath} is {@code null} or contains {@code null} elements
-     * @throws IllegalArgumentException if {@code classpath} is empty, or contains empty elements
+     * @throws IllegalArgumentException if {@code classpath} is empty, or contains blank elements
      */
     public CompileKotlinOperation compileTestClasspath(@NonNull String... classpath) {
-        ObjectTools.requireNotEmpty(classpath, "compileTestClasspath");
+        TextTools.requireNotBlank("compileTestClasspath", classpath);
         return compileTestClasspath(List.of(classpath));
     }
 
@@ -434,10 +434,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param classpath the classpath entries
      * @return this operation instance
      * @throws NullPointerException     if {@code classpath} is {@code null} or contains {@code null} elements
-     * @throws IllegalArgumentException if {@code classpath} is empty, or contains empty elements
+     * @throws IllegalArgumentException if {@code classpath} is empty, or contains blank elements
      */
     public final CompileKotlinOperation compileTestClasspath(@NonNull Collection<String> classpath) {
-        ObjectTools.requireNotEmpty(classpath, "compileTestClasspath");
+        TextTools.requireNotBlank(classpath, "compileTestClasspath");
         compileTestClasspath_.addAll(classpath);
         return this;
     }
@@ -569,11 +569,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param dir the directory path
      * @return this operation instance
      * @throws NullPointerException     if {@code dir} is {@code null}
-     * @throws IllegalArgumentException if {@code dir} is empty
+     * @throws IllegalArgumentException if {@code dir} is blank
      */
-    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
     public CompileKotlinOperation kotlinHome(@NonNull String dir) {
-        ObjectTools.requireNotEmpty(dir, "kotlinHome");
+        TextTools.requireNotBlank(dir, "kotlinHome");
         return kotlinHome(new File(dir));
     }
 
@@ -618,11 +617,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param executable the executable path
      * @return this operation instance
      * @throws NullPointerException     if {@code executable} is {@code null}
-     * @throws IllegalArgumentException if {@code executable} is empty
+     * @throws IllegalArgumentException if {@code executable} is blank
      */
-    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
     public CompileKotlinOperation kotlinc(@NonNull String executable) {
-        ObjectTools.requireNotEmpty(executable, KOTLINC);
+        TextTools.requireNotBlank(executable, KOTLIN_COMPILER);
         return kotlinc(new File(executable));
     }
 
@@ -703,11 +701,11 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param directories one or more main source directories
      * @return this operation instance
      * @throws NullPointerException     if {@code directories} is {@code null}
-     * @throws IllegalArgumentException if {@code directories} is empty, or contains {@code null} or empty elements
+     * @throws IllegalArgumentException if {@code directories} is empty, or contains blank elements
      * @see #mainSourceDirectoriesStrings(Collection)
      */
     public CompileKotlinOperation mainSourceDirectories(@NonNull String... directories) {
-        ObjectTools.requireNotEmpty(directories, MAIN_SOURCE_DIRECTORIES);
+        TextTools.requireNotBlank("mainSourceDirectories", directories);
         return mainSourceDirectoriesStrings(List.of(directories));
     }
 
@@ -746,11 +744,11 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param directories the main source directories
      * @return this operation instance
      * @throws NullPointerException     if {@code directories} is {@code null}
-     * @throws IllegalArgumentException if {@code directories} is empty, or contains {@code null} or empty elements
+     * @throws IllegalArgumentException if {@code directories} is empty, or contains blank elements
      * @see #mainSourceDirectories(String...)
      */
     public final CompileKotlinOperation mainSourceDirectoriesStrings(@NonNull Collection<String> directories) {
-        ObjectTools.requireNotEmpty(directories, "mainSourceDirectoriesStrings");
+        TextTools.requireNotBlank(directories, "mainSourceDirectoriesStrings");
         mainSourceDirectories_.addAll(CollectionTools.combineStringsToFiles(directories));
         return this;
     }
@@ -784,11 +782,11 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param files one or more main source files
      * @return this operation instance
      * @throws NullPointerException     if {@code files} is {@code null}
-     * @throws IllegalArgumentException if {@code files} is empty, or contains {@code null} or empty elements
+     * @throws IllegalArgumentException if {@code files} is empty, or contains blank elements
      * @see #mainSourceFilesStrings(Collection)
      */
     public CompileKotlinOperation mainSourceFiles(@NonNull String... files) {
-        ObjectTools.requireNotEmpty(files, MAIN_SOURCE_FILES);
+        TextTools.requireNotBlank("mainSourceFiles", files);
         return mainSourceFilesStrings(List.of(files));
     }
 
@@ -840,11 +838,11 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param files the main source files
      * @return this operation instance
      * @throws NullPointerException     if {@code files} is {@code null}
-     * @throws IllegalArgumentException if {@code files} is empty, or contains {@code null} or empty elements
+     * @throws IllegalArgumentException if {@code files} is empty, or contains blank elements
      * @see #mainSourceFiles(String...)
      */
     public final CompileKotlinOperation mainSourceFilesStrings(@NonNull Collection<String> files) {
-        ObjectTools.requireNotEmpty(files, "mainSourceFilesStrings");
+        TextTools.requireNotBlank(files, "mainSourceFilesStrings");
         mainSourceFiles_.addAll(CollectionTools.combineStringsToFiles(files));
         return this;
     }
@@ -856,11 +854,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param plugins   one or more plugins
      * @return this class instance
      * @throws NullPointerException     if {@code directory} or {@code plugins} is {@code null}
-     * @throws IllegalArgumentException if {@code directory} is empty
+     * @throws IllegalArgumentException if {@code directory} is blank
      */
-    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
     public CompileKotlinOperation plugins(@NonNull String directory, @NonNull CompilerPlugin... plugins) {
-        ObjectTools.requireNotEmpty(directory, "plugins directory");
+        TextTools.requireNotBlank(directory, "plugins directory");
         Objects.requireNonNull(plugins, PLUGINS);
         return plugins(new File(directory), plugins);
     }
@@ -873,7 +870,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @return this class instance
      * @throws NullPointerException if {@code directory} or {@code plugins} is {@code null}
      */
-    @SuppressFBWarnings("PATH_TRAVERSAL_IN")
     public CompileKotlinOperation plugins(@NonNull File directory, @NonNull CompilerPlugin... plugins) {
         Objects.requireNonNull(directory, "'plugins directory' must not be null");
         Objects.requireNonNull(plugins, PLUGINS);
@@ -915,10 +911,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param plugins the compiler plugins
      * @return this class instance
      * @throws NullPointerException     if {@code plugins} is {@code null}
-     * @throws IllegalArgumentException if {@code plugins} is empty, or contains {@code null} or empty elements
+     * @throws IllegalArgumentException if {@code plugins} is empty, or contains blank elements
      */
     public final CompileKotlinOperation plugins(@NonNull Collection<String> plugins) {
-        ObjectTools.requireNotEmpty(plugins, PLUGINS);
+        TextTools.requireNotBlank(plugins, PLUGINS);
         plugins_.addAll(plugins);
         return this;
     }
@@ -996,11 +992,11 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param directories one or more test source directories
      * @return this operation instance
      * @throws NullPointerException     if {@code directories} is {@code null}
-     * @throws IllegalArgumentException if {@code directories} is empty, or contains {@code null} or empty elements
+     * @throws IllegalArgumentException if {@code directories} is empty, or contains blank elements
      * @see #testSourceDirectoriesStrings(Collection)
      */
     public CompileKotlinOperation testSourceDirectories(@NonNull String... directories) {
-        ObjectTools.requireNotEmpty(directories, TEST_SOURCE_DIRECTORIES);
+        TextTools.requireNotBlank("testSourceDirectories", directories);
         return testSourceDirectoriesStrings(List.of(directories));
     }
 
@@ -1039,11 +1035,11 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param directories the test source directories
      * @return this operation instance
      * @throws NullPointerException     if {@code directories} is {@code null}
-     * @throws IllegalArgumentException if {@code directories} is empty, or contains {@code null} or empty elements
+     * @throws IllegalArgumentException if {@code directories} is empty, or contains blank elements
      * @see #testSourceDirectories(String...)
      */
     public final CompileKotlinOperation testSourceDirectoriesStrings(@NonNull Collection<String> directories) {
-        ObjectTools.requireNotEmpty(directories, "testSourceDirectoriesStrings");
+        TextTools.requireNotBlank(directories, "testSourceDirectoriesStrings");
         testSourceDirectories_.addAll(CollectionTools.combineStringsToFiles(directories));
         return this;
     }
@@ -1077,11 +1073,11 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param files one or more test source files
      * @return this operation instance
      * @throws NullPointerException     if {@code files} is {@code null}
-     * @throws IllegalArgumentException if {@code files} is empty, or contains {@code null} or empty elements
+     * @throws IllegalArgumentException if {@code files} is empty, or contains blank elements
      * @see #testSourceFilesStrings(Collection)
      */
     public CompileKotlinOperation testSourceFiles(@NonNull String... files) {
-        ObjectTools.requireNotEmpty(files, TEST_SOURCE_FILES);
+        TextTools.requireNotBlank("testSourceFiles", files);
         return testSourceFilesStrings(List.of(files));
     }
 
@@ -1133,11 +1129,11 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param files the test source files
      * @return this operation instance
      * @throws NullPointerException     if {@code files} is {@code null}
-     * @throws IllegalArgumentException if {@code files} is empty, or contains {@code null} or empty elements
+     * @throws IllegalArgumentException if {@code files} is empty, or contains blank elements
      * @see #testSourceFiles(String...)
      */
     public final CompileKotlinOperation testSourceFilesStrings(@NonNull Collection<String> files) {
-        ObjectTools.requireNotEmpty(files, "testSourceFilesStrings");
+        TextTools.requireNotBlank(files, "testSourceFilesStrings");
         testSourceFiles_.addAll(CollectionTools.combineStringsToFiles(files));
         return this;
     }
@@ -1172,10 +1168,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param dir the directory path
      * @return this operation instance
      * @throws NullPointerException     if {@code dir} is {@code null}
-     * @throws IllegalArgumentException if {@code dir} is empty
+     * @throws IllegalArgumentException if {@code dir} is blank
      */
     public CompileKotlinOperation workDir(@NonNull String dir) {
-        ObjectTools.requireNotEmpty(dir, WORK_DIR);
+        TextTools.requireNotBlank(dir, WORK_DIR);
         return workDir(new File(dir));
     }
 
