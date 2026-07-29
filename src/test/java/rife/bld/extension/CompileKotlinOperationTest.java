@@ -21,7 +21,6 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EmptySource;
@@ -30,23 +29,20 @@ import rife.bld.blueprints.BaseProjectBlueprint;
 import rife.bld.extension.kotlin.CompileOptions;
 import rife.bld.extension.kotlin.CompilerPlugin;
 import rife.bld.extension.kotlin.JvmOptions;
-import rife.bld.extension.testing.LoggingExtension;
-import rife.bld.extension.testing.RandomString;
+import rife.bld.testing.LoggingExtension;
+import rife.bld.testing.RandomString;
 import rife.bld.extension.tools.IOTools;
 import rife.bld.extension.tools.SystemTools;
+import rife.bld.operations.exceptions.ExitStatusException;
 
 import java.io.File;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.*;
 
 @ExtendWith(LoggingExtension.class)
-@SuppressWarnings("PMD.AvoidDuplicateLiterals")
+@SuppressWarnings({"PMD.AvoidDuplicateLiterals", })
 class CompileKotlinOperationTest {
 
     private static final String BAR = "bar";
@@ -54,78 +50,109 @@ class CompileKotlinOperationTest {
     private static final String FILE_2 = "file2";
     private static final String FOO = "foo";
 
-    @RegisterExtension
-    @SuppressWarnings({"unused"})
-    private static final LoggingExtension LOGGING_EXTENSION =
-            new LoggingExtension(CompileKotlinOperation.class.getName());
-
     private static final String PROJECT = "examples";
     private static final String PROJECT_NAME = "Example";
     private static final String PROJECT_PACKAGE = "com.example";
     @TempDir
     private File tmpDir;
 
-    @Test
-    void execute() throws Exception {
-        var buildDir = new File(tmpDir, "build");
-        var mainDir = new File(buildDir, "main");
-        var testDir = new File(buildDir, "test");
+    @Nested
+    @DisplayName("Execute Tests")
+    class ExecuteTests {
 
-        try (var softly = new AutoCloseableSoftAssertions()) {
-            softly.assertThat(mainDir.mkdirs()).as("make mainDir").isTrue();
-            softly.assertThat(testDir.mkdirs()).as("make testDir").isTrue();
+        @Test
+        void execute() throws Exception {
+            var buildDir = new File(tmpDir, "build");
+            var mainDir = new File(buildDir, "main");
+            var testDir = new File(buildDir, "test");
+
+            try (var softly = new AutoCloseableSoftAssertions()) {
+                softly.assertThat(mainDir.mkdirs()).as("make mainDir").isTrue();
+                softly.assertThat(testDir.mkdirs()).as("make testDir").isTrue();
+            }
+
+            var compileJars = new ArrayList<String>();
+            for (var f : Objects.requireNonNull(new File("examples/lib/compile").listFiles())) {
+                compileJars.add(f.getAbsolutePath());
+            }
+
+            var testJars = new ArrayList<String>();
+            for (var f : Objects.requireNonNull(new File("examples/lib/test").listFiles())) {
+                testJars.add(f.getAbsolutePath());
+            }
+
+            var op = new CompileKotlinOperation()
+                    .fromProject(new BaseProjectBlueprint(new File(PROJECT), PROJECT_PACKAGE, PROJECT_NAME, PROJECT_NAME))
+                    .buildMainDirectory(mainDir)
+                    .buildTestDirectory(testDir)
+                    .compileMainClasspath(compileJars)
+                    .compileTestClasspath(testJars)
+                    .compileTestClasspath(compileJars)
+                    .compileTestClasspath(mainDir.getAbsolutePath());
+
+            op.compileOptions().verbose(true);
+            op.compileOptions().argFile("src/test/resources/argfile.txt", "src/test/resources/argfile2.txt");
+
+            if (!SystemTools.isWindows()) {
+                op.jvmOptions().nativeAccessModules(JvmOptions.ALL_UNNAMED);
+                assertThat(op.jvmOptions().args()).containsExactly("--enable-native-access=ALL-UNNAMED");
+            }
+
+            var args = op.compileOptions().args();
+            var matches = List.of("-Xjdk-release=17", "-no-reflect", "-progressive", "-include-runtime", "-no-stdlib",
+                    "-verbose");
+            assertThat(args).as("%s == %s", args, matches).isEqualTo(matches);
+
+            op.execute();
+
+            try (var softly = new AutoCloseableSoftAssertions()) {
+                softly.assertThat(tmpDir).as("tmpDir shouldn't be empty").isNotEmptyDirectory();
+                softly.assertThat(mainDir).as("mainDir shouldn't be empty").isNotEmptyDirectory();
+                softly.assertThat(testDir).as("testDir shouldn't be empty").isNotEmptyDirectory();
+            }
+
+            var mainOut = IOTools.resolveFile(mainDir, "com", "example");
+            try (var softly = new AutoCloseableSoftAssertions()) {
+                softly.assertThat(new File(mainOut, "Example.class")).as("Example.class").exists();
+                softly.assertThat(new File(mainOut, "Example$Companion.class"))
+                        .as("ExampleCompanion.class").exists();
+            }
+
+            var testOut = IOTools.resolveFile(testDir, "com", "example");
+            assertThat(new File(testOut, "ExampleTest.class")).as("ExampleTest.class").exists();
         }
 
-        var compileJars = new ArrayList<String>();
-        for (var f : Objects.requireNonNull(new File("examples/lib/compile").listFiles())) {
-            compileJars.add(f.getAbsolutePath());
+        @Test
+        void executeWithConsumer() throws Exception {
+            var lines = new ArrayList<String>();
+            var op = new CompileKotlinOperation()
+                    .fromProject(new BaseProjectBlueprint(
+                            new File(PROJECT), PROJECT_PACKAGE, PROJECT_NAME, PROJECT_NAME))
+                    .inheritIO(false)
+                    .outputConsumer(lines::add);
+            op.compileOptions().verbose(true);
+            op.execute();
+            assertThat(lines).contains("logging: configuring the compilation environment");
         }
 
-        var testJars = new ArrayList<String>();
-        for (var f : Objects.requireNonNull(new File("examples/lib/test").listFiles())) {
-            testJars.add(f.getAbsolutePath());
+        @Test
+        void executeWithInheritIO() {
+            var op = new CompileKotlinOperation()
+                    .fromProject(new BaseProjectBlueprint(
+                            new File(PROJECT), PROJECT_PACKAGE, PROJECT_NAME, PROJECT_NAME))
+                    .inheritIO(true);
+            assertThatCode(op::execute).doesNotThrowAnyException();
         }
 
-        var op = new CompileKotlinOperation()
-                .fromProject(new BaseProjectBlueprint(new File(PROJECT), PROJECT_PACKAGE, PROJECT_NAME, PROJECT_NAME))
-                .buildMainDirectory(mainDir)
-                .buildTestDirectory(testDir)
-                .compileMainClasspath(compileJars)
-                .compileTestClasspath(testJars)
-                .compileTestClasspath(compileJars)
-                .compileTestClasspath(mainDir.getAbsolutePath());
-
-        op.compileOptions().verbose(true);
-        op.compileOptions().argFile("src/test/resources/argfile.txt", "src/test/resources/argfile2.txt");
-
-        if (!SystemTools.isWindows()) {
-            op.jvmOptions().nativeAccessModules(JvmOptions.ALL_UNNAMED);
-            assertThat(op.jvmOptions().args()).containsExactly("--enable-native-access=ALL-UNNAMED");
+        @Test
+        void executeWithTimeout() {
+            var op = new CompileKotlinOperation()
+                    .fromProject(new BaseProjectBlueprint(
+                            new File(PROJECT), PROJECT_PACKAGE, PROJECT_NAME, PROJECT_NAME))
+                    .timeout(1);
+            assertThatThrownBy(op::execute)
+                    .isInstanceOf(ExitStatusException.class);
         }
-
-        var args = op.compileOptions().args();
-        var matches = List.of("-Xjdk-release=17", "-no-reflect", "-progressive", "-include-runtime", "-no-stdlib",
-                "-verbose");
-        assertThat(args).as("%s == %s", args, matches).isEqualTo(matches);
-
-        op.execute();
-
-        try (var softly = new AutoCloseableSoftAssertions()) {
-            softly.assertThat(tmpDir).as("tmpDir shouldn't be empty").isNotEmptyDirectory();
-            softly.assertThat(mainDir).as("mainDir shouldn't be empty").isNotEmptyDirectory();
-            softly.assertThat(testDir).as("testDir shouldn't be empty").isNotEmptyDirectory();
-        }
-
-        var mainOut = IOTools.resolveFile(mainDir, "com", "example");
-        try (var softly = new AutoCloseableSoftAssertions()) {
-            softly.assertThat(new File(mainOut, "Example.class")).as("Example.class").exists();
-            softly.assertThat(new File(mainOut, "Example$Companion.class"))
-                    .as("ExampleCompanion.class").exists();
-        }
-
-        var testOut = IOTools.resolveFile(testDir, "com", "example");
-        assertThat(new File(testOut, "ExampleTest.class")).as("ExampleTest.class").exists();
-
     }
 
     @Nested
@@ -147,6 +174,9 @@ class CompileKotlinOperationTest {
                             .jdkRelease("17")
                             .jvmTarget("17")
                             .verbose(true))
+                    .env("foo", "bar")
+                    .env(Map.of("FOZ", "BAZ"))
+                    .inheritIO(true)
                     .mainSourceDirectories("dir1", "dir2")
                     .mainSourceDirectories(List.of(new File("dir3"), new File("dir4")))
                     .mainSourceFiles("file1", "file2")
@@ -157,6 +187,7 @@ class CompileKotlinOperationTest {
                     .testSourceFiles("tfile1", "tfile2")
                     .testSourceFiles(List.of(new File("tfile3"), new File("tfile4")))
                     .testSourceFiles(new File("tfile5"), new File("tfile6"))
+                    .timeout(10)
                     .plugins("plugin1", "plugin2")
                     .plugins(CompilerPlugin.KOTLIN_SERIALIZATION, CompilerPlugin.ASSIGNMENT, CompilerPlugin.COMPOSE)
                     .plugins(new File(LIB_COMPILE), CompilerPlugin.LOMBOK, CompilerPlugin.POWER_ASSERT)
@@ -174,9 +205,11 @@ class CompileKotlinOperationTest {
                 softly.assertThat(op.compileOptions().hasRelease()).as("hasRelease").isTrue();
                 softly.assertThat(op.compileOptions().hasTarget()).as("hasTaget").isTrue();
                 softly.assertThat(op.compileOptions().isVerbose()).as("isVerbose").isTrue();
+                softly.assertThat(op.isInheritIO()).as("inheritIO").isTrue();
                 softly.assertThat(op.mainSourceDirectories()).as("mainSourceDirectories").containsExactly(
                         Path.of(PROJECT, "src", "main", "kotlin").toFile(), new File("dir1"),
                         new File("dir2"), new File("dir3"), new File("dir4"));
+                softly.assertThat(op.env()).containsOnly(entry("foo", "bar"), entry("FOZ", "BAZ"));
                 softly.assertThat(op.testSourceDirectories()).as("testSourceDirectories").containsOnly(
                         Path.of(PROJECT, "src", "test", "kotlin").toFile(), new File("tdir1"),
                         new File("tdir2"), new File("tdir3"), new File("tdir4"));
@@ -186,6 +219,7 @@ class CompileKotlinOperationTest {
                 softly.assertThat(op.testSourceFiles()).as("testSourceFiles").containsOnly(
                         new File("tfile1"), new File("tfile2"), new File("tfile3"),
                         new File("tfile4"), new File("tfile5"), new File("tfile6"));
+                softly.assertThat(op.timeout()).as("timeout").isEqualTo(10);
                 softly.assertThat(op.plugins()).as("plugins").contains(
                         "plugin1", "plugin2", "plugin3", "plugin4",
                         "KOTLIN_SERIALIZATION", "ASSIGNMENT", "COMPOSE",
@@ -293,7 +327,7 @@ class CompileKotlinOperationTest {
 
             @Test
             void findKotlincPath() {
-                assertThat(CompileKotlinOperation.findKotlincPath()).doesNotStartWith(KOTLINC);
+                assertThat(CompileKotlinOperation.findKotlinCompilerPath()).doesNotStartWith(KOTLINC);
             }
 
             @Nested

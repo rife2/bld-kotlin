@@ -151,7 +151,7 @@ class CompileOptionsTest {
                     "-opt-in", "opt2",
                     "-foo",
                     "-bar",
-                    "-P", "plugin:id:name:value",
+                    "-P", "plugin:id:name=value",
                     "-script-templates", "name,name2",
                     "-nowarn",
                     "-progressive",
@@ -177,7 +177,7 @@ class CompileOptionsTest {
             var classpath = List.of(new File("path1"), new File("path2"));
             var optIn = List.of("opt1", "opt2");
             var options = List.of("-foo", "-bar");
-            var plugin = List.of("id:name:value", "id2:name2:value2");
+            var plugin = List.of("id:name=value", "id2:name2=value2");
             var scriptTemplates = List.of("temp1", "temp2");
 
             var op = new CompileOptions()
@@ -190,7 +190,7 @@ class CompileOptionsTest {
                     .scriptTemplates(scriptTemplates);
 
             plugin.forEach(it -> {
-                var p = it.split(":");
+                var p = it.split("[=:]");
                 op.plugin(p[0], p[1], p[2]);
             });
 
@@ -221,8 +221,8 @@ class CompileOptionsTest {
                     "-script-templates",
                     "temp1,temp2",
                     "-Xoption1", "-Xoption=2",
-                    "-P", "plugin:id:name:value",
-                    "-P", "plugin:id2:name2:value2");
+                    "-P", "plugin:id:name=value",
+                    "-P", "plugin:id2:name2=value2");
 
             try (var softly = new AutoCloseableSoftAssertions()) {
                 var args = op.args();
@@ -462,7 +462,7 @@ class CompileOptionsTest {
                 softly.assertThat(options.optIn()).containsExactly("opt1", "opt2");
                 softly.assertThat(options.options()).containsExactly("-foo", "-bar");
                 softly.assertThat(options.path()).isEqualTo(new File("path"));
-                softly.assertThat(options.plugin()).containsExactly("id:name:value");
+                softly.assertThat(options.plugin()).containsExactly("id:name=value");
                 softly.assertThat(options.scriptTemplates()).containsExactly("name", "name2");
                 softly.assertThat(options.isWError()).isTrue();
                 softly.assertThat(options.isWExtra()).isTrue();
