@@ -29,11 +29,11 @@ import rife.bld.blueprints.BaseProjectBlueprint;
 import rife.bld.extension.kotlin.CompileOptions;
 import rife.bld.extension.kotlin.CompilerPlugin;
 import rife.bld.extension.kotlin.JvmOptions;
-import rife.bld.testing.LoggingExtension;
-import rife.bld.testing.RandomString;
 import rife.bld.extension.tools.IOTools;
 import rife.bld.extension.tools.SystemTools;
 import rife.bld.operations.exceptions.ExitStatusException;
+import rife.bld.testing.LoggingExtension;
+import rife.bld.testing.RandomString;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -42,7 +42,7 @@ import java.util.*;
 import static org.assertj.core.api.Assertions.*;
 
 @ExtendWith(LoggingExtension.class)
-@SuppressWarnings({"PMD.AvoidDuplicateLiterals", })
+@SuppressWarnings("PMD.AvoidDuplicateLiterals")
 class CompileKotlinOperationTest {
 
     private static final String BAR = "bar";
