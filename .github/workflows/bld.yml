@@ -16,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout source repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -31,15 +31,15 @@ jobs:
         with:
           version: ${{ env.KOTLIN_VERSION }}
 
-      - name: Download dependencies and compile [examples]
-        working-directory: examples
-        run: ./bld download compile
-
-      - name: Download dependencies
-        run: ./bld download
+      - name: Cache bld dependencies
+        id: cache-bld
+        uses: actions/cache@v6
+        with:
+          path: lib
+          key: ${{ runner.os }}-bld-java${{ matrix.java-version}}-lib
 
       - name: Compile source code
-        run: ./bld compile
+        run: ./bld clean compile
 
       - name: Run tests
         id: tests
@@ -47,4 +47,4 @@ jobs:
 
       - name: Run reporter
         if: always() && steps.tests.outcome == 'failure'
-        run: ./bld reporter --all
+        run: ./bld --offline reporter --all

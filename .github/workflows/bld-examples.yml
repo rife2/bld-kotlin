@@ -14,7 +14,7 @@ jobs:
 
     steps:
       - name: Checkout source repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -29,12 +29,21 @@ jobs:
         with:
           version: ${{ matrix.kotlin-version }}
 
-      - name: Download dependencies
+      - name: Cache bld dependencies
+        id: cache-bld
+        uses: actions/cache@v6
+        with:
+          path: examples/lib
+          key: ${{ runner.os }}-bld-java${{ matrix.java-version }}-kotlin{{ martrix.kotlin-version }}-examples-lib
+
+      - name: Compile source
         working-directory: examples
-        run: ./bld download
+        env:
+          KOTLIN_VERSION: ${{ matrix.kotlin-version }}
+        run: ./bld --auto-download-purge clean compile
 
       - name: Run tests
         working-directory: examples
         env:
           KOTLIN_VERSION: ${{ matrix.kotlin-version }}
-        run: ./bld compile test
+        run: ./bld test
