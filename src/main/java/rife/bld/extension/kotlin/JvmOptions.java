@@ -16,8 +16,9 @@
 
 package rife.bld.extension.kotlin;
 
-import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import rife.bld.extension.tools.ObjectTools;
 import rife.bld.extension.tools.TextTools;
 import rife.tools.StringUtils;
@@ -30,6 +31,7 @@ import java.util.*;
  * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
  * @since 1.1.0
  */
+@NullMarked
 public class JvmOptions {
 
     /**
@@ -38,7 +40,7 @@ public class JvmOptions {
     public static final String ALL_UNNAMED = "ALL-UNNAMED";
 
     private final Set<String> nativeAccessModules_ = new LinkedHashSet<>();
-    private NativeAccess illegalAccessMode_;
+    private @Nullable NativeAccess illegalAccessMode_;
 
     /**
      * Returns the formatted arguments.
@@ -65,6 +67,7 @@ public class JvmOptions {
      * @return the access mode or {@code null} if unspecified
      * @since 1.2
      */
+    @Nullable
     public NativeAccess illegalNativeAccess() {
         return illegalAccessMode_;
     }
@@ -79,10 +82,10 @@ public class JvmOptions {
      * @throws NullPointerException if access is {@code null}
      * @deprecated Removed in JDK 23
      */
-    @NonNull
+
     @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated(since = "23")
-    public JvmOptions illegalNativeAccess(@NonNull NativeAccess access) {
+    public JvmOptions illegalNativeAccess(NativeAccess access) {
         ObjectTools.requireNonNull(access, "illegalNativeAccess");
         illegalAccessMode_ = access;
         return this;
@@ -99,8 +102,8 @@ public class JvmOptions {
      * @throws IllegalArgumentException if {@code modules} is empty, or contains blank elements
      * @since 1.2
      */
-    @NonNull
-    public JvmOptions nativeAccessModules(@NonNull Collection<String> modules) {
+
+    public JvmOptions nativeAccessModules(Collection<String> modules) {
         TextTools.requireNotBlank(modules, "nativeAccessModules");
         nativeAccessModules_.addAll(modules);
         return this;
@@ -118,8 +121,8 @@ public class JvmOptions {
      * @since 1.2
      */
 
-    @NonNull
-    public JvmOptions nativeAccessModules(@NonNull String... modules) {
+
+    public JvmOptions nativeAccessModules(String... modules) {
         TextTools.requireNotBlank("nativeAccessModules", modules);
         nativeAccessModules_.addAll(List.of(modules));
         return this;
@@ -169,7 +172,7 @@ public class JvmOptions {
          *
          * @return the native access mode
          */
-        @NonNull
+
         public String getMode() {
             return name().toLowerCase();
         }

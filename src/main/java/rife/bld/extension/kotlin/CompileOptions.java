@@ -16,8 +16,9 @@
 
 package rife.bld.extension.kotlin;
 
-import edu.umd.cs.findbugs.annotations.NonNull;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import rife.bld.extension.tools.CollectionTools;
 import rife.bld.extension.tools.ObjectTools;
 import rife.bld.extension.tools.TextTools;
@@ -38,6 +39,7 @@ import java.util.logging.Logger;
  * @author <a href="https://erik.thauvin.net/">Erik C. Thauvin</a>
  * @since 1.0
  */
+@NullMarked
 @SuppressFBWarnings(
         value = "EI_EXPOSE_REP",
         justification = "Builder pattern intentionally exposes mutable collections"
@@ -55,22 +57,22 @@ public class CompileOptions {
     private final Set<String> plugin_ = new LinkedHashSet<>();
     private final Set<String> scriptTemplates_ = new LinkedHashSet<>();
 
-    private String apiVersion_;
-    private String expression_;
+    private @Nullable String apiVersion_;
+    private @Nullable String expression_;
     private boolean includeRuntime_;
     private boolean javaParameters_;
-    private File jdkHome_;
-    private String jdkRelease_;
-    private JvmDefault jvmDefault_;
-    private String jvmTarget_;
-    private File kotlinHome_;
-    private String languageVersion_;
-    private String moduleName_;
+    private @Nullable File jdkHome_;
+    private @Nullable String jdkRelease_;
+    private @Nullable JvmDefault jvmDefault_;
+    private @Nullable String jvmTarget_;
+    private @Nullable File kotlinHome_;
+    private @Nullable String languageVersion_;
+    private @Nullable String moduleName_;
     private boolean noJdk_;
     private boolean noReflect_;
     private boolean noStdLib_;
     private boolean noWarn_;
-    private File path_;
+    private @Nullable File path_;
     private boolean progressive_;
     private boolean verbose_;
     private boolean wError_;
@@ -136,7 +138,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code options} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code options} is empty, or contains blank elements
      */
-    public CompileOptions advancedOptions(@NonNull String... options) {
+    public CompileOptions advancedOptions(String... options) {
         TextTools.requireNotBlank("advancedOptions", options);
         advancedOptions_.addAll(List.of(options));
         return this;
@@ -150,7 +152,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code options} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code options} is empty, or contains blank elements
      */
-    public final CompileOptions advancedOptions(@NonNull Collection<String> options) {
+    public final CompileOptions advancedOptions(Collection<String> options) {
         TextTools.requireNotBlank(options, "advancedOptions");
         advancedOptions_.addAll(options);
         return this;
@@ -173,7 +175,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code version} is {@code null}
      * @throws IllegalArgumentException if {@code version} is blank
      */
-    public CompileOptions apiVersion(@NonNull String version) {
+    public CompileOptions apiVersion(String version) {
         apiVersion_ = TextTools.requireNotBlank(version, "apiVersion");
         return this;
     }
@@ -193,6 +195,7 @@ public class CompileOptions {
      *
      * @return the API version
      */
+    @Nullable
     public String apiVersion() {
         return apiVersion_;
     }
@@ -217,7 +220,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code files} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code files} is empty, or contains blank elements
      */
-    public CompileOptions argFile(@NonNull String... files) {
+    public CompileOptions argFile(String... files) {
         TextTools.requireNotBlank(ARG_FILE, files);
         argFile_.addAll(CollectionTools.combineStringsToFiles(files));
         return this;
@@ -231,7 +234,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code files} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code files} is empty
      */
-    public CompileOptions argFile(@NonNull File... files) {
+    public CompileOptions argFile(File... files) {
         ObjectTools.requireNotEmpty(files, ARG_FILE);
         argFile_.addAll(List.of(files));
         return this;
@@ -245,7 +248,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code files} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code files} is empty
      */
-    public CompileOptions argFile(@NonNull Path... files) {
+    public CompileOptions argFile(Path... files) {
         ObjectTools.requireNotEmpty(files, ARG_FILE);
         argFile_.addAll(CollectionTools.combinePathsToFiles(files));
         return this;
@@ -259,7 +262,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code files} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code files} is empty
      */
-    public final CompileOptions argFile(@NonNull Collection<File> files) {
+    public final CompileOptions argFile(Collection<File> files) {
         ObjectTools.requireNotEmpty(files, ARG_FILE);
         argFile_.addAll(files);
         return this;
@@ -282,7 +285,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code files} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code files} is empty
      */
-    public final CompileOptions argFilePaths(@NonNull Collection<Path> files) {
+    public final CompileOptions argFilePaths(Collection<Path> files) {
         ObjectTools.requireNotEmpty(files, "argFilePaths");
         argFile_.addAll(CollectionTools.combinePathsToFiles(files));
         return this;
@@ -296,7 +299,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code files} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code files} is empty, or contains blank elements
      */
-    public final CompileOptions argFileStrings(@NonNull Collection<String> files) {
+    public final CompileOptions argFileStrings(Collection<String> files) {
         TextTools.requireNotBlank(files, "argFileStrings");
         argFile_.addAll(CollectionTools.combineStringsToFiles(files));
         return this;
@@ -312,8 +315,12 @@ public class CompileOptions {
         var args = new ArrayList<String>(32);
 
         // Version flags
-        addFlag(args, "-api-version", apiVersion_);
-        addFlag(args, "-language-version", languageVersion_);
+        if (apiVersion_ != null) {
+            addFlag(args, "-api-version", apiVersion_);
+        }
+        if (languageVersion_ != null) {
+            addFlag(args, "-language-version", languageVersion_);
+        }
 
         addArgFileArgs(args);
         addJvmArgs(args);
@@ -341,7 +348,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code paths} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code paths} is empty, or contains blank elements
      */
-    public CompileOptions classpath(@NonNull String... paths) {
+    public CompileOptions classpath(String... paths) {
         TextTools.requireNotBlank(CLASSPATH, paths);
         classpath_.addAll(CollectionTools.combineStringsToFiles(paths));
         return this;
@@ -357,7 +364,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code paths} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code paths} is empty
      */
-    public CompileOptions classpath(@NonNull File... paths) {
+    public CompileOptions classpath(File... paths) {
         ObjectTools.requireNotEmpty(paths, CLASSPATH);
         classpath_.addAll(List.of(paths));
         return this;
@@ -373,7 +380,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code paths} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code paths} is empty
      */
-    public CompileOptions classpath(@NonNull Path... paths) {
+    public CompileOptions classpath(Path... paths) {
         ObjectTools.requireNotEmpty(paths, CLASSPATH);
         classpath_.addAll(CollectionTools.combinePathsToFiles(paths));
         return this;
@@ -389,7 +396,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code paths} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code paths} is empty
      */
-    public final CompileOptions classpath(@NonNull Collection<File> paths) {
+    public final CompileOptions classpath(Collection<File> paths) {
         ObjectTools.requireNotEmpty(paths, CLASSPATH);
         classpath_.addAll(paths);
         return this;
@@ -412,7 +419,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code paths} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code paths} is empty
      */
-    public final CompileOptions classpathPaths(@NonNull Collection<Path> paths) {
+    public final CompileOptions classpathPaths(Collection<Path> paths) {
         ObjectTools.requireNotEmpty(paths, "classpathPaths");
         classpath_.addAll(CollectionTools.combinePathsToFiles(paths));
         return this;
@@ -426,7 +433,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code paths} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code paths} is empty, or contains blank elements
      */
-    public final CompileOptions classpathStrings(@NonNull Collection<String> paths) {
+    public final CompileOptions classpathStrings(Collection<String> paths) {
         TextTools.requireNotBlank(paths, "classpathStrings");
         classpath_.addAll(CollectionTools.combineStringsToFiles(paths));
         return this;
@@ -440,7 +447,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code expression} is {@code null}
      * @throws IllegalArgumentException if {@code expression} is blank
      */
-    public CompileOptions expression(@NonNull String expression) {
+    public CompileOptions expression(String expression) {
         expression_ = TextTools.requireNotBlank(expression, "expression");
         return this;
     }
@@ -450,6 +457,7 @@ public class CompileOptions {
      *
      * @return the expression
      */
+    @Nullable
     public String expression() {
         return expression_;
     }
@@ -591,7 +599,7 @@ public class CompileOptions {
      * @return this operation instance
      * @throws NullPointerException if {@code jdkHome} is {@code null}
      */
-    public CompileOptions jdkHome(@NonNull File jdkHome) {
+    public CompileOptions jdkHome(File jdkHome) {
         jdkHome_ = ObjectTools.requireNonNull(jdkHome, "jdkHome");
         return this;
     }
@@ -603,7 +611,7 @@ public class CompileOptions {
      * @return this operation instance
      * @throws NullPointerException if {@code jdkHome} is {@code null}
      */
-    public CompileOptions jdkHome(@NonNull Path jdkHome) {
+    public CompileOptions jdkHome(Path jdkHome) {
         ObjectTools.requireNonNull(jdkHome, "jdkHome");
         return jdkHome(jdkHome.toFile());
     }
@@ -616,7 +624,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code jdkHome} is {@code null}
      * @throws IllegalArgumentException if {@code jdkHome} is blank
      */
-    public CompileOptions jdkHome(@NonNull String jdkHome) {
+    public CompileOptions jdkHome(String jdkHome) {
         TextTools.requireNotBlank(jdkHome, "jdkHome");
         return jdkHome(new File(jdkHome));
     }
@@ -626,6 +634,7 @@ public class CompileOptions {
      *
      * @return the JDK home path
      */
+    @Nullable
     public File jdkHome() {
         return jdkHome_;
     }
@@ -643,7 +652,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code version} is null
      * @throws IllegalArgumentException if {@code version} is blank
      */
-    public CompileOptions jdkRelease(@NonNull String version) {
+    public CompileOptions jdkRelease(String version) {
         jdkRelease_ = TextTools.requireNotBlank(version, "jdkRelease");
         return this;
     }
@@ -664,6 +673,7 @@ public class CompileOptions {
      *
      * @return the API version
      */
+    @Nullable
     public String jdkRelease() {
         return jdkRelease_;
     }
@@ -687,6 +697,7 @@ public class CompileOptions {
      * @return the default methods option
      * @since 1.1.0
      */
+    @Nullable
     public JvmDefault jvmDefault() {
         return jvmDefault_;
     }
@@ -701,7 +712,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code jvmTarget} is {@code null}
      * @throws IllegalArgumentException if {@code jvmTarget} is blank
      */
-    public CompileOptions jvmTarget(@NonNull String target) {
+    public CompileOptions jvmTarget(String target) {
         jvmTarget_ = TextTools.requireNotBlank(target, "jvmTarget");
         return this;
     }
@@ -722,6 +733,7 @@ public class CompileOptions {
      *
      * @return the target version
      */
+    @Nullable
     public String jvmTarget() {
         return jvmTarget_;
     }
@@ -733,7 +745,7 @@ public class CompileOptions {
      * @return this operation instance
      * @throws NullPointerException if {@code path} is {@code null}
      */
-    public CompileOptions kotlinHome(@NonNull File path) {
+    public CompileOptions kotlinHome(File path) {
         kotlinHome_ = ObjectTools.requireNonNull(path, "kotlinHome");
         return this;
     }
@@ -745,7 +757,7 @@ public class CompileOptions {
      * @return this operation instance
      * @throws NullPointerException if {@code path} is {@code null}
      */
-    public CompileOptions kotlinHome(@NonNull Path path) {
+    public CompileOptions kotlinHome(Path path) {
         ObjectTools.requireNonNull(path, "kotlinHome");
         return kotlinHome(path.toFile());
     }
@@ -758,7 +770,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code path} is {@code null}
      * @throws IllegalArgumentException if {@code path} is blank
      */
-    public CompileOptions kotlinHome(@NonNull String path) {
+    public CompileOptions kotlinHome(String path) {
         TextTools.requireNotBlank(path, "kotlinHome");
         return kotlinHome(new File(path));
     }
@@ -768,6 +780,7 @@ public class CompileOptions {
      *
      * @return the Kotlin home path
      */
+    @Nullable
     public File kotlinHome() {
         return kotlinHome_;
     }
@@ -780,7 +793,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code version} is null
      * @throws IllegalArgumentException if {@code version} is blank
      */
-    public CompileOptions languageVersion(@NonNull String version) {
+    public CompileOptions languageVersion(String version) {
         languageVersion_ = TextTools.requireNotBlank(version, "languageVersion");
         return this;
     }
@@ -790,6 +803,7 @@ public class CompileOptions {
      *
      * @return the language version
      */
+    @Nullable
     public String languageVersion() {
         return languageVersion_;
     }
@@ -802,7 +816,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code name} is null
      * @throws IllegalArgumentException if {@code name} is blank
      */
-    public CompileOptions moduleName(@NonNull String name) {
+    public CompileOptions moduleName(String name) {
         moduleName_ = TextTools.requireNotBlank(name, "moduleName");
         return this;
     }
@@ -812,6 +826,7 @@ public class CompileOptions {
      *
      * @return the module name
      */
+    @Nullable
     public String moduleName() {
         return moduleName_;
     }
@@ -869,7 +884,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code annotations} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code annotations} is empty, or contains blank elements
      */
-    public CompileOptions optIn(@NonNull String... annotations) {
+    public CompileOptions optIn(String... annotations) {
         TextTools.requireNotBlank("optIn", annotations);
         optIn_.addAll(List.of(annotations));
         return this;
@@ -883,7 +898,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code annotations} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code annotations} is empty, or contains blank elements
      */
-    public final CompileOptions optIn(@NonNull Collection<String> annotations) {
+    public final CompileOptions optIn(Collection<String> annotations) {
         TextTools.requireNotBlank(annotations, "optIn");
         optIn_.addAll(annotations);
         return this;
@@ -906,7 +921,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code options} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code options} is empty, or contains blank elements
      */
-    public CompileOptions options(@NonNull String... options) {
+    public CompileOptions options(String... options) {
         TextTools.requireNotBlank("options", options);
         options_.addAll(List.of(options));
         return this;
@@ -920,7 +935,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code options} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code options} is empty, or contains blank elements
      */
-    public final CompileOptions options(@NonNull Collection<String> options) {
+    public final CompileOptions options(Collection<String> options) {
         TextTools.requireNotBlank(options, "options");
         options_.addAll(options);
         return this;
@@ -944,7 +959,7 @@ public class CompileOptions {
      * @return this operation instance
      * @throws NullPointerException if {@code path} is {@code null}
      */
-    public CompileOptions path(@NonNull File path) {
+    public CompileOptions path(File path) {
         path_ = ObjectTools.requireNonNull(path, "path");
         return this;
     }
@@ -958,7 +973,7 @@ public class CompileOptions {
      * @return this operation instance
      * @throws NullPointerException if {@code path} is {@code null}
      */
-    public CompileOptions path(@NonNull Path path) {
+    public CompileOptions path(Path path) {
         ObjectTools.requireNonNull(path, "path");
         return path(path.toFile());
     }
@@ -973,7 +988,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code path} is {@code null}
      * @throws IllegalArgumentException if {@code path} is blank
      */
-    public CompileOptions path(@NonNull String path) {
+    public CompileOptions path(String path) {
         TextTools.requireNotBlank(path, "path");
         return path(new File(path));
     }
@@ -983,6 +998,7 @@ public class CompileOptions {
      *
      * @return the location path
      */
+    @Nullable
     public File path() {
         return path_;
     }
@@ -997,7 +1013,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code id}, {@code optionName}, or {@code value} are {@code null}
      * @throws IllegalArgumentException if {@code id}, {@code optionName}, or {@code value} are blank
      */
-    public CompileOptions plugin(@NonNull String id, @NonNull String optionName, @NonNull String value) {
+    public CompileOptions plugin(String id, String optionName, String value) {
         TextTools.requireNotBlank(id, "plugin id");
         TextTools.requireNotBlank(optionName, "plugin option name");
         TextTools.requireNotBlank(value, "plugin value");
@@ -1035,7 +1051,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code classNames} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code classNames} is empty, or contains blank elements
      */
-    public CompileOptions scriptTemplates(@NonNull String... classNames) {
+    public CompileOptions scriptTemplates(String... classNames) {
         TextTools.requireNotBlank("scriptTemplates", classNames);
         scriptTemplates_.addAll(List.of(classNames));
         return this;
@@ -1051,7 +1067,7 @@ public class CompileOptions {
      * @throws NullPointerException     if {@code classNames} is {@code null} or contains {@code null} elements
      * @throws IllegalArgumentException if {@code classNames} is empty, or contains blank elements
      */
-    public final CompileOptions scriptTemplates(@NonNull Collection<String> classNames) {
+    public final CompileOptions scriptTemplates(Collection<String> classNames) {
         TextTools.requireNotBlank(classNames, "scriptTemplates");
         scriptTemplates_.addAll(classNames);
         return this;
@@ -1126,9 +1142,16 @@ public class CompileOptions {
      * Adds JVM-targeting flags.
      */
     private void addJvmArgs(List<String> args) {
-        addFlag(args, "-expression", expression_);
+        if (expression_ != null) {
+            addFlag(args, "-expression", expression_);
+        }
+
         addFlag(args, "-java-parameters", javaParameters_);
-        addFlag(args, "-jvm-target", jvmTarget_);
+
+        if (jvmTarget_ != null) {
+            addFlag(args, "-jvm-target", jvmTarget_);
+        }
+
         addFlag(args, "-include-runtime", includeRuntime_);
 
         if (jdkHome_ != null) {
@@ -1154,7 +1177,10 @@ public class CompileOptions {
             args.add(kotlinHome_.getAbsolutePath());
         }
 
-        addFlag(args, "-module-name", moduleName_);
+        if (moduleName_ != null) {
+            addFlag(args, "-module-name", moduleName_);
+        }
+
         addFlag(args, "-no-jdk", noJdk_);
         addFlag(args, "-no-reflect", noReflect_);
         addFlag(args, "-no-stdlib", noStdLib_);

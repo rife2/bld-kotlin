@@ -90,15 +90,19 @@ class CompileKotlinOperationTest {
                     .compileTestClasspath(compileJars)
                     .compileTestClasspath(mainDir.getAbsolutePath());
 
-            op.compileOptions().verbose(true);
-            op.compileOptions().argFile("src/test/resources/argfile.txt", "src/test/resources/argfile2.txt");
+            var compileOptions = op.compileOptions();
+            assertThat(compileOptions).as("compileOptions() should not be null").isNotNull();
+            compileOptions.verbose(true);
+            compileOptions.argFile("src/test/resources/argfile.txt", "src/test/resources/argfile2.txt");
 
+            var jvmOptions = op.jvmOptions();
+            assertThat(jvmOptions).as("jvmOptions() should not be null").isNotNull();
             if (!SystemTools.isWindows()) {
-                op.jvmOptions().nativeAccessModules(JvmOptions.ALL_UNNAMED);
-                assertThat(op.jvmOptions().args()).containsExactly("--enable-native-access=ALL-UNNAMED");
+                jvmOptions.nativeAccessModules(JvmOptions.ALL_UNNAMED);
+                assertThat(jvmOptions.args()).containsExactly("--enable-native-access=ALL-UNNAMED");
             }
 
-            var args = op.compileOptions().args();
+            var args = compileOptions.args();
             var matches = List.of("-Xjdk-release=17", "-no-reflect", "-progressive", "-include-runtime", "-no-stdlib",
                     "-verbose");
             assertThat(args).as("%s == %s", args, matches).isEqualTo(matches);
@@ -130,7 +134,9 @@ class CompileKotlinOperationTest {
                             new File(PROJECT), PROJECT_PACKAGE, PROJECT_NAME, PROJECT_NAME))
                     .inheritIO(false)
                     .outputConsumer(lines::add);
-            op.compileOptions().verbose(true);
+            var compileOptions = op.compileOptions();
+            assertThat(compileOptions).as("compileOptions() should not be null").isNotNull();
+            compileOptions.verbose(true);
             op.execute();
             assertThat(lines).contains("logging: configuring the compilation environment");
         }
@@ -196,15 +202,27 @@ class CompileKotlinOperationTest {
                     .plugins(LIB_COMPILE, CompilerPlugin.KOTLINX_SERIALIZATION, CompilerPlugin.SAM_WITH_RECEIVER)
                     .plugins(List.of("plugin3", "plugin4"));
 
+            var compileOptions = op.compileOptions();
+            assertThat(compileOptions).as("compileOptions() should not be null").isNotNull();
+
+            var kotlinHome = op.kotlinHome();
+            assertThat(kotlinHome).as("kotlinHome() should not be null").isNotNull();
+
+            var kotlinc = op.kotlinc();
+            assertThat(kotlinc).as("kotlinc() should not be null").isNotNull();
+
+            var workDir = op.workDir();
+            assertThat(workDir).as("workDir() should not be null").isNotNull();
+
             try (var softly = new AutoCloseableSoftAssertions()) {
-                softly.assertThat(op.kotlinHome().getName()).as("kotlin_home").isEqualTo("kotlin_home");
-                softly.assertThat(op.kotlinc().getName()).as(KOTLINC).isEqualTo(KOTLINC);
-                softly.assertThat(op.workDir().getName()).as("work_dir").isEqualTo("work_dir");
+                softly.assertThat(kotlinHome.getName()).as("kotlin_home").isEqualTo("kotlin_home");
+                softly.assertThat(kotlinc.getName()).as(KOTLINC).isEqualTo(KOTLINC);
+                softly.assertThat(workDir.getName()).as("work_dir").isEqualTo("work_dir");
                 softly.assertThat(op.compileMainClasspath()).as("compileMainClassPath")
                         .containsAll(List.of("path1", "path2"));
-                softly.assertThat(op.compileOptions().hasRelease()).as("hasRelease").isTrue();
-                softly.assertThat(op.compileOptions().hasTarget()).as("hasTaget").isTrue();
-                softly.assertThat(op.compileOptions().isVerbose()).as("isVerbose").isTrue();
+                softly.assertThat(compileOptions.hasRelease()).as("hasRelease").isTrue();
+                softly.assertThat(compileOptions.hasTarget()).as("hasTaget").isTrue();
+                softly.assertThat(compileOptions.isVerbose()).as("isVerbose").isTrue();
                 softly.assertThat(op.isInheritIO()).as("inheritIO").isTrue();
                 softly.assertThat(op.mainSourceDirectories()).as("mainSourceDirectories").containsExactly(
                         Path.of(PROJECT, "src", "main", "kotlin").toFile(), new File("dir1"),
@@ -288,8 +306,13 @@ class CompileKotlinOperationTest {
                 var examples = new File(PROJECT);
                 var op = new CompileKotlinOperation().fromProject(
                         new BaseProjectBlueprint(examples, PROJECT_PACKAGE, PROJECT, PROJECT));
+                var workDir = op.workDir();
+                assertThat(workDir).as("workDir() should not be null").isNotNull();
 
-                assertThat(op.workDir().getPath()).as("workDir")
+                var compileOptions = op.compileOptions();
+                assertThat(compileOptions).as("compileOptions() should not be null").isNotNull();
+
+                assertThat(workDir.getPath()).as("workDir")
                         .isEqualTo(new File("examples").getAbsolutePath());
                 assertThat(op.buildMainDirectory()).as("buildMainDirectory").exists();
                 assertThat(op.buildTestDirectory()).as("buildTestDirectory").exists();
@@ -299,7 +322,7 @@ class CompileKotlinOperationTest {
                         .containsExactly(new File(examples, "src/test/kotlin"));
                 assertThat(op.compileMainClasspath().size()).as("compileMainClasspath").isGreaterThan(1);
                 assertThat(op.compileTestClasspath().size()).as("compileTestClasspath").isGreaterThan(1);
-                assertThat(op.compileOptions().isNoStdLib()).as("isNoStdLib").isTrue();
+                assertThat(compileOptions.isNoStdLib()).as("isNoStdLib").isTrue();
 
             }
 
@@ -307,13 +330,15 @@ class CompileKotlinOperationTest {
             void fromProjectWithoutKotlin() {
                 var op = new CompileKotlinOperation().fromProject(
                         new BaseProjectBlueprint(new File(FOO), "org.example", FOO, FOO));
+                var compileOptions = op.compileOptions();
+                assertThat(compileOptions).as("compileOptions() should not be null").isNotNull();
 
                 assertThat(op.workDir()).as("workDir").doesNotExist();
                 assertThat(op.mainSourceDirectories()).as("mainSourceDirectories").isEmpty();
                 assertThat(op.testSourceDirectories()).as("testSourceDirectories").isEmpty();
                 assertThat(op.compileMainClasspath()).as("compileMainClasspath").isEmpty();
                 assertThat(op.compileTestClasspath().size()).as("compileTestClasspath").isEqualTo(1);
-                assertThat(op.compileOptions().isNoStdLib()).as("isNoStdLib").isTrue();
+                assertThat(compileOptions.isNoStdLib()).as("isNoStdLib").isTrue();
             }
         }
 
@@ -510,11 +535,12 @@ class CompileKotlinOperationTest {
             }
 
             @Test
+            @SuppressWarnings("DataFlowIssue")
             void pluginsAsCompilerPluginArrayWithNull() {
                 var op = new CompileKotlinOperation();
                 assertThatThrownBy(() ->
                         op.plugins(Path.of(LIB_COMPILE), CompilerPlugin.LOMBOK, null, CompilerPlugin.ALL_OPEN))
-                        .isInstanceOf(IllegalArgumentException.class);
+                        .isInstanceOf(NullPointerException.class);
             }
 
             @Test

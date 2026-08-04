@@ -44,6 +44,7 @@ class JvmOptionsTest {
         var kotlinOperation = new CompileKotlinOperation().jvmOptions(jvmOptions);
         var options = kotlinOperation.jvmOptions();
 
+        assertThat(options).as("options should not null").isNotNull();
         assertThat(options.nativeAccessModules()).containsExactly("foo", "bar");
         assertThat(options.illegalNativeAccess()).isEqualTo(JvmOptions.NativeAccess.ALLOW);
     }
