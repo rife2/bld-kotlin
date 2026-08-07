@@ -32,7 +32,7 @@ public class ExampleBuild extends Project {
         if (System.getenv("KOTLIN_VERSION") != null) {
             kotlin = System.getenv("KOTLIN_VERSION");
         }
-        var junit = version(6, 1, 2);
+        var junit = version(6, 1, 3);
         scope(compile)
                 .include(dependency("org.jetbrains.kotlin", "kotlin-stdlib", kotlin));
         scope(test)
