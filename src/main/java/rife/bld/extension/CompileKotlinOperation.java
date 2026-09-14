@@ -1367,7 +1367,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @throws ExitStatusException if an error occurs
      */
     @SuppressWarnings({"PMD.PreserveStackTrace"})
-    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_BAD_PRACTICE")
+    @SuppressFBWarnings({"RV_RETURN_VALUE_IGNORED_BAD_PRACTICE", "LEST_LOST_EXCEPTION_STACK_TRACE"})
     protected void executeBuildSources(@Nullable Collection<String> classpath,
                                        Collection<File> sources,
                                        @Nullable File destination,
