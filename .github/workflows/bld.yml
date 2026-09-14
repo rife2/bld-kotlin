@@ -35,11 +35,17 @@ jobs:
         id: cache-bld
         uses: actions/cache@v6
         with:
-          path: lib
+          path: |
+            lib
+            examples/lib
           key: ${{ runner.os }}-bld-java${{ matrix.java-version}}-lib
 
+      - name: Compile source [examples]
+        working-directory: examples
+        run: ./bld --auto-download-purge clean compile
+
       - name: Compile source code
-        run: ./bld clean compile
+        run: ./bld --auto-download-purge clean compile
 
       - name: Run tests
         id: tests
