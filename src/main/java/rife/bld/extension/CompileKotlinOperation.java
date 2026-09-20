@@ -59,7 +59,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     private static final String TEST_SOURCE_FILES = "testSourceFiles";
     private static final String WORK_DIR = "workDir";
     private static final Logger logger = Logger.getLogger(CompileKotlinOperation.class.getName());
-    private static final Consumer<String> defaultOutputConsumer = logger::info;
+    private static final Consumer<String> loggerConsumer = logger::info;
     private final Set<String> compileMainClasspath_ = new LinkedHashSet<>();
     private final Set<String> compileTestClasspath_ = new LinkedHashSet<>();
     private final Map<String, String> env_ = new HashMap<>();
@@ -70,13 +70,13 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     private final List<File> testSourceFiles_ = new ArrayList<>();
     private @Nullable File buildMainDirectory_;
     private @Nullable File buildTestDirectory_;
-    private @Nullable CompileOptions compileOptions_ = new CompileOptions();
+    private CompileOptions compileOptions_ = new CompileOptions();
     private boolean inheritIO_ = true;
     private @Nullable JvmOptions jvmOptions_ = new JvmOptions();
     private @Nullable File kotlinCompiler_;
     private boolean kotlinHomeResolved_;
     private @Nullable File kotlinHome_;
-    private Consumer<String> outputConsumer_ = defaultOutputConsumer;
+    private Consumer<String> outputConsumer_ = loggerConsumer;
     private @Nullable BaseProject project_;
     private @Nullable String resolvedKotlinCompilerPath_;
     private @Nullable File resolvedKotlinHome_;
@@ -419,7 +419,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *
      * @return the compilation options
      */
-    @Nullable
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public CompileOptions compileOptions() {
         return compileOptions_;
@@ -595,18 +594,17 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             }
         }
 
-        if (compileOptions_ != null) {
-            if (project.javaRelease() != null) {
-                if (!compileOptions_.hasRelease()) {
-                    compileOptions_.jdkRelease(project.javaRelease());
-                }
-                if (!compileOptions_.hasTarget()) {
-                    compileOptions_.jvmTarget(project.javaRelease());
-                }
+        if (project.javaRelease() != null) {
+            if (!compileOptions_.hasRelease()) {
+                compileOptions_.jdkRelease(project.javaRelease());
             }
-
-            compileOptions_.noStdLib(true);
+            if (!compileOptions_.hasTarget()) {
+                compileOptions_.jvmTarget(project.javaRelease());
+            }
         }
+
+        compileOptions_.noStdLib(true);
+
 
         return this;
     }
@@ -1422,7 +1420,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         if (ObjectTools.isNotEmpty(classpath)) {
             cp.addAll(classpath);
         }
-        if (compileOptions_ != null && ObjectTools.isNotEmpty(compileOptions_.classpath())) {
+        if (ObjectTools.isNotEmpty(compileOptions_.classpath())) {
             compileOptions_.classpath().forEach(f -> cp.add(f.getAbsolutePath()));
         }
         if (!cp.isEmpty()) {
@@ -1431,7 +1429,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         }
 
         // compile options
-        if (compileOptions_ != null) {
+        if (!compileOptions_.isEmpty()) {
             args.addAll(compileOptions_.args());
         }
 

@@ -492,6 +492,41 @@ public class CompileOptions {
     }
 
     /**
+     * Indicates whether no options have been set.
+     *
+     * @return {@code true} if no options were set; or {@code false} otherwise
+     */
+    public boolean isEmpty() {
+        return advancedOptions_.isEmpty()
+                && argFile_.isEmpty()
+                && classpath_.isEmpty()
+                && optIn_.isEmpty()
+                && options_.isEmpty()
+                && plugin_.isEmpty()
+                && scriptTemplates_.isEmpty()
+                && apiVersion_ == null
+                && expression_ == null
+                && !includeRuntime_
+                && !javaParameters_
+                && jdkHome_ == null
+                && jdkRelease_ == null
+                && jvmDefault_ == null
+                && jvmTarget_ == null
+                && kotlinHome_ == null
+                && languageVersion_ == null
+                && moduleName_ == null
+                && !noJdk_
+                && !noReflect_
+                && !noStdLib_
+                && !noWarn_
+                && path_ == null
+                && !progressive_
+                && !verbose_
+                && !wError_
+                && !wExtra_;
+    }
+
+    /**
      * Indicates whether {@link #includeRuntime(boolean)} was set.
      *
      * @return {@code true} or {@code false}
