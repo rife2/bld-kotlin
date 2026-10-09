@@ -3,7 +3,7 @@ name: bld-ci
 on: [ push, pull_request, workflow_dispatch ]
 
 env:
-  KOTLIN_VERSION: "2.4.20"
+  KOTLIN_VERSION: "2.4.21"
 
 jobs:
   build-bld-project:
