@@ -38,6 +38,7 @@ import rife.bld.testing.RandomString;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Consumer;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -180,8 +181,10 @@ class CompileKotlinOperationTest {
                             .jdkRelease("17")
                             .jvmTarget("17")
                             .verbose(true))
+                    .compileOptions(o -> o.advancedOptions("foo"))
                     .env("foo", "bar")
                     .env(Map.of("FOZ", "BAZ"))
+                    .jvmOptions(o -> o.nativeAccessModules("foo"))
                     .inheritIO(true)
                     .mainSourceDirectories("dir1", "dir2")
                     .mainSourceDirectories(List.of(new File("dir3"), new File("dir4")))
@@ -223,7 +226,9 @@ class CompileKotlinOperationTest {
                 softly.assertThat(compileOptions.hasRelease()).as("hasRelease").isTrue();
                 softly.assertThat(compileOptions.hasTarget()).as("hasTaget").isTrue();
                 softly.assertThat(compileOptions.isVerbose()).as("isVerbose").isTrue();
+                softly.assertThat(compileOptions.advancedOptions()).contains("foo");
                 softly.assertThat(op.isInheritIO()).as("inheritIO").isTrue();
+                softly.assertThat(op.jvmOptions().nativeAccessModules()).contains("foo");
                 softly.assertThat(op.mainSourceDirectories()).as("mainSourceDirectories").containsExactly(
                         Path.of(PROJECT, "src", "main", "kotlin").toFile(), new File("dir1"),
                         new File("dir2"), new File("dir3"), new File("dir4"));
@@ -496,6 +501,137 @@ class CompileKotlinOperationTest {
             }
         }
 
+        /**
+         * Tests for the {@link CompileKotlinOperation#compileOptions(Consumer)} and
+         * {@link CompileKotlinOperation#jvmOptions(Consumer)} overloads introduced in 1.3.
+         */
+        @Nested
+        @DisplayName("Options Consumer Tests")
+        class OptionsConsumerTests {
+
+            @Test
+            void compileOptionsConsumerAfterSetterAugmentsReplacements() {
+                var op = new CompileKotlinOperation()
+                        .compileOptions(new CompileOptions().path(FOO))
+                        .compileOptions(o -> o.verbose(true));
+
+                var opts = op.compileOptions();
+                try (var softly = new AutoCloseableSoftAssertions()) {
+                    softly.assertThat(opts.path()).as("path from setter").isEqualTo(new File(FOO));
+                    softly.assertThat(opts.isVerbose()).as("verbose from consumer").isTrue();
+                }
+            }
+
+            @Test
+            void compileOptionsConsumerCanBeCalledMultipleTimes() {
+                var op = new CompileKotlinOperation()
+                        .compileOptions(o -> o.path(FOO))
+                        .compileOptions(o -> o.verbose(true));
+
+                var opts = op.compileOptions();
+                try (var softly = new AutoCloseableSoftAssertions()) {
+                    softly.assertThat(opts.path()).as("path from first call").isEqualTo(new File(FOO));
+                    softly.assertThat(opts.isVerbose()).as("verbose from second call").isTrue();
+                }
+            }
+
+            @Test
+            void compileOptionsConsumerChainsFluentCalls() {
+                var op = new CompileKotlinOperation()
+                        .compileOptions(o -> o.path(FOO).jvmTarget("17").verbose(true));
+
+                var opts = op.compileOptions();
+                try (var softly = new AutoCloseableSoftAssertions()) {
+                    softly.assertThat(opts.path()).as("path").isEqualTo(new File(FOO));
+                    softly.assertThat(opts.jvmTarget()).as("jvmTarget").isEqualTo("17");
+                    softly.assertThat(opts.isVerbose()).as("verbose").isTrue();
+                }
+            }
+
+            @Test
+            void compileOptionsConsumerEquivalentToSetter() {
+                var viaSetter = new CompileKotlinOperation()
+                        .compileOptions(new CompileOptions().path(FOO).verbose(true));
+                var viaConsumer = new CompileKotlinOperation()
+                        .compileOptions(o -> o.path(FOO).verbose(true));
+
+                assertThat(viaConsumer.compileOptions().args())
+                        .as("Consumer and setter should produce identical args")
+                        .isEqualTo(viaSetter.compileOptions().args());
+            }
+
+            @Test
+            void compileOptionsConsumerMutatesLiveInstance() {
+                var op = new CompileKotlinOperation();
+                var before = op.compileOptions();
+
+                op.compileOptions(o -> o.path(FOO).noWarn(true));
+
+                var after = op.compileOptions();
+                try (var softly = new AutoCloseableSoftAssertions()) {
+                    softly.assertThat(after).as("instance identity is preserved").isSameAs(before);
+                    softly.assertThat(after.path()).as("path").isEqualTo(new File(FOO));
+                    softly.assertThat(after.isNoWarn()).as("noWarn").isTrue();
+                }
+            }
+
+            @Test
+            void jvmOptionsConsumerCanBeCalledMultipleTimes() {
+                var op = new CompileKotlinOperation()
+                        .jvmOptions(j -> j.nativeAccessModules("foo"))
+                        .jvmOptions(j -> j.nativeAccessModules("bar"));
+
+                assertThat(op.jvmOptions().nativeAccessModules())
+                        .as("nativeAccessModules from both calls")
+                        .containsExactly("foo", "bar");
+            }
+
+            @Test
+            void jvmOptionsConsumerChainsFluentCalls() {
+                var op = new CompileKotlinOperation()
+                        .jvmOptions(j -> j.nativeAccessModules("foo").nativeAccessModules("bar"));
+
+                assertThat(op.jvmOptions().nativeAccessModules())
+                        .as("nativeAccessModules")
+                        .containsExactly("foo", "bar");
+            }
+
+            @Test
+            void jvmOptionsConsumerEquivalentToSetter() {
+                var viaSetter = new CompileKotlinOperation()
+                        .jvmOptions(new JvmOptions().nativeAccessModules(JvmOptions.ALL_UNNAMED));
+                var viaConsumer = new CompileKotlinOperation()
+                        .jvmOptions(j -> j.nativeAccessModules(JvmOptions.ALL_UNNAMED));
+
+                assertThat(viaConsumer.jvmOptions().args())
+                        .as("Consumer and setter should produce identical args")
+                        .isEqualTo(viaSetter.jvmOptions().args());
+            }
+
+            @Test
+            void jvmOptionsConsumerMutatesLiveInstance() {
+                var op = new CompileKotlinOperation();
+                var before = op.jvmOptions();
+
+                op.jvmOptions(j -> j.nativeAccessModules(JvmOptions.ALL_UNNAMED));
+
+                var after = op.jvmOptions();
+                try (var softly = new AutoCloseableSoftAssertions()) {
+                    softly.assertThat(after).as("instance identity is preserved").isSameAs(before);
+                    softly.assertThat(after.nativeAccessModules())
+                            .as("nativeAccessModules")
+                            .containsExactly(JvmOptions.ALL_UNNAMED);
+                }
+            }
+
+            @Test
+            void jvmOptionsIsNeverNull() {
+                assertThat(new CompileKotlinOperation().jvmOptions())
+                        .as("jvmOptions() must never be null")
+                        .isNotNull();
+            }
+        }
+
         @Nested
         @DisplayName("Plugins Tests")
         class PluginsTests {
@@ -746,7 +882,13 @@ class CompileKotlinOperationTest {
 
         @Test
         void compileOptionsWithNull() {
-            assertThatThrownBy(() -> new CompileKotlinOperation().compileOptions(null))
+            assertThatThrownBy(() -> new CompileKotlinOperation().compileOptions((CompileOptions) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void compileOptionsWithNullConsumer() {
+            assertThatThrownBy(() -> new CompileKotlinOperation().compileOptions((Consumer<CompileOptions>) null))
                     .isInstanceOf(NullPointerException.class);
         }
 
@@ -795,7 +937,13 @@ class CompileKotlinOperationTest {
 
         @Test
         void jvmOptionsWithNull() {
-            assertThatThrownBy(() -> new CompileKotlinOperation().jvmOptions(null))
+            assertThatThrownBy(() -> new CompileKotlinOperation().jvmOptions((JvmOptions) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void jvmOptionsWithNullConsumer() {
+            assertThatThrownBy(() -> new CompileKotlinOperation().jvmOptions((Consumer<JvmOptions>) null))
                     .isInstanceOf(NullPointerException.class);
         }
 

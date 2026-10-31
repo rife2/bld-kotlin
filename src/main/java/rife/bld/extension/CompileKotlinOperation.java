@@ -72,7 +72,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     private @Nullable File buildTestDirectory_;
     private CompileOptions compileOptions_ = new CompileOptions();
     private boolean inheritIO_ = true;
-    private @Nullable JvmOptions jvmOptions_ = new JvmOptions();
+    private JvmOptions jvmOptions_ = new JvmOptions();
     private @Nullable File kotlinCompiler_;
     private boolean kotlinHomeResolved_;
     private @Nullable File kotlinHome_;
@@ -437,6 +437,23 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
+     * Configures the compilation options using a lambda expression.
+     * <p>
+     * The consumer mutates the existing {@link CompileOptions} instance in place, so chained
+     * setter calls on the passed-in options object apply to this operation.
+     *
+     * @param configurer the configurer for the compiler options
+     * @return this operation instance
+     * @throws NullPointerException if {@code configurer} is {@code null}
+     * @see #compileOptions(CompileOptions)
+     * @since 1.3
+     */
+    public CompileKotlinOperation compileOptions(Consumer<CompileOptions> configurer) {
+        ObjectTools.requireNonNull(configurer, "compileOptions").accept(compileOptions_);
+        return this;
+    }
+
+    /**
      * Provides entries for the test compilation classpath.
      *
      * @param classpath one or more classpath entries
@@ -645,7 +662,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *
      * @return the JVM options
      */
-    @Nullable
     public JvmOptions jvmOptions() {
         return jvmOptions_;
     }
@@ -660,6 +676,23 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     public CompileKotlinOperation jvmOptions(JvmOptions options) {
         jvmOptions_ = ObjectTools.requireNonNull(options, "jvmOptions");
+        return this;
+    }
+
+    /**
+     * Configures the Java Virtual Machine options using a lambda expression.
+     * <p>
+     * The consumer mutates the existing {@link JvmOptions} instance in place, so chained
+     * setter calls on the passed-in options object apply to this operation.
+     *
+     * @param configurer the configurer for the JVM options
+     * @return this operation instance
+     * @throws NullPointerException if {@code configurer} is {@code null}
+     * @see #jvmOptions(JvmOptions)
+     * @since 1.3
+     */
+    public CompileKotlinOperation jvmOptions(Consumer<JvmOptions> configurer) {
+        ObjectTools.requireNonNull(configurer, "jvmOptions").accept(jvmOptions_);
         return this;
     }
 
@@ -1411,9 +1444,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         }
 
         // JVM options
-        if (jvmOptions_ != null) {
-            jvmOptions_.args().forEach(s -> command.add("-J" + s));
-        }
+        jvmOptions_.args().forEach(s -> command.add("-J" + s));
 
         // classpath
         var cp = new ArrayList<String>();
