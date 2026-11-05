@@ -18,8 +18,6 @@ For more information, please refer to the [extensions](https://github.com/rife2/
 
 ## Compile Kotlin Source Code
 
-To compile the source code located in `src/main/kotlin` and `src/test/kotlin` from the current project add the following to the build file:
-
 ```java
 
 @BuildCommand(summary = "Compiles the Kotlin project")
@@ -37,24 +35,38 @@ public void compile() throws Exception {
 - [View Examples Project](https://github.com/rife2/bld-kotlin/tree/main/examples/)
 - [View Template Project](https://github.com/rife2/kotlin-bld-example)
 
-Please check
-the [Compile Operation documentation](https://rife2.github.io/bld-kotlin/rife/bld/extension/CompileKotlinOperation.html#method-summary)
-for all available configuration options.
+## Kotlin Compiler Resolution
 
-## Kotlin Compiler Requirement
+The extension needs a Kotlin compiler to compile sources. It obtains one in one of two ways:
 
-Please make sure the Kotlin compiler is [installed](https://kotlinlang.org/docs/command-line.html#install-the-compiler).
+- **From the host**, if a Kotlin compiler is already installed.
+- **By downloading one**, otherwise, or when the download is explicitly requested.
 
-The extension will look in common locations such as:
+The full resolution order is:
 
- - `KOTLIN_HOME`
- - `PATH`
- - [SDKMAN!](https://sdkman.io/)
- - [Homebrew](https://brew.sh/)
- - [JetBrains Toolbox](https://www.jetbrains.com/toolbox-app/) (IntelliJ IDEA, Android Studio)
- - etc.
+1. an explicit `kotlinc(...)` or `kotlinHome(...)`,
+2. a download when `version(...)` or `useDownloadedKotlin()` is set,
+3. a host compiler discovered via `KOTLIN_HOME`, `PATH`, SDKMAN!, Homebrew, JetBrains Toolbox, or the
+   common install locations,
+4. a download of [`KOTLIN_VERSION`](https://rife2.github.io/bld-kotlin/rife/bld/extension/CompileKotlinOperation.html#KOTLIN_VERSION) as a last resort.
 
-You can also manually configure the Kotlin home location as follows:
+
+### Using an installed compiler
+
+By default, the extension searches the host for a Kotlin compiler in the following locations:
+
+- `KOTLIN_HOME`
+- `PATH`
+- [SDKMAN!](https://sdkman.io/)
+- [Homebrew](https://brew.sh/)
+- [JetBrains Toolbox](https://www.jetbrains.com/toolbox-app/) (IntelliJ IDEA, Android Studio)
+- common install locations
+
+If one is found, it is used. Please make sure it is
+[installed](https://kotlinlang.org/docs/command-line.html#install-the-compiler) if you want to rely
+on the host compiler.
+
+You can also point at a specific installation explicitly. Either configure the Kotlin home directory:
 
 ```java
 
@@ -67,7 +79,7 @@ public void compile() throws Exception {
 }
 ```
 
-The Kotlin compiler executable can also be specified directly:
+Or set the compiler executable directly:
 
 ```java
 
@@ -80,10 +92,89 @@ public void compile() throws Exception {
 }
 ```
 
-While older version of Kotlin are likely working with the extension, only version 2.0.21 or higher are officially
-supported.
+### Downloading a compiler
+
+The extension automatically downloads a Kotlin compiler from the official JetBrains release archive
+and caches it under the project directory, either when no host compiler is found or when a specific
+version is requested. This means the
+extension works out of the box on a machine with no Kotlin installation.
+
+The version that is downloaded defaults to
+[`KOTLIN_VERSION`](https://rife2.github.io/bld-kotlin/rife/bld/extension/CompileKotlinOperation.html#KOTLIN_VERSION).
+
+To pin a different version, set it explicitly:
+
+```java
+
+@BuildCommand(summary = "Compiles the Kotlin project")
+public void compile() throws Exception {
+    new CompileKotlinOperation()
+            .fromProject(this)
+            .version("2.4.20")
+            .execute();
+}
+```
+
+An explicit `version(...)` **also forces the download**, even when a Kotlin compiler is installed on
+the host: it takes precedence over anything discovered via `KOTLIN_HOME`, `PATH`, or the common
+install locations. This makes the build hermetic with respect to the host compiler — the same
+version is used regardless of what is installed where the build runs.
+
+The downloaded compiler is reused on subsequent builds, so a given version is only fetched once.
+
+Downloading requires a project to be configured with `fromProject(...)`, since the compiler is placed
+in the project directory.
+
+### Forcing a download over the host compiler
+
+There are two equivalent ways to skip the host search and use a bld-managed compiler:
+
+- Pin a version with `version(...)`. The compiler is downloaded at that version, regardless of what
+  the host has installed:
+
+  ```java
+
+  @BuildCommand(summary = "Compiles the Kotlin project")
+  public void compile() throws Exception {
+      new CompileKotlinOperation()
+              .fromProject(this)
+              .version("2.4.21")
+              .execute();
+  }
+  ```
+
+- Set `useDownloadedKotlin()`. This skips the `KOTLIN_HOME`, `PATH`, and common-install-location
+  search and downloads [`KOTLIN_VERSION`](https://rife2.github.io/bld-kotlin/rife/bld/extension/CompileKotlinOperation.html#KOTLIN_VERSION) (or the configured `version(...)`, if one was set). It is
+  the right choice when you want the default bld-managed compiler without pinning a specific
+  version:
+
+  ```java
+
+  @BuildCommand(summary = "Compiles the Kotlin project")
+  public void compile() throws Exception {
+      new CompileKotlinOperation()
+              .fromProject(this)
+              .useDownloadedKotlin()
+              .execute();
+  }
+  ```
+
+Both can be combined; `useDownloadedKotlin()` then just makes the intent explicit. An explicit
+`kotlinc(...)` or `kotlinHome(...)` still takes precedence over either, so an explicitly configured
+compiler is never overridden by a download.
+
+## Supported Kotlin Versions
+
+While older versions of Kotlin are likely to work with the extension, only version 2.0.21 or higher is
+officially supported.
 
 ## Template Project
 
 There is also a [Template Project](https://github.com/rife2/kotlin-bld-example) with support for
 the [Dokka](https://github.com/rife2/bld-dokka) and [Detekt](https://github.com/rife2/bld-detekt) extensions.
+
+## API Reference
+
+Please check
+the [Compile Operation documentation](https://rife2.github.io/bld-kotlin/rife/bld/extension/CompileKotlinOperation.html#method-summary)
+for all available configuration options.

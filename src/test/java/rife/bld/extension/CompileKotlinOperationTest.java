@@ -17,6 +17,7 @@
 package rife.bld.extension;
 
 import org.assertj.core.api.AutoCloseableSoftAssertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -25,7 +26,11 @@ import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EmptySource;
 import org.junit.jupiter.params.provider.NullSource;
+import rife.bld.BaseProject;
 import rife.bld.blueprints.BaseProjectBlueprint;
+import rife.bld.dependencies.Repository;
+import rife.bld.dependencies.Version;
+import rife.bld.dependencies.VersionNumber;
 import rife.bld.extension.kotlin.CompileOptions;
 import rife.bld.extension.kotlin.CompilerPlugin;
 import rife.bld.extension.kotlin.JvmOptions;
@@ -36,6 +41,7 @@ import rife.bld.testing.LoggingExtension;
 import rife.bld.testing.RandomString;
 
 import java.io.File;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
@@ -54,8 +60,232 @@ class CompileKotlinOperationTest {
     private static final String PROJECT = "examples";
     private static final String PROJECT_NAME = "Example";
     private static final String PROJECT_PACKAGE = "com.example";
+
+    /**
+     * Class-wide, initially empty directory used as the {@code workDirectory} of the shared
+     * {@link TestProject} for the download tests.
+     * <p>
+     * Because it is a {@code static @TempDir}, JUnit creates it once per test class (empty)
+     * and deletes it afterward. The first download test that runs creates
+     * {@code lib/.sandbox/bld-kotlin} and downloads the compiler; every subsequent download
+     * test in the same class reuses that sandbox, matching how a CI run behaves. It is
+     * deliberately <em>not</em> under {@code src/test/resources}, so a sandbox left over
+     * from a prior developer run cannot mask the "sandbox does not exist" precondition.
+     */
+    @TempDir
+    @SuppressWarnings("PMD.MutableStaticState") // @TempDir requires a non-final, injectable static field
+    static Path sharedProjectRoot;
+
     @TempDir
     private File tmpDir;
+
+    /**
+     * Runs before any test in this class, including every nested test.
+     * <p>
+     * Establishes that the download tests exercise the "no sandbox present" path at least
+     * once, like a CI checkout: the first download test creates the sandbox, and later tests
+     * reuse it.
+     */
+    @BeforeAll
+    static void assertSandboxAbsentAtStart() {
+        assertThat(sharedProjectRoot)
+                .as("JUnit must inject the class-wide shared project root")
+                .isNotNull();
+        assertThat(new File(sharedProjectRoot.toFile(), "lib/.sandbox/bld-kotlin"))
+                .as("sandbox must not exist before the first download test")
+                .doesNotExist();
+    }
+
+    /**
+     * Returns the class-wide {@link TestProject}. The sandbox under
+     * {@code <sharedProjectRoot>/lib/.sandbox/bld-kotlin} is empty on the first call and
+     * populated by the first download test thereafter — matching CI, where the sandbox is
+     * created once and reused (or re-extracted on version change) by subsequent tests.
+     */
+    private static TestProject sharedProject() {
+        assertThat(sharedProjectRoot)
+                .as("JUnit must inject the class-wide shared project root")
+                .isNotNull();
+        return new TestProject(sharedProjectRoot.toFile());
+    }
+
+    /**
+     * A real {@link BaseProject} used by the sandbox tests, so the downloaded Kotlin
+     * distribution lands in {@code <workDirectory>/lib/.sandbox/bld-kotlin}.
+     * <p>
+     * Note: the operation's {@code workDir(...)} (the process working directory passed to
+     * {@code kotlinc}) is independent of the project's {@code workDirectory()} (where the
+     * {@code Sandbox} extracts downloads). The sandbox tests deliberately keep these separate:
+     * sources/output live in a per-test {@code @TempDir}, while the downloaded compiler is
+     * cached under the shared project root so it can be reused across tests in a run.
+     */
+    // This is a test helper, not a test class; it deliberately has no test methods.
+    @SuppressWarnings("PMD.TestClassWithoutTestCases")
+    static class TestProject extends BaseProject {
+
+        /**
+         * Roots the project at {@code workDirectory}, so the sandbox lives at
+         * {@code <workDirectory>/lib/.sandbox/bld-kotlin}. Passing a shared root gives every
+         * download test the same sandbox: created by the first test, reused by the rest.
+         */
+        // BaseProject only exposes version(...) as an overridable setter; that is the
+        // sanctioned way to configure the version in a constructor, so the call is required.
+        @SuppressWarnings("PMD.ConstructorCallsOverridableMethod")
+        TestProject(File workDirectory) {
+            super();
+            this.workDirectory = workDirectory;
+            pkg = "com.example";
+            name = "TestProject";
+            version = version(0, 1, 0);
+
+            autoDownloadPurge = true;
+
+            repositories = List.of(Repository.MAVEN_CENTRAL);
+        }
+    }
+
+    @Nested
+    @DisplayName("Compiler Plugin Download Tests")
+    class CompilerPluginDownloadTests {
+
+        /**
+         * Enum values kept for backward compatibility whose JARs are not bundled with current
+         * Kotlin distributions.
+         * <p>
+         * Add an entry here when a plugin that used to ship in {@code kotlinc/lib/} is dropped
+         * from newer Kotlin releases but remains in {@link CompilerPlugin} for source
+         * compatibility. The {@link #downloadedCompilerShipsBundledPlugins} test skips these.
+         */
+        private static final Set<CompilerPlugin> NOT_IN_CURRENT_DISTRIBUTION =
+                EnumSet.of(CompilerPlugin.KOTLIN_IMPORTS_DUMPER);
+
+        /**
+         * Returns the {@code lib/} directory of the downloaded compiler, where the bundled
+         * compiler plugins live.
+         */
+        private static File sandboxKotlincLib(TestProject project) {
+            return new File(project.workDirectory(), "lib/.sandbox/bld-kotlin/kotlinc/lib");
+        }
+
+        @Test
+        @DisplayName("downloaded compiler ships the bundled compiler plugins in lib/")
+        void downloadedCompilerShipsBundledPlugins(@TempDir Path tempDir) throws Exception {
+            var buildDir = new File(tempDir.toFile(), "build");
+            var mainDir = new File(buildDir, "main");
+            var testDir = new File(buildDir, "test");
+            assertThat(mainDir.mkdirs()).isTrue();
+            assertThat(testDir.mkdirs()).isTrue();
+
+            var srcMain = new File(tempDir.toFile(), "src/main/kotlin");
+            assertThat(srcMain.mkdirs()).isTrue();
+            Files.writeString(new File(srcMain, "Hello.kt").toPath(),
+                    "fun main() { println(\"Hello\") }\n");
+
+            var project = sharedProject();
+            var sandboxLib = sandboxKotlincLib(project);
+
+            // Trigger the download via useDownloadedKotlin, then assert the bundled plugin JARs
+            // are present in the extracted distribution's lib/ directory.
+            var op = new CompileKotlinOperation()
+                    .fromProject(project)
+                    .useDownloadedKotlin()
+                    .workDir(tempDir.toFile())
+                    .buildMainDirectory(mainDir)
+                    .buildTestDirectory(testDir)
+                    .mainSourceDirectories(srcMain)
+                    .compileOptions(o -> o.noStdLib(false))
+                    .silent(true);
+
+            assertThatCode(op::execute).doesNotThrowAnyException();
+
+            try (var softly = new AutoCloseableSoftAssertions()) {
+                Arrays.stream(CompilerPlugin.values())
+                        .filter(p -> !NOT_IN_CURRENT_DISTRIBUTION.contains(p))
+                        .forEach(p -> softly.assertThat(new File(sandboxLib, p.getJar()))
+                                .as("downloaded lib/ should contain " + p.getJar())
+                                .isFile());
+            }
+        }
+
+        @Test
+        @DisplayName("explicit plugin directory still takes precedence over the download")
+        void explicitPluginDirectoryTakesPrecedence(@TempDir Path tempDir) throws Exception {
+            var buildDir = new File(tempDir.toFile(), "build");
+            var mainDir = new File(buildDir, "main");
+            var testDir = new File(buildDir, "test");
+            assertThat(mainDir.mkdirs()).isTrue();
+            assertThat(testDir.mkdirs()).isTrue();
+
+            var srcMain = new File(tempDir.toFile(), "src/main/kotlin");
+            assertThat(srcMain.mkdirs()).isTrue();
+            Files.writeString(new File(srcMain, "Hello.kt").toPath(),
+                    "fun main() { println(\"Hello\") }\n");
+
+            var project = sharedProject();
+            var sandboxLib = sandboxKotlincLib(project);
+
+            // Using the plugins(File, CompilerPlugin...) overload stores absolute paths,
+            // so plugin resolution does not go through findKotlinHome(). The compile should
+            // still succeed even if a downloaded compiler is used alongside.
+            var op = new CompileKotlinOperation()
+                    .fromProject(project)
+                    .useDownloadedKotlin()
+                    .workDir(tempDir.toFile())
+                    .buildMainDirectory(mainDir)
+                    .buildTestDirectory(testDir)
+                    .mainSourceDirectories(srcMain)
+                    .compileOptions(o -> o.noStdLib(false))
+                    .silent(true);
+
+            assertThatCode(op::execute).doesNotThrowAnyException();
+
+            // The bundled plugin JARs live next to the compiler even when a plugin directory
+            // is explicitly configured; verify they are on disk so resolution is unambiguous.
+            assertThat(new File(sandboxLib, CompilerPlugin.LOMBOK.getJar()))
+                    .as("downloaded lib/ still contains the bundled plugin JAR")
+                    .isFile();
+        }
+
+        @Test
+        @DisplayName("plugins(...) resolves against the downloaded compiler's lib/")
+        void pluginsResolveAgainstDownloadedCompiler(@TempDir Path tempDir) throws Exception {
+            var buildDir = new File(tempDir.toFile(), "build");
+            var mainDir = new File(buildDir, "main");
+            var testDir = new File(buildDir, "test");
+            assertThat(mainDir.mkdirs()).isTrue();
+            assertThat(testDir.mkdirs()).isTrue();
+
+            // Use @JvmInline value class, which requires the "no-arg" / "all-open" style plugin
+            // machinery to be found and loaded. But since those don't change the output of
+            // this trivial source, we don't assert on the produced classes; we only assert
+            // that the plugin is passed as -Xplugin= and doesn't break compiling.
+            var srcMain = new File(tempDir.toFile(), "src/main/kotlin");
+            assertThat(srcMain.mkdirs()).isTrue();
+            Files.writeString(new File(srcMain, "Hello.kt").toPath(),
+                    "fun main() { println(\"Hello\") }\n");
+
+            var project = sharedProject();
+
+            var op = new CompileKotlinOperation()
+                    .fromProject(project)
+                    .useDownloadedKotlin()
+                    .workDir(tempDir.toFile())
+                    .buildMainDirectory(mainDir)
+                    .buildTestDirectory(testDir)
+                    .mainSourceDirectories(srcMain)
+                    .plugins(CompilerPlugin.ALL_OPEN, CompilerPlugin.NOARG)
+                    .compileOptions(o -> o.noStdLib(false).verbose(true))
+                    .silent(true);
+
+            assertThatCode(op::execute)
+                    .as("downloaded compiler should resolve bundled ALL_OPEN and NOARG plugins")
+                    .doesNotThrowAnyException();
+
+            assertThat(new File(mainDir, "HelloKt.class"))
+                    .as("compilation produced HelloKt.class")
+                    .isFile();
+        }
+    }
 
     @Nested
     @DisplayName("Execute Tests")
@@ -203,7 +433,8 @@ class CompileKotlinOperationTest {
                     .plugins(Path.of(LIB_COMPILE), CompilerPlugin.NOARG, CompilerPlugin.ALL_OPEN,
                             CompilerPlugin.KOTLIN_IMPORTS_DUMPER)
                     .plugins(LIB_COMPILE, CompilerPlugin.KOTLINX_SERIALIZATION, CompilerPlugin.SAM_WITH_RECEIVER)
-                    .plugins(List.of("plugin3", "plugin4"));
+                    .plugins(List.of("plugin3", "plugin4"))
+                    .plugins("plugin5");
 
             var compileOptions = op.compileOptions();
             assertThat(compileOptions).as("compileOptions() should not be null").isNotNull();
@@ -244,7 +475,7 @@ class CompileKotlinOperationTest {
                         new File("tfile4"), new File("tfile5"), new File("tfile6"));
                 softly.assertThat(op.timeout()).as("timeout").isEqualTo(10);
                 softly.assertThat(op.plugins()).as("plugins").contains(
-                        "plugin1", "plugin2", "plugin3", "plugin4",
+                        "plugin1", "plugin2", "plugin3", "plugin4", "plugin5",
                         "KOTLIN_SERIALIZATION", "ASSIGNMENT", "COMPOSE",
                         new File(LIB_COMPILE, "lombok-compiler-plugin.jar").getAbsolutePath(),
                         new File(LIB_COMPILE, "power-assert-compiler-plugin.jar").getAbsolutePath(),
@@ -403,6 +634,61 @@ class CompileKotlinOperationTest {
                 void kotlincAsString() {
                     op = new CompileKotlinOperation().kotlinc(FOO);
                     assertThat(op.kotlinc()).isEqualTo(foo);
+                }
+            }
+
+            @Nested
+            @DisplayName("Use Downloaded Kotlin Tests")
+            class UseDownloadedKotlinTests {
+
+                @Test
+                void canBeEnabled() {
+                    assertThat(new CompileKotlinOperation().useDownloadedKotlin().isUseDownloadedKotlin())
+                            .isTrue();
+                }
+
+                @Test
+                void defaultsToFalse() {
+                    assertThat(new CompileKotlinOperation().isUseDownloadedKotlin()).isFalse();
+                }
+
+                @Test
+                @SuppressWarnings("DataFlowIssue")
+                void doesNotAffectKotlinHome() {
+                    var op = new CompileKotlinOperation()
+                            .kotlinHome("/kotlin_home")
+                            .useDownloadedKotlin();
+                    // useDownloadedKotlin is a flag only; kotlinHome_ is untouched
+                    assertThat(op.kotlinHome()).isNotNull();
+                    assertThat(op.kotlinHome().getPath()).isEqualTo("/kotlin_home");
+                }
+
+                @Test
+                @SuppressWarnings("DataFlowIssue")
+                void doesNotAffectKotlinc() {
+                    var op = new CompileKotlinOperation()
+                            .kotlinc("/some/kotlinc")
+                            .useDownloadedKotlin();
+                    assertThat(op.kotlinc()).isNotNull();
+                    assertThat(op.kotlinc().getPath()).isEqualTo("/some/kotlinc");
+                }
+
+                @Test
+                void explicitVersionAndUseDownloadedKotlinCoexist() {
+                    var op = new CompileKotlinOperation()
+                            .version("2.0.0")
+                            .useDownloadedKotlin();
+
+                    try (var softly = new AutoCloseableSoftAssertions()) {
+                        softly.assertThat(op.isUseDownloadedKotlin()).isTrue();
+                        softly.assertThat(op.version()).isEqualTo(new VersionNumber(2, 0, 0));
+                    }
+                }
+
+                @Test
+                void returnsSameInstance() {
+                    var op = new CompileKotlinOperation();
+                    assertThat(op.useDownloadedKotlin()).isSameAs(op);
                 }
             }
         }
@@ -818,6 +1104,168 @@ class CompileKotlinOperationTest {
     }
 
     @Nested
+    @DisplayName("Sandbox Download Tests")
+    class SandboxDownloadTests {
+
+        private static File kotlincLauncher(File kotlincHome) {
+            var launcherName = SystemTools.isWindows() ? "kotlinc.bat" : "kotlinc";
+            var launcher = new File(kotlincHome, launcherName);
+            if (!launcher.isFile()) {
+                launcher = new File(new File(kotlincHome, "bin"), launcherName);
+            }
+            return launcher;
+        }
+
+        /**
+         * Derives the expected sandbox kotlinc home from the project's work directory, so the
+         * assertion tracks whatever {@link TestProject} configures rather than duplicating it.
+         */
+        private static File sandboxKotlinc(TestProject project) {
+            return new File(project.workDirectory(), "lib/.sandbox/bld-kotlin/kotlinc");
+        }
+
+        @Test
+        @DisplayName("execute with default version resolves and downloads the latest")
+        void executeWithDefaultVersionDownloadsLatest(@TempDir Path tempDir) throws Exception {
+            var buildDir = new File(tempDir.toFile(), "build");
+            var mainDir = new File(buildDir, "main");
+            var testDir = new File(buildDir, "test");
+            assertThat(mainDir.mkdirs()).isTrue();
+            assertThat(testDir.mkdirs()).isTrue();
+
+            var srcMain = new File(tempDir.toFile(), "src/main/kotlin");
+            assertThat(srcMain.mkdirs()).isTrue();
+            Files.writeString(new File(srcMain, "Hello.kt").toPath(),
+                    "fun main() { println(\"Hello\") }\n");
+
+            var project = sharedProject();
+            var sandboxKotlinc = sandboxKotlinc(project);
+
+            // Do not call version(...) -> KOTLIN_VERSION default triggers "fetch latest"
+            var op = new CompileKotlinOperation()
+                    .fromProject(project)
+                    .useDownloadedKotlin()
+                    .workDir(tempDir.toFile())
+                    .buildMainDirectory(mainDir)
+                    .buildTestDirectory(testDir)
+                    .mainSourceDirectories(srcMain)
+                    // fromProject() enables noStdLib; let the downloaded compiler supply
+                    // its own bundled stdlib so the self-contained smoke test compiles.
+                    .compileOptions(o -> o.noStdLib(false))
+                    .silent(true);
+
+            assertThatCode(op::execute)
+                    .as("Default version should resolve to the latest and compile")
+                    .doesNotThrowAnyException();
+
+            assertThat(sandboxKotlinc)
+                    .as("sandbox should contain an extracted kotlinc distribution")
+                    .isDirectory();
+        }
+
+        @Test
+        @DisplayName("execute with explicit version downloads into the sandbox")
+        void executeWithExplicitVersion(@TempDir Path tempDir) throws Exception {
+            var buildDir = new File(tempDir.toFile(), "build");
+            var mainDir = new File(buildDir, "main");
+            var testDir = new File(buildDir, "test");
+            assertThat(mainDir.mkdirs()).as("make mainDir").isTrue();
+            assertThat(testDir.mkdirs()).as("make testDir").isTrue();
+
+            // Minimal main source so the compiler actually runs
+            var srcMain = new File(tempDir.toFile(), "src/main/kotlin");
+            assertThat(srcMain.mkdirs()).as("make srcMain").isTrue();
+            Files.writeString(new File(srcMain, "Hello.kt").toPath(),
+                    "fun main() { println(\"Hello\") }\n");
+
+            var project = sharedProject();
+            var sandboxKotlinc = sandboxKotlinc(project);
+
+            var requested = "2.4.20";
+            var op = new CompileKotlinOperation()
+                    .fromProject(project)
+                    .useDownloadedKotlin()
+                    .version(requested)
+                    .workDir(tempDir.toFile())
+                    .buildMainDirectory(mainDir)
+                    .buildTestDirectory(testDir)
+                    .mainSourceDirectories(srcMain)
+                    // fromProject() enables noStdLib; let the downloaded compiler supply
+                    // its own bundled stdlib so the self-contained smoke test compiles.
+                    .compileOptions(o -> o.noStdLib(false))
+                    .silent(true);
+
+            assertThatCode(op::execute)
+                    .as("Kotlin " + requested + " should compile the source")
+                    .doesNotThrowAnyException();
+
+            // The downloaded distribution should be under the project's sandbox
+            assertThat(sandboxKotlinc)
+                    .as("sandbox should contain kotlinc: " + sandboxKotlinc.getAbsolutePath())
+                    .isDirectory();
+
+            // kotlinc launcher should be present and executable
+            var launcher = kotlincLauncher(sandboxKotlinc);
+            assertThat(launcher)
+                    .as("sandbox should contain the kotlinc launcher: " + launcher.getAbsolutePath())
+                    .isFile();
+            if (!SystemTools.isWindows()) {
+                assertThat(launcher.canExecute())
+                        .as("kotlinc launcher should be executable: " + launcher.getAbsolutePath())
+                        .isTrue();
+            }
+        }
+
+        @Test
+        @DisplayName("explicit version alone bypasses KOTLIN_HOME/PATH and downloads")
+        void explicitVersionTriggersDownloadWithoutUseDownloadedKotlin(@TempDir Path tempDir) throws Exception {
+            var buildDir = new File(tempDir.toFile(), "build");
+            var mainDir = new File(buildDir, "main");
+            var testDir = new File(buildDir, "test");
+            assertThat(mainDir.mkdirs()).as("make mainDir").isTrue();
+            assertThat(testDir.mkdirs()).as("make testDir").isTrue();
+
+            var srcMain = new File(tempDir.toFile(), "src/main/kotlin");
+            assertThat(srcMain.mkdirs()).as("make srcMain").isTrue();
+            Files.writeString(new File(srcMain, "Hello.kt").toPath(),
+                    "fun main() { println(\"Hello\") }\n");
+
+            var project = sharedProject();
+            var sandboxKotlinc = sandboxKotlinc(project);
+
+            var requested = "2.4.20";
+
+            // Intentionally omit useDownloadedKotlin(true): an explicit version is
+            // itself sufficient to skip KOTLIN_HOME/PATH and force the download.
+            // On a host without kotlinc, this exercises the fallback path; on a host
+            // that has kotlinc, it specifically exercises the new precedence rule.
+            var op = new CompileKotlinOperation()
+                    .fromProject(project)
+                    .version(requested)
+                    .workDir(tempDir.toFile())
+                    .buildMainDirectory(mainDir)
+                    .buildTestDirectory(testDir)
+                    .mainSourceDirectories(srcMain)
+                    .compileOptions(o -> o.noStdLib(false))
+                    .silent(true);
+
+            assertThatCode(op::execute)
+                    .as("Explicit version " + requested + " should compile without useDownloadedKotlin")
+                    .doesNotThrowAnyException();
+
+            assertThat(sandboxKotlinc)
+                    .as("explicit version must have triggered the sandbox download: "
+                            + sandboxKotlinc.getAbsolutePath())
+                    .isDirectory();
+
+            var launcher = kotlincLauncher(sandboxKotlinc);
+            assertThat(launcher)
+                    .as("sandbox should contain the kotlinc launcher: " + launcher.getAbsolutePath())
+                    .isFile();
+        }
+    }
+
+    @Nested
     @DisplayName("Validation Tests")
     @SuppressWarnings("DataFlowIssue")
     class ValidationTests {
@@ -921,10 +1369,18 @@ class CompileKotlinOperationTest {
         }
 
         @Test
-        void executeWithNullProjectOrWorkDir() {
+        void executeWithNullWorkDir() {
             var op = new CompileKotlinOperation();
             assertThatThrownBy(op::execute)
                     .isInstanceOf(NullPointerException.class)
+                    .hasMessageContaining("workDir");
+        }
+
+        @Test
+        void executeWithVersionNoProject() {
+            var op = new CompileKotlinOperation().workDir(".").version("2.0.20");
+            assertThatThrownBy(op::execute)
+                    .isInstanceOf(IllegalStateException.class)
                     .hasMessageContaining("project");
         }
 
@@ -1046,6 +1502,8 @@ class CompileKotlinOperationTest {
 
         @Test
         void pluginsWithNullCompilerPlugin() {
+            assertThatThrownBy(() -> new CompileKotlinOperation().plugins((String) null))
+                    .isInstanceOf(NullPointerException.class);
             assertThatThrownBy(() -> new CompileKotlinOperation().plugins((CompilerPlugin[]) null))
                     .isInstanceOf(NullPointerException.class);
             assertThatThrownBy(() -> new CompileKotlinOperation().plugins(new File("."), (CompilerPlugin[]) null))
@@ -1110,6 +1568,124 @@ class CompileKotlinOperationTest {
             assertThatThrownBy(() -> new CompileKotlinOperation().workDir((File) null))
                     .isInstanceOf(NullPointerException.class);
             assertThatThrownBy(() -> new CompileKotlinOperation().workDir((Path) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+    }
+
+    @Nested
+    @DisplayName("Version Tests")
+    class VersionTests {
+
+        @Test
+        void defaultVersion() {
+            assertThat(CompileKotlinOperation.KOTLIN_VERSION)
+                    .as("default KOTLIN_VERSION should be 2.4.21")
+                    .isEqualTo(new VersionNumber(2, 4, 21));
+        }
+
+        @Test
+        void defaultVersionIsConstant() {
+            assertThat(new CompileKotlinOperation().version())
+                    .as("default version() should be KOTLIN_VERSION")
+                    .isEqualTo(CompileKotlinOperation.KOTLIN_VERSION);
+        }
+
+        @Test
+        @SuppressWarnings("DataFlowIssue")
+        void kotlinHomeAfterVersion() {
+            var op = new CompileKotlinOperation()
+                    .version("2.0.0")
+                    .kotlinHome("/kotlin_home");
+
+            assertThat(op.kotlinHome())
+                    .as("kotlinHome must be set after version")
+                    .isNotNull();
+            assertThat(op.kotlinHome().getPath()).isEqualTo("/kotlin_home");
+            assertThat(op.version()).isEqualTo(new VersionNumber(2, 0, 0));
+        }
+
+        @Test
+        @SuppressWarnings("DataFlowIssue")
+        void kotlincAfterVersion() {
+            var op = new CompileKotlinOperation()
+                    .version("2.0.0")
+                    .kotlinc("/some/kotlinc");
+
+            assertThat(op.kotlinc())
+                    .as("kotlinc must be set after version")
+                    .isNotNull();
+            assertThat(op.kotlinc().getPath()).isEqualTo("/some/kotlinc");
+            assertThat(op.version()).isEqualTo(new VersionNumber(2, 0, 0));
+        }
+
+        @Test
+        void versionAsString() {
+            assertThat(new CompileKotlinOperation().version("2.0.0").version())
+                    .isEqualTo(new VersionNumber(2, 0, 0));
+        }
+
+        @Test
+        void versionAsVersionObject() {
+            var v = new VersionNumber(2, 0, 0);
+            assertThat(new CompileKotlinOperation().version(v).version()).isEqualTo(v);
+        }
+
+        @Test
+        @SuppressWarnings("DataFlowIssue")
+        void versionDoesNotClearKotlinHome() {
+            var op = new CompileKotlinOperation()
+                    .kotlinHome("/kotlin_home")
+                    .version("2.0.0");
+
+            assertThat(op.kotlinHome())
+                    .as("kotlinHome must survive an explicit version")
+                    .isNotNull();
+            assertThat(op.kotlinHome().getPath()).isEqualTo("/kotlin_home");
+            assertThat(op.version()).isEqualTo(new VersionNumber(2, 0, 0));
+        }
+
+        @Test
+        @SuppressWarnings("DataFlowIssue")
+        void versionDoesNotClearKotlinc() {
+            var op = new CompileKotlinOperation()
+                    .kotlinc("/some/kotlinc")
+                    .version("2.0.0");
+
+            assertThat(op.kotlinc())
+                    .as("kotlinc must survive an explicit version")
+                    .isNotNull();
+            assertThat(op.kotlinc().getPath()).isEqualTo("/some/kotlinc");
+            assertThat(op.version()).isEqualTo(new VersionNumber(2, 0, 0));
+        }
+
+        @Test
+        @SuppressWarnings("DataFlowIssue")
+        void versionObjectRejectsNull() {
+            assertThatThrownBy(() -> new CompileKotlinOperation().version((Version) null))
+                    .isInstanceOf(NullPointerException.class);
+        }
+
+        @Test
+        void versionStringAndObjectAreEquivalent() {
+            var viaString = new CompileKotlinOperation().version("2.0.0").version();
+            var viaObject = new CompileKotlinOperation().version(new VersionNumber(2, 0, 0)).version();
+
+            assertThat(viaString)
+                    .as("String and Version overloads must produce the same version")
+                    .isEqualTo(viaObject);
+        }
+
+        @ParameterizedTest
+        @EmptySource
+        void versionStringRejectsBlank(String v) {
+            assertThatThrownBy(() -> new CompileKotlinOperation().version(v))
+                    .isInstanceOf(IllegalArgumentException.class);
+        }
+
+        @Test
+        @SuppressWarnings("DataFlowIssue")
+        void versionStringRejectsNull() {
+            assertThatThrownBy(() -> new CompileKotlinOperation().version((String) null))
                     .isInstanceOf(NullPointerException.class);
         }
     }

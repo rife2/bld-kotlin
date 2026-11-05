@@ -20,6 +20,8 @@ import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import rife.bld.BaseProject;
+import rife.bld.dependencies.Version;
+import rife.bld.dependencies.VersionNumber;
 import rife.bld.extension.kotlin.CompileOptions;
 import rife.bld.extension.kotlin.CompilerPlugin;
 import rife.bld.extension.kotlin.JvmOptions;
@@ -30,6 +32,7 @@ import rife.tools.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
@@ -50,8 +53,16 @@ import java.util.logging.Logger;
 )
 public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOperation> {
 
+    /**
+     * The default Kotlin version.
+     * <p>
+     * Currently: {@code 2.4.21}
+     */
+    public static final Version KOTLIN_VERSION = new VersionNumber(2, 4, 21);
     private static final String KOTLIN_COMPILER = "kotlinc";
     private static final String KOTLIN_COMPILER_EXE = KOTLIN_COMPILER + (SystemTools.isWindows() ? ".bat" : "");
+    private static final String KOTLIN_RELEASES_URL =
+            "https://github.com/JetBrains/kotlin/releases/download/v%s/kotlin-compiler-%s.zip";
     private static final String MAIN_SOURCE_DIRECTORIES = "mainSourceDirectories";
     private static final String MAIN_SOURCE_FILES = "mainSourceFiles";
     private static final String PLUGINS = "plugins";
@@ -81,19 +92,41 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     private @Nullable String resolvedKotlinCompilerPath_;
     private @Nullable File resolvedKotlinHome_;
     private long timeout_ = 600L;
+    private boolean useDownloadedKotlin_;
+    private boolean versionSpecified_;
+    private Version version_ = KOTLIN_VERSION;
     private @Nullable File workDir_;
 
     /**
      * Performs the compile operation.
+     * <p>
+     * A project is not required. When no project is set, the compiler is taken from an explicit
+     * {@link #kotlinc(File) kotlinc(...)} or {@link #kotlinHome(File) kotlinHome(...)} if set, or
+     * otherwise discovered on the host via {@code KOTLIN_HOME}, {@code PATH}, and common install
+     * locations. Downloading is only supported when a project is set, since the downloaded
+     * distribution is placed in the project directory.
      *
-     * @throws NullPointerException if {@code project} or {@code workDir} is {@code null}
-     * @throws Exception            when an exception occurs during the execution
+     * @throws NullPointerException  if {@code workDir} is {@code null}
+     * @throws IllegalStateException if {@link #useDownloadedKotlin()} or {@link #version(Version)
+     *                               version(...)} is set without a project and without an explicit
+     *                               {@code kotlinc} or {@code kotlinHome}, since the requested
+     *                               compiler cannot then be obtained
+     * @throws Exception             when an exception occurs during the execution
      */
     @Override
     @SuppressWarnings("PMD.SystemPrintln")
     public void execute() throws Exception {
-        ObjectTools.requireNonNull(project_, "project");
         ObjectTools.requireNonNull(workDir_, WORK_DIR);
+
+        if (project_ == null && kotlinCompiler_ == null && kotlinHome_ == null
+                && (useDownloadedKotlin_ || versionSpecified_)) {
+            throw new IllegalStateException(
+                    "A project must be set with fromProject(...) when useDownloadedKotlin() or "
+                            + "version(...) is used without an explicit kotlinc(...) or kotlinHome(...), since "
+                            + "the Kotlin compiler can only be obtained by downloading it into the project directory.");
+        }
+
+        resetResolvedKotlin();
 
         executeCreateBuildDirectories();
         executeBuildMainSources();
@@ -104,6 +137,61 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         }
     }
 
+    /**
+     * Derives a Kotlin home directory from a compiler executable path.
+     * <p>
+     * A bare command name (e.g. {@code kotlinc}, {@code kotlinc.bat}) has no parent
+     * directory and cannot yield a home: it is resolved through {@code PATH} by the
+     * operating system at execution time, so the file the OS will run is not
+     * knowable from the name alone. Such names return {@code null}.
+     * <p>
+     * For an actual filesystem path, the path is resolved through symbolic links
+     * first, because package-managed compilers (Homebrew's
+     * {@code /opt/homebrew/bin/kotlinc}, apt's {@code /usr/bin/kotlinc}) are symlinks
+     * whose real home directory — containing the {@code lib/} directory with plugin
+     * JARs — is elsewhere. If resolution fails (dangling link, inaccessible path),
+     * the normalized absolute path is used instead.
+     * <p>
+     * A resolved compiler at {@code <home>/bin/kotlinc} or {@code <home>/bin/kotlinc.bat}
+     * yields {@code <home>}; a compiler at any other location yields its parent.
+     *
+     * @param compiler the compiler executable
+     * @return the derived home directory, or {@code null} if it cannot be determined
+     */
+    @Nullable
+    private static File deriveHomeFromCompiler(File compiler) {
+        // A bare command name (no parent) is a PATH lookup, not a filesystem path.
+        if (compiler.getParentFile() == null) {
+            return null;
+        }
+
+        Path resolved;
+        try {
+            resolved = compiler.toPath().toRealPath();
+        } catch (IOException e) {
+            // Symlink dangling or path inaccessible; fall back to the original path
+            resolved = compiler.toPath().toAbsolutePath().normalize();
+        }
+
+        var parent = resolved.getParent();
+        if (parent == null || !Files.isDirectory(parent)) {
+            return null;
+        }
+
+        // getFileName() is null for a filesystem root (e.g. '/' or 'C:\').
+        var fileName = parent.getFileName();
+        if (fileName == null) {
+            return null;  // parent is a filesystem root; not a Kotlin home
+        }
+        if ("bin".equals(fileName.toString())) {
+            var binParent = parent.getParent();
+            return (binParent != null && Files.isDirectory(binParent))
+                    ? binParent.toFile()
+                    : null;
+        }
+        return parent.toFile();
+    }
+
     @Nullable
     private static String findKotlinCompilerInDir(String directory) {
         var kotlinc = new File(directory, KOTLIN_COMPILER_EXE);
@@ -112,7 +200,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             return kotlinc.getAbsolutePath();
         }
 
-        // Check the bin subdirectory if it exists
         var binDir = new File(directory, "bin");
         if (binDir.isDirectory()) {
             kotlinc = new File(binDir, KOTLIN_COMPILER_EXE);
@@ -122,16 +209,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         }
 
         return null;
-    }
-
-    /**
-     * Locates the Kotlin compiler (kotlinc) executable.
-     *
-     * @return The path to the {@code ekotlinc} executable, or {@code kotlinc}/{@code kotlinc.bat} if not found.
-     * @since 1.1.0
-     */
-    public static String findKotlinCompilerPath() {
-        return findKotlinCompilerPath(false);
     }
 
     /**
@@ -238,10 +315,12 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         // Try 'which' or 'where' commands (less reliable but sometimes works)
         Process process = null;
         try {
+            // Use String[] form to avoid Runtime.exec(String)'s whitespace-only tokenization
+            // and the deprecation introduced in Java 18.
             if (SystemTools.isWindows()) {
-                process = Runtime.getRuntime().exec("where " + KOTLIN_COMPILER);
+                process = Runtime.getRuntime().exec(new String[]{"where", KOTLIN_COMPILER});
             } else {
-                process = Runtime.getRuntime().exec("which " + KOTLIN_COMPILER);
+                process = Runtime.getRuntime().exec(new String[]{"which", KOTLIN_COMPILER});
             }
 
             try (var scanner = new Scanner(process.getInputStream())) {
@@ -268,8 +347,14 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         return KOTLIN_COMPILER_EXE;
     }
 
-    private static void logKotlinCompilerPath(String kotlinCompilerPath, boolean isSilent) {
-        logKotlinCompilerPath(kotlinCompilerPath, isSilent, null);
+    /**
+     * Locates the Kotlin compiler (kotlinc) executable.
+     *
+     * @return The path to the {@code kotlinc} executable, or {@code kotlinc}/{@code kotlinc.bat} if not found.
+     * @since 1.1.0
+     */
+    public static String findKotlinCompilerPath() {
+        return findKotlinCompilerPath(false);
     }
 
     private static void logKotlinCompilerPath(String kotlinCompilerPath, boolean isSilent, @Nullable String from) {
@@ -280,6 +365,10 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                 logger.info("Using Kotlin compiler found at: " + kotlinCompilerPath);
             }
         }
+    }
+
+    private static void logKotlinCompilerPath(String kotlinCompilerPath, boolean isSilent) {
+        logKotlinCompilerPath(kotlinCompilerPath, isSilent, null);
     }
 
     /**
@@ -554,7 +643,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *         {@link #compileMainClasspath() compileMainClasspath}, if not already set.
      *     </li>
      *     <li>
-     *         {@link #compileTestClasspath() compilesTestClasspath}, if not already set.
+     *         {@link #compileTestClasspath() compileTestClasspath}, if not already set.
      *     </li>
      *     <li>
      *         {@link #mainSourceDirectories() mainSourceDirectories} to the {@code kotlin} directory in
@@ -573,13 +662,17 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *     </li>
      *     <li>{@link CompileOptions#noStdLib(boolean) noStdLib} to {@code true}</li>
      * </ul>
+     * <p>
+     * Setting a project additionally enables the download of the Kotlin compiler when
+     * {@link #useDownloadedKotlin()} or {@link #version(Version) version(...)} is set, since the
+     * downloaded distribution is placed in the project directory.
      *
      * @param project the project to configure the compile operation from
      * @return this operation instance
      * @throws NullPointerException if {@code project} is {@code null}
      */
     public CompileKotlinOperation fromProject(BaseProject project) {
-        project_ = Objects.requireNonNull(project, "The project must not be null");
+        project_ = ObjectTools.requireNonNull(project, "project");
 
         if (workDir_ == null) {
             workDir_ = new File(project.workDirectory().getAbsolutePath());
@@ -622,7 +715,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
         compileOptions_.noStdLib(true);
 
-
         return this;
     }
 
@@ -636,7 +728,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * When {@code false}, stdout and stderr are merged and captured through the logger. This makes
      * output testable and keeps it in the build log, but breaks interactive prompts and ANSI formatting.
      * <p>
-     * Default is {@code TRUE}
+     * Default is {@code true}
      *
      * @param inheritIO {@code true} to inherit I/O, {@code false} to capture output
      * @return this operation instance
@@ -655,6 +747,18 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     public boolean isInheritIO() {
         return inheritIO_;
+    }
+
+    /**
+     * Returns whether the host compiler search is skipped in favor of the bld-managed
+     * Kotlin compiler.
+     *
+     * @return {@code true} if the host compiler search is skipped
+     * @see #useDownloadedKotlin()
+     * @since 1.3
+     */
+    public boolean isUseDownloadedKotlin() {
+        return useDownloadedKotlin_;
     }
 
     /**
@@ -718,8 +822,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     public CompileKotlinOperation kotlinHome(File dir) {
         kotlinHome_ = ObjectTools.requireNonNull(dir, "kotlinHome");
-        kotlinHomeResolved_ = false;
-        resolvedKotlinHome_ = null;
+        resetResolvedKotlin();
         return this;
     }
 
@@ -777,8 +880,7 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      */
     public CompileKotlinOperation kotlinc(File executable) {
         kotlinCompiler_ = ObjectTools.requireNonNull(executable, KOTLIN_COMPILER);
-        kotlinHomeResolved_ = false;
-        resolvedKotlinHome_ = null;
+        resetResolvedKotlin();
         return this;
     }
 
@@ -809,11 +911,12 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *
      * @param directories one or more main source directories
      * @return this operation instance
-     * @throws NullPointerException if {@code directories} is {@code null}
+     * @throws NullPointerException     if {@code directories} is {@code null}
+     * @throws IllegalArgumentException if {@code directories} is empty
      * @see #mainSourceDirectories(Collection)
      */
     public CompileKotlinOperation mainSourceDirectories(File... directories) {
-        ObjectTools.requireNonNull(directories, MAIN_SOURCE_DIRECTORIES);
+        ObjectTools.requireNotEmpty(directories, MAIN_SOURCE_DIRECTORIES);
         return mainSourceDirectories(List.of(directories));
     }
 
@@ -822,7 +925,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *
      * @param directories one or more main source directories
      * @return this operation instance
-     * @throws NullPointerException if {@code directories} is {@code null}
+     * @throws NullPointerException     if {@code directories} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code directories} is empty
      * @see #mainSourceDirectoriesPaths(Collection)
      */
     public CompileKotlinOperation mainSourceDirectories(Path... directories) {
@@ -849,11 +953,12 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *
      * @param directories the main source directories
      * @return this operation instance
-     * @throws NullPointerException if {@code directories} is {@code null}
+     * @throws NullPointerException     if {@code directories} is {@code null}
+     * @throws IllegalArgumentException if {@code directories} is empty
      * @see #mainSourceDirectories(File...)
      */
     public final CompileKotlinOperation mainSourceDirectories(Collection<File> directories) {
-        ObjectTools.requireNonNull(directories, MAIN_SOURCE_DIRECTORIES);
+        ObjectTools.requireNotEmpty(directories, MAIN_SOURCE_DIRECTORIES);
         mainSourceDirectories_.addAll(directories);
         return this;
     }
@@ -903,11 +1008,12 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *
      * @param files one or more main source files
      * @return this operation instance
-     * @throws NullPointerException if {@code files} is {@code null}
+     * @throws NullPointerException     if {@code files} is {@code null}
+     * @throws IllegalArgumentException if {@code files} is empty
      * @see #mainSourceFiles(Collection)
      */
     public CompileKotlinOperation mainSourceFiles(File... files) {
-        ObjectTools.requireNonNull(files, MAIN_SOURCE_FILES);
+        ObjectTools.requireNotEmpty(files, MAIN_SOURCE_FILES);
         return mainSourceFiles(List.of(files));
     }
 
@@ -930,7 +1036,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *
      * @param files one or more main source files
      * @return this operation instance
-     * @throws NullPointerException if {@code files} is {@code null}
+     * @throws NullPointerException     if {@code files} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code files} is empty
      * @see #mainSourceFilesPaths(Collection)
      */
     public CompileKotlinOperation mainSourceFiles(Path... files) {
@@ -943,11 +1050,12 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *
      * @param files the main source files
      * @return this operation instance
-     * @throws NullPointerException if {@code files} is {@code null}
+     * @throws NullPointerException     if {@code files} is {@code null}
+     * @throws IllegalArgumentException if {@code files} is empty
      * @see #mainSourceFiles(File...)
      */
-    public CompileKotlinOperation mainSourceFiles(Collection<File> files) {
-        ObjectTools.requireNonNull(files, MAIN_SOURCE_FILES);
+    public final CompileKotlinOperation mainSourceFiles(Collection<File> files) {
+        ObjectTools.requireNotEmpty(files, MAIN_SOURCE_FILES);
         mainSourceFiles_.addAll(files);
         return this;
     }
@@ -1004,11 +1112,11 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param plugins   one or more plugins
      * @return this class instance
      * @throws NullPointerException     if {@code directory} or {@code plugins} is {@code null}
-     * @throws IllegalArgumentException if {@code directory} is blank
+     * @throws IllegalArgumentException if {@code directory} is blank, or {@code plugins} is empty
      */
     public CompileKotlinOperation plugins(String directory, CompilerPlugin... plugins) {
         TextTools.requireNotBlank(directory, "plugins directory");
-        Objects.requireNonNull(plugins, PLUGINS);
+        ObjectTools.requireNotEmpty(plugins, PLUGINS);
         return plugins(new File(directory), plugins);
     }
 
@@ -1018,11 +1126,12 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param directory the directory containing the plugin JARs
      * @param plugins   one or more plugins
      * @return this class instance
-     * @throws NullPointerException if {@code directory} or {@code plugins} is {@code null}
+     * @throws NullPointerException     if {@code directory} or {@code plugins} is {@code null}
+     * @throws IllegalArgumentException if {@code plugins} is empty
      */
     public CompileKotlinOperation plugins(File directory, CompilerPlugin... plugins) {
-        ObjectTools.requireNonNull(directory, "'plugins directory' must not be null");
-        ObjectTools.requireNonNull(plugins, PLUGINS);
+        ObjectTools.requireNonNull(directory, "plugins directory");
+        ObjectTools.requireNotEmpty(plugins, PLUGINS);
         for (var p : plugins) {
             plugins_.add(new File(directory, p.getJar()).getAbsolutePath());
         }
@@ -1037,6 +1146,27 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     @SuppressFBWarnings("EI_EXPOSE_REP")
     public Set<String> plugins() {
         return plugins_;
+    }
+
+    /**
+     * Provides a single compiler plugin path or name.
+     * <p>
+     * This overload exists to resolve an overload-resolution hazard: without it, a call
+     * like {@code plugins("x.jar")} resolves to {@link #plugins(String, CompilerPlugin...)}
+     * with an empty varargs array (per JLS §15.12.2.5, the two-parameter varargs overload
+     * is more specific for a single argument), silently adding nothing at runtime.
+     * Declaring this non-varargs single-argument overload makes the call resolve in
+     * phase 1, before any varargs candidate is considered.
+     *
+     * @param plugin a plugin path or {@link CompilerPlugin} name
+     * @return this class instance
+     * @throws NullPointerException     if {@code plugin} is {@code null}
+     * @throws IllegalArgumentException if {@code plugin} is blank
+     */
+    public final CompileKotlinOperation plugins(String plugin) {
+        TextTools.requireNotBlank(plugin, "plugin");
+        plugins_.add(plugin);
+        return this;
     }
 
     /**
@@ -1072,11 +1202,12 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      * @param directory the directory containing the plugin JARs
      * @param plugins   one or more plugins
      * @return this class instance
-     * @throws NullPointerException if {@code directory} or {@code plugins} is {@code null}
+     * @throws NullPointerException     if {@code directory} or {@code plugins} is {@code null}
+     * @throws IllegalArgumentException if {@code plugins} is empty
      */
     public CompileKotlinOperation plugins(Path directory, CompilerPlugin... plugins) {
-        Objects.requireNonNull(directory, "plugin directory must not be null");
-        Objects.requireNonNull(plugins, PLUGINS);
+        ObjectTools.requireNonNull(directory, "plugins directory");
+        ObjectTools.requireNotEmpty(plugins, PLUGINS);
         return plugins(directory.toFile(), plugins);
     }
 
@@ -1112,11 +1243,12 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *
      * @param directories one or more test source directories
      * @return this operation instance
-     * @throws NullPointerException if {@code directories} is {@code null}
+     * @throws NullPointerException     if {@code directories} is {@code null}
+     * @throws IllegalArgumentException if {@code directories} is empty
      * @see #testSourceDirectories(Collection)
      */
     public CompileKotlinOperation testSourceDirectories(File... directories) {
-        ObjectTools.requireNonNull(directories, TEST_SOURCE_DIRECTORIES);
+        ObjectTools.requireNotEmpty(directories, TEST_SOURCE_DIRECTORIES);
         return testSourceDirectories(List.of(directories));
     }
 
@@ -1125,7 +1257,8 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *
      * @param directories one or more test source directories
      * @return this operation instance
-     * @throws NullPointerException if {@code directories} is {@code null}
+     * @throws NullPointerException     if {@code directories} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code directories} is empty
      * @see #testSourceDirectoriesPaths(Collection)
      */
     public CompileKotlinOperation testSourceDirectories(Path... directories) {
@@ -1152,11 +1285,12 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *
      * @param directories the test source directories
      * @return this operation instance
-     * @throws NullPointerException if {@code directories} is {@code null}
+     * @throws NullPointerException     if {@code directories} is {@code null}
+     * @throws IllegalArgumentException if {@code directories} is empty
      * @see #testSourceDirectories(File...)
      */
     public final CompileKotlinOperation testSourceDirectories(Collection<File> directories) {
-        ObjectTools.requireNonNull(directories, TEST_SOURCE_DIRECTORIES);
+        ObjectTools.requireNotEmpty(directories, TEST_SOURCE_DIRECTORIES);
         testSourceDirectories_.addAll(directories);
         return this;
     }
@@ -1206,16 +1340,17 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *
      * @param files one or more test source files
      * @return this operation instance
-     * @throws NullPointerException if {@code files} is {@code null}
+     * @throws NullPointerException     if {@code files} is {@code null}
+     * @throws IllegalArgumentException if {@code files} is empty
      * @see #testSourceFiles(Collection)
      */
     public CompileKotlinOperation testSourceFiles(File... files) {
-        ObjectTools.requireNonNull(files, TEST_SOURCE_FILES);
+        ObjectTools.requireNotEmpty(files, TEST_SOURCE_FILES);
         return testSourceFiles(List.of(files));
     }
 
     /**
-     * Provides the test sources files that should be compiled.
+     * Provides the test source files that should be compiled.
      *
      * @param files one or more test source files
      * @return this operation instance
@@ -1229,11 +1364,12 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
-     * Provides the test sources files that should be compiled.
+     * Provides the test source files that should be compiled.
      *
      * @param files one or more test source files
      * @return this operation instance
-     * @throws NullPointerException if {@code files} is {@code null}
+     * @throws NullPointerException     if {@code files} is {@code null} or contains {@code null} elements
+     * @throws IllegalArgumentException if {@code files} is empty
      * @see #testSourceFilesPaths(Collection)
      */
     public CompileKotlinOperation testSourceFiles(Path... files) {
@@ -1246,11 +1382,12 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
      *
      * @param files the test source files
      * @return this operation instance
-     * @throws NullPointerException if {@code files} is {@code null}
+     * @throws NullPointerException     if {@code files} is {@code null}
+     * @throws IllegalArgumentException if {@code files} is empty
      * @see #testSourceFiles(File...)
      */
     public final CompileKotlinOperation testSourceFiles(Collection<File> files) {
-        ObjectTools.requireNonNull(files, TEST_SOURCE_FILES);
+        ObjectTools.requireNotEmpty(files, TEST_SOURCE_FILES);
         testSourceFiles_.addAll(files);
         return this;
     }
@@ -1322,6 +1459,103 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     }
 
     /**
+     * Uses the Kotlin compiler downloaded by bld instead of any compiler installed on the host.
+     * <p>
+     * When called, the {@code KOTLIN_HOME} environment variable, the {@code PATH}, and the
+     * common install locations (SDKMAN!, IntelliJ IDEA, Android Studio, Homebrew, etc.) are
+     * all skipped, and the bld-managed Kotlin compiler is used instead. The default
+     * {@link #KOTLIN_VERSION} is downloaded, or the version set with {@link #version(Version)}
+     * if one was configured.
+     * <p>
+     * This is useful to use a bld-managed Kotlin compiler regardless of what is installed on
+     * the machine, without pinning a specific version.
+     * <p>
+     * An explicit {@link #kotlinc(File) kotlinc} or {@link #kotlinHome(File) kotlinHome} still
+     * takes precedence over this setting. Requires a {@link #fromProject(BaseProject) project}
+     * to be set, since the downloaded compiler is placed in the project directory; without one,
+     * {@link #execute()} fails rather than silently falling back to the host compiler.
+     *
+     * @return this operation instance
+     * @throws IllegalStateException at {@link #execute()} if no project is set, unless an explicit
+     *                               {@code kotlinc} or {@code kotlinHome} is also set
+     * @see #version(Version)
+     * @see #isUseDownloadedKotlin()
+     * @since 1.3
+     */
+    public CompileKotlinOperation useDownloadedKotlin() {
+        useDownloadedKotlin_ = true;
+        resetResolvedKotlin();
+        return this;
+    }
+
+    /**
+     * Sets the Kotlin version to download into the project directory.
+     * <p>
+     * Defaults to {@link #KOTLIN_VERSION}. This version is used whenever the compiler is
+     * downloaded: when {@link #useDownloadedKotlin()} is called, when this setter is called
+     * explicitly, or as a last resort when no host compiler is found. An explicitly specified
+     * version takes precedence over any compiler discovered via the {@code KOTLIN_HOME}
+     * environment variable or the {@code PATH}, but an explicit {@link #kotlinc(File) kotlinc}
+     * or {@link #kotlinHome(File) kotlinHome} still takes precedence over it.
+     * <p>
+     * When neither an explicit {@code kotlinc} nor an explicit {@code kotlinHome} is set, this
+     * requires a {@link #fromProject(BaseProject) project}, since the requested version can only
+     * be satisfied by downloading the compiler into the project directory.
+     *
+     * @param version the version
+     * @return this operation instance
+     * @throws NullPointerException  if {@code version} is {@code null}
+     * @throws IllegalStateException at {@link #execute()} if no project, {@code kotlinc}, or
+     *                               {@code kotlinHome} is set
+     * @since 1.3
+     */
+    public CompileKotlinOperation version(Version version) {
+        version_ = ObjectTools.requireNonNull(version, "version");
+        versionSpecified_ = true;
+        resetResolvedKotlin();
+        return this;
+    }
+
+    /**
+     * Sets the Kotlin version to download into the project directory.
+     * <p>
+     * Defaults to {@link #KOTLIN_VERSION}. This version is used whenever the compiler is
+     * downloaded: when {@link #useDownloadedKotlin()} is called, when this setter is called
+     * explicitly, or as a last resort when no host compiler is found. An explicitly specified
+     * version takes precedence over any compiler discovered via the {@code KOTLIN_HOME}
+     * environment variable or the {@code PATH}, but an explicit {@link #kotlinc(File) kotlinc}
+     * or {@link #kotlinHome(File) kotlinHome} still takes precedence over it.
+     * <p>
+     * When neither an explicit {@code kotlinc} nor an explicit {@code kotlinHome} is set, this
+     * requires a {@link #fromProject(BaseProject) project}, since the requested version can only
+     * be satisfied by downloading the compiler into the project directory.
+     *
+     * @param version the version
+     * @return this operation instance
+     * @throws NullPointerException     if {@code version} is {@code null}
+     * @throws IllegalArgumentException if {@code version} is blank
+     * @throws IllegalStateException    at {@link #execute()} if no project, {@code kotlinc}, or
+     *                                  {@code kotlinHome} is set
+     * @since 1.3
+     */
+    public CompileKotlinOperation version(String version) {
+        version_ = VersionNumber.parse(TextTools.requireNotBlank(version, "version"));
+        versionSpecified_ = true;
+        resetResolvedKotlin();
+        return this;
+    }
+
+    /**
+     * Returns the Kotlin version to download into the project directory.
+     *
+     * @return the version
+     * @since 1.3
+     */
+    public Version version() {
+        return version_;
+    }
+
+    /**
      * Provides the working directory if it differs from the project's directory.
      *
      * @param dir the directory
@@ -1366,6 +1600,56 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
     @Nullable
     public File workDir() {
         return workDir_;
+    }
+
+    /**
+     * Downloads and extracts the Kotlin compiler distribution into the project directory.
+     *
+     * @return the path to the {@code kotlinc} executable
+     * @throws ExitStatusException if the download or extraction fails
+     * @since 1.3
+     */
+    @SuppressWarnings("PMD.PreserveStackTrace")
+    @SuppressFBWarnings("LEST_LOST_EXCEPTION_STACK_TRACE")
+    private File downloadKotlinDistribution() throws ExitStatusException {
+        ObjectTools.requireNonNull(project_, "project");
+        var v = version_.toString();
+        try {
+            if (!silent() && logger.isLoggable(Level.INFO)) {
+                logger.info("Downloading Kotlin compiler version " + v + '.');
+            }
+            var url = URI.create(String.format(KOTLIN_RELEASES_URL, v, v)).toURL();
+            var sandbox = new Sandbox("bld-kotlin", project_, silent());
+            var extracted = sandbox.downloadZip(url, v).toFile();
+            var home = new File(extracted, "kotlinc");
+            if (!home.isDirectory()) {
+                home = extracted;
+            }
+
+            // Expose the extracted home so compiler plugins bundled in the distribution's
+            // lib/ directory can be resolved alongside the downloaded compiler.
+            resolvedKotlinHome_ = home;
+            kotlinHomeResolved_ = true;
+
+            // Locate the compiler; check both the home root and bin/ subdirectory, restoring
+            // the executable bit if the zip extraction dropped it.
+            for (var exec : new File[]{
+                    new File(home, KOTLIN_COMPILER_EXE),
+                    new File(new File(home, "bin"), KOTLIN_COMPILER_EXE)}) {
+                if (exec.isFile() && (SystemTools.isWindows() || exec.canExecute() || exec.setExecutable(true))) {
+                    return exec;
+                }
+            }
+            if (!silent() && logger.isLoggable(Level.SEVERE)) {
+                logger.severe("Could not locate Kotlin compiler in: " + home.getAbsolutePath());
+            }
+            throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
+        } catch (IOException e) {
+            if (!silent() && logger.isLoggable(Level.SEVERE)) {
+                logger.log(Level.SEVERE, e.getLocalizedMessage(), e);
+            }
+            throw new ExitStatusException(ExitStatusException.EXIT_FAILURE);
+        }
     }
 
     /**
@@ -1423,7 +1707,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         var args = new ArrayList<String>(
                 (classpath != null ? classpath.size() : 0) + sources.size() + 16);
 
-        // kotlinc — resolve once and cache across main + test compilations
         if (kotlinCompiler_ != null) {
             command.add(kotlinCompiler_.getAbsolutePath());
         } else if (kotlinHome_ != null) {
@@ -1438,7 +1721,27 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             }
         } else {
             if (resolvedKotlinCompilerPath_ == null) {
-                resolvedKotlinCompilerPath_ = findKotlinCompilerPath(silent());
+                if (versionSpecified_ || useDownloadedKotlin_) {
+                    // An explicitly configured version (or a download request) takes
+                    // precedence over any compiler discovered via KOTLIN_HOME/PATH.
+                    resolvedKotlinCompilerPath_ = KOTLIN_COMPILER_EXE;
+                } else {
+                    resolvedKotlinCompilerPath_ = findKotlinCompilerPath(silent());
+                }
+                if (KOTLIN_COMPILER_EXE.equals(resolvedKotlinCompilerPath_)) {
+                    if (project_ != null) {
+                        resolvedKotlinCompilerPath_ = downloadKotlinDistribution().getAbsolutePath();
+                    } else if (!silent() && logger.isLoggable(Level.WARNING)) {
+                        // Downloading requires a project; fall through and attempt to run
+                        // 'kotlinc' from PATH instead. execute() rejects the explicit
+                        // version/download-without-project cases before reaching here, so
+                        // this only fires on the last-resort path or when executeBuildSources
+                        // is invoked directly by a subclass.
+                        logger.warning("No Kotlin compiler was found and no project is configured to "
+                                + "download one into. Attempting to execute '" + KOTLIN_COMPILER_EXE
+                                + "' from PATH.");
+                    }
+                }
             }
             command.add(resolvedKotlinCompilerPath_);
         }
@@ -1478,10 +1781,17 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
 
             plugins_.forEach(p -> {
                 File pluginJar = null;
+                CompilerPlugin pluginValue = null;
 
                 // Try as enum first
                 try {
-                    var pluginValue = CompilerPlugin.valueOf(p);
+                    pluginValue = CompilerPlugin.valueOf(p);
+                } catch (IllegalArgumentException ignored) {
+                    // Try as a direct file path
+                    pluginJar = new File(p);
+                }
+
+                if (pluginValue != null) {
                     if (kotlinHomePath != null) {
                         pluginJar = IOTools.resolveFile(kotlinHomePath, "lib", pluginValue.getJar());
                     } else if (!silent() && logger.isLoggable(Level.WARNING)) {
@@ -1489,9 +1799,6 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
                                 + CompilerPlugin.class.getSimpleName() + '.' + pluginValue.name()
                                 + "' compiler plugin.");
                     }
-                } catch (IllegalArgumentException ignored) {
-                    // Try as a direct file path
-                    pluginJar = new File(p);
                 }
 
                 if (pluginJar != null) {
@@ -1516,7 +1823,13 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
             argsFile = File.createTempFile("bld-kotlinc-", ".args");
             argsFile.deleteOnExit();
 
-            Files.writeString(argsFile.toPath(), String.join(System.lineSeparator(), args));
+            // Quote any argument containing whitespace (spaces, tabs, etc.) or a double
+            // quote, and escape embedded double quotes, per the Kotlin @argfile format.
+            var lines = args.stream()
+                    .map(PathTools::quoteArgForArgFile)
+                    .toList();
+
+            Files.writeString(argsFile.toPath(), String.join(System.lineSeparator(), lines));
 
             command.add("@" + argsFile.getAbsolutePath());
 
@@ -1614,30 +1927,62 @@ public class CompileKotlinOperation extends AbstractOperation<CompileKotlinOpera
         return resolvedKotlinHome_;
     }
 
+    /**
+     * Invalidates the resolved compiler path and Kotlin home so they are recomputed
+     * against the current configuration on the next access.
+     */
+    private void resetResolvedKotlin() {
+        resolvedKotlinCompilerPath_ = null;
+        kotlinHomeResolved_ = false;
+        resolvedKotlinHome_ = null;
+    }
+
+    /**
+     * Resolves the Kotlin home used to locate plugin JARs, respecting the same precedence
+     * that {@link #executeBuildSources} applies to the compiler executable:
+     * <ol>
+     *     <li>An explicitly set {@link #kotlinHome(File) kotlinHome}.</li>
+     *     <li>The parent of an explicitly set {@link #kotlinc(File) kotlinc}.</li>
+     *     <li>The parent of the compiler resolved during execution (from {@code PATH},
+     *         {@code KOTLIN_HOME}, or a download).</li>
+     *     <li>The {@code KOTLIN_HOME} environment variable, as a final fallback.</li>
+     * </ol>
+     *
+     * @return the resolved Kotlin home, or {@code null} if it cannot be determined
+     */
     @Nullable
     private File resolveKotlinHome() {
+        // 1. Explicit home always wins
         if (kotlinHome_ != null) {
             return kotlinHome_;
         }
 
-        var kotlinHome = System.getenv("KOTLIN_HOME");
-        if (kotlinHome != null) {
-            return new File(kotlinHome);
-        }
-
+        // 2. Explicit compiler: derive its home so plugin jars come from the same installation
         if (kotlinCompiler_ != null) {
-            var parent = kotlinCompiler_.getParentFile();
-            if (IOTools.isDirectory(parent)) {
-                if ("bin".equals(parent.getName())) {
-                    var binParent = parent.getParentFile();
-                    if (IOTools.isDirectory(binParent)) {
-                        return binParent.getParentFile();
-                    }
-                } else {
-                    return parent;
-                }
+            var derived = deriveHomeFromCompiler(kotlinCompiler_);
+            if (derived != null) {
+                return derived;
             }
         }
+
+        // 3. Compiler resolved during executeBuildSources (PATH, KOTLIN_HOME, or download).
+        //    This ensures enum-based plugins work even when the compiler was auto-discovered.
+        //    A bare command name (the PATH fallback) yields no home from deriveHomeFromCompiler,
+        //    so this correctly falls through to the KOTLIN_HOME env check instead of returning
+        //    the process working directory.
+        if (resolvedKotlinCompilerPath_ != null) {
+            var derived = deriveHomeFromCompiler(new File(resolvedKotlinCompilerPath_));
+            if (derived != null) {
+                return derived;
+            }
+        }
+
+        // 4. Fall back to the KOTLIN_HOME environment variable
+        var kotlinHomeEnv = System.getenv("KOTLIN_HOME");
+        if (kotlinHomeEnv != null) {
+            return new File(kotlinHomeEnv);
+        }
+
         return null;
     }
 }
