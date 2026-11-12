@@ -48,7 +48,7 @@ public class CompileKotlinOperationBuild extends Project {
         var junit = version(6, 1, 3);
         scope(compile)
                 .include(dependency("com.uwyn.rife2", "bld-extensions-tools",
-                        version(1, 5, 1, "SNAPSHOT")))
+                        version(1, 6, 0)))
                 .include(dependency("com.uwyn.rife2", "bld", version(3, 0, 1)));
         scope(provided)
                 .include(dependency("org.jspecify", "jspecify", "1.0.1"))
