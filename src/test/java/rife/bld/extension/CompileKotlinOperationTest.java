@@ -653,24 +653,24 @@ class CompileKotlinOperationTest {
                 }
 
                 @Test
-                @SuppressWarnings("DataFlowIssue")
                 void doesNotAffectKotlinHome() {
+                    var kotlinHome = new File("/kotlin_home");
                     var op = new CompileKotlinOperation()
-                            .kotlinHome("/kotlin_home")
+                            .kotlinHome(kotlinHome)
                             .useDownloadedKotlin();
                     // useDownloadedKotlin is a flag only; kotlinHome_ is untouched
-                    assertThat(op.kotlinHome()).isNotNull();
-                    assertThat(op.kotlinHome().getPath()).isEqualTo("/kotlin_home");
+                    assertThat(op.kotlinHome()).isEqualTo(kotlinHome);
                 }
 
                 @Test
-                @SuppressWarnings("DataFlowIssue")
                 void doesNotAffectKotlinc() {
+                    // Build the File once and reuse it for both the setter (File overload) and
+                    // the assertion, so input and expected value are separator-neutral.
+                    var kotlinc = new File("/some/kotlinc");
                     var op = new CompileKotlinOperation()
-                            .kotlinc("/some/kotlinc")
+                            .kotlinc(kotlinc)
                             .useDownloadedKotlin();
-                    assertThat(op.kotlinc()).isNotNull();
-                    assertThat(op.kotlinc().getPath()).isEqualTo("/some/kotlinc");
+                    assertThat(op.kotlinc()).isEqualTo(kotlinc);
                 }
 
                 @Test
@@ -1591,30 +1591,30 @@ class CompileKotlinOperationTest {
         }
 
         @Test
-        @SuppressWarnings("DataFlowIssue")
         void kotlinHomeAfterVersion() {
+            var kotlinHome = new File("/kotlin_home");
             var op = new CompileKotlinOperation()
                     .version("2.0.0")
-                    .kotlinHome("/kotlin_home");
+                    .kotlinHome(kotlinHome);
 
             assertThat(op.kotlinHome())
                     .as("kotlinHome must be set after version")
-                    .isNotNull();
-            assertThat(op.kotlinHome().getPath()).isEqualTo("/kotlin_home");
+                    .isEqualTo(kotlinHome);
             assertThat(op.version()).isEqualTo(new VersionNumber(2, 0, 0));
         }
 
         @Test
-        @SuppressWarnings("DataFlowIssue")
         void kotlincAfterVersion() {
+            // Build the File once and reuse it for both the setter (File overload) and the
+            // assertion, so input and expected value are separator-neutral.
+            var kotlinc = new File("/some/kotlinc");
             var op = new CompileKotlinOperation()
                     .version("2.0.0")
-                    .kotlinc("/some/kotlinc");
+                    .kotlinc(kotlinc);
 
             assertThat(op.kotlinc())
                     .as("kotlinc must be set after version")
-                    .isNotNull();
-            assertThat(op.kotlinc().getPath()).isEqualTo("/some/kotlinc");
+                    .isEqualTo(kotlinc);
             assertThat(op.version()).isEqualTo(new VersionNumber(2, 0, 0));
         }
 
@@ -1631,30 +1631,32 @@ class CompileKotlinOperationTest {
         }
 
         @Test
-        @SuppressWarnings("DataFlowIssue")
         void versionDoesNotClearKotlinHome() {
+            // Build the File once and reuse it for both the setter (File overload) and the
+            // assertion, so input and expected value are separator-neutral.
+            var kotlinHome = new File("/kotlin_home");
             var op = new CompileKotlinOperation()
-                    .kotlinHome("/kotlin_home")
+                    .kotlinHome(kotlinHome)
                     .version("2.0.0");
 
             assertThat(op.kotlinHome())
                     .as("kotlinHome must survive an explicit version")
-                    .isNotNull();
-            assertThat(op.kotlinHome().getPath()).isEqualTo("/kotlin_home");
+                    .isEqualTo(kotlinHome);
             assertThat(op.version()).isEqualTo(new VersionNumber(2, 0, 0));
         }
 
         @Test
-        @SuppressWarnings("DataFlowIssue")
         void versionDoesNotClearKotlinc() {
+            // Build the File once and reuse it for both the setter (File overload) and the
+            // assertion, so input and expected value are separator-neutral.
+            var kotlinc = new File("/some/kotlinc");
             var op = new CompileKotlinOperation()
-                    .kotlinc("/some/kotlinc")
+                    .kotlinc(kotlinc)
                     .version("2.0.0");
 
             assertThat(op.kotlinc())
                     .as("kotlinc must survive an explicit version")
-                    .isNotNull();
-            assertThat(op.kotlinc().getPath()).isEqualTo("/some/kotlinc");
+                    .isEqualTo(kotlinc);
             assertThat(op.version()).isEqualTo(new VersionNumber(2, 0, 0));
         }
 
